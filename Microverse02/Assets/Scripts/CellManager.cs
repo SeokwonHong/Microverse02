@@ -14,7 +14,14 @@ public class CellManager : MonoBehaviour
 
         public Vector2 nextPos;
         public Vector2 nextVelocity;
+
+        public float cellRadius; // 셀 하나하나의 경계
+        public float detectRadius; // 이웃 인식 경계
+
+       
     }
+
+    //velocity 는 vector 2 의 좌표를 하나 찍고 그걸  0,0 로 직선연결한다 가정. 끝부분에 화살표를 단것이라 보면 됨: 방향+힘
     void Start()
     {
         for (int i = 0; i < 10; i++)
@@ -23,6 +30,8 @@ public class CellManager : MonoBehaviour
             c.currentPos = Random.insideUnitCircle * 5f;
             c.currentVelocity = Random.insideUnitCircle.normalized;
 
+            c.cellRadius = 2f;
+            c.detectRadius = 4f;
             cells.Add(c);
         }
     }
@@ -34,9 +43,11 @@ public class CellManager : MonoBehaviour
         {
             c.nextVelocity = c.currentVelocity;
             c.nextPos = c.currentPos+c.nextVelocity*cellSpeed*Time.deltaTime;
+
+
         }
 
-        foreach (var c in cells)
+        foreach (Cell c in cells)
         {
             c.currentVelocity = c.nextVelocity;
             c.currentPos = c.nextPos;
