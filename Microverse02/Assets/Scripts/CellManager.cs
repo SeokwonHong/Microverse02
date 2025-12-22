@@ -8,8 +8,10 @@ public class CellManager : MonoBehaviour
 
     public float cellSpeed = 2f;
     [SerializeField] float BoxSize = 4f;
+    [SerializeField] int cellAmount = 10;
 
     private List<Cell> cells = new List<Cell>();
+
     class Cell
     {
         public Vector2 currentPos;
@@ -29,12 +31,12 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < cellAmount; i++)
         {
             Cell c = new Cell();
             c.currentPos = Random.insideUnitCircle * 5f;
             c.currentVelocity = Random.insideUnitCircle.normalized;
-            c.cellRadius = 2f;
+            c.cellRadius = 0.2f;
             c.detectRadius = 4f;
             cells.Add(c);
         }
@@ -45,20 +47,70 @@ public class CellManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        foreach (Cell c in cells)
-        {
-            c.nextVelocity = c.currentVelocity;
-            c.nextPos = c.currentPos+c.nextVelocity*cellSpeed*Time.deltaTime;
+        spatialHash.Clear(); // 딕셔너리 내부 데이터 지우기
 
+        for (int i = 0;  i < cellAmount;i++)
+        {
+            Cell c = cells[i];
+
+            spatialHash.Insert(c.currentPos, i);
+        }
+
+        for (int i = 0;  i < cellAmount;i++) 
+        {
+            Cell c = cells[i];
+
+
+            c.nextVelocity = c.currentVelocity;
+            c.nextPos = c.currentPos + c.nextVelocity * cellSpeed * Time.deltaTime;
+
+            foreach (int otherIndex in spatialHash.Query(c.currentPos)) // Query 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
+            {
+                if(otherIndex == i) continue;
+                CellGathering(i,otherIndex);
+            }
 
         }
 
-        foreach (Cell c in cells)
+        for (int i = 0; i < cellAmount; i++)
         {
+            Cell c = cells[i];
+
             c.currentVelocity = c.nextVelocity;
             c.currentPos = c.nextPos;
         }
+      
     }
+
+    void CellGathering(int CurrentIndex,int OtherIndex)
+    {
+        Cell currentCell = cells[CurrentIndex];
+        Cell otherCell = cells[OtherIndex];
+
+        Vector2 distance = otherCell.currentPos - currentCell.currentPos; // 크기+ 방향
+        Vector2 direction = distance.normalized; //방향
+        
+
+        float minDist = currentCell.cellRadius + otherCell.cellRadius; // minimum distance ***반지름의 합***
+        float minDist2 = minDist * minDist;
+        float d2 = distance.sqrMagnitude;
+
+        
+
+        if (d2 < minDist2 && d2>0f) // 곂침
+        {
+            
+        }
+        else //둘 사이에 공간이 있음.
+        {
+            
+        } 
+            
+       
+
+    }
+
+
     void OnDrawGizmos()
     {
         if (cells == null)
@@ -70,7 +122,7 @@ public class CellManager : MonoBehaviour
         Gizmos.color = Color.green;
         foreach (Cell c in cells)
         {
-            Gizmos.DrawSphere(c.currentPos, 0.1f);
+            Gizmos.DrawSphere(c.currentPos, c.cellRadius);
         }
     }
 }
