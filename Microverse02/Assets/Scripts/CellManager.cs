@@ -50,17 +50,9 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        for (int i = 0; i < 55; i++)
-        {
-            Cell c = new Cell();
-            c.currentPos = Random.insideUnitCircle * 5f;
-            //c.currentVelocity = Random.insideUnitCircle.normalized;
-            c.cellRadius = 0.1f;
-            c.detectRadius = c.cellRadius*5;
-            cells.Add(c);
-        }
+        CreateOrganism(Vector2.zero, 16,2.0f); //*****************************************************************************
 
-        
+
     }
 
     // Update is called once per frame
@@ -88,8 +80,6 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i,otherIndex);
                 ApplyCohesion(i, otherIndex);
             }
-
-            
         }
 
         for (int i = 0; i < cells.Count; i++) 
@@ -99,11 +89,15 @@ public class CellManager : MonoBehaviour
             c.currentVelocity = c.nextVelocity;//더블버퍼중 두번째
             c.currentPos = c.nextPos;
             cells[i] = c;
-
-            
         }
         
     }
+
+    void CreateOrganism(Vector2 center, int shellCount, float targetRadius)
+    {
+
+    }
+
 
     void ResolveOverlap(int CurrentIndex,int OtherIndex)
     {
