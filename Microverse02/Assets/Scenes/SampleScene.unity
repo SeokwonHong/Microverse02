@@ -485,7 +485,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cellSpeed: 2
+  cellSpeed: 0.35
+  BoxSize: 4
+  cellAmount: 500
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
