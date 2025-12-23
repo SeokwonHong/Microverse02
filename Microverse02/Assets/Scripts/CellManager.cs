@@ -1,5 +1,6 @@
 
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CellManager : MonoBehaviour
@@ -7,8 +8,11 @@ public class CellManager : MonoBehaviour
     SpatialHash spatialHash;
 
     public float cellSpeed = 2f;
+
+    //해쉬 
     [SerializeField] float BoxSize = 4f;
-    [SerializeField] int cellAmount = 10;
+
+    [SerializeField] int cellAmount = 20;
 
     private List<Cell> cells = new List<Cell>();
 
@@ -36,7 +40,7 @@ public class CellManager : MonoBehaviour
             Cell c = new Cell();
             c.currentPos = Random.insideUnitCircle * 5f;
             c.currentVelocity = Random.insideUnitCircle.normalized;
-            c.cellRadius = 0.2f;
+            c.cellRadius = 0.1f;
             c.detectRadius = 4f;
             cells.Add(c);
         }
@@ -59,10 +63,9 @@ public class CellManager : MonoBehaviour
         for (int i = 0;  i < cellAmount;i++) 
         {
             Cell c = cells[i];
-
-
-            c.nextVelocity = c.currentVelocity;
+            c.nextVelocity = c.currentVelocity; //더블버퍼중 첫번째
             c.nextPos = c.currentPos + c.nextVelocity * cellSpeed * Time.deltaTime;
+            cells[i] = c;
 
             foreach (int otherIndex in spatialHash.Query(c.currentPos)) // Query 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
             {
@@ -70,16 +73,20 @@ public class CellManager : MonoBehaviour
                 CellGathering(i,otherIndex);
             }
 
+            
         }
 
-        for (int i = 0; i < cellAmount; i++)
+        for (int i = 0; i < cellAmount; i++) 
         {
             Cell c = cells[i];
 
-            c.currentVelocity = c.nextVelocity;
+            c.currentVelocity = c.nextVelocity;//더블버퍼중 두번째
             c.currentPos = c.nextPos;
+            cells[i] = c;
+
+            
         }
-      
+        
     }
 
     void CellGathering(int CurrentIndex,int OtherIndex)
@@ -87,7 +94,7 @@ public class CellManager : MonoBehaviour
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
 
-        Vector2 distance = otherCell.currentPos - currentCell.currentPos; // 크기+ 방향
+        Vector2 distance = otherCell.currentPos - currentCell.currentPos; // 크기+ 방향. other - current 하면 current 입장에서 출발하는걸로 가능
         Vector2 direction = distance.normalized; //방향
         
 
@@ -95,15 +102,25 @@ public class CellManager : MonoBehaviour
         float minDist2 = minDist * minDist;
         float d2 = distance.sqrMagnitude;
 
-        
+
 
         if (d2 < minDist2 && d2>0f) // 곂침
         {
-            
+            float dist = Mathf.Sqrt(d2);
+            float overlap = (minDist - dist);
+            Vector2 push = direction * (overlap * 0.5f);
+
+            currentCell.nextPos -= push;
+            otherCell.nextPos += push;
+
+            cells[CurrentIndex] = currentCell;
+            cells[OtherIndex] = otherCell;
+
         }
         else //둘 사이에 공간이 있음.
         {
-            
+            float gatheringStrength = 0.01f;
+            currentCell.nextPos = Vector2.MoveTowards(currentCell.nextPos, otherCell.currentPos,gatheringStrength*Time.deltaTime );
         } 
             
        
