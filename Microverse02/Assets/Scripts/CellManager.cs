@@ -12,7 +12,7 @@ public class CellManager : MonoBehaviour
     //해쉬 
     [SerializeField] float BoxSize = 4f;
 
-   
+
     private List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
 
@@ -39,7 +39,7 @@ public class CellManager : MonoBehaviour
     {
         public int id; // 이 셀이 무엇인지
         public int coreIndex; // 중심은 누구냐 (인덱스로 찾을거임)
-        public List<int> members= new List<int>(); // 그룹의 집합 다 넣을거임
+        public List<int> members = new List<int>(); // 그룹의 집합 다 넣을거임
         public float targetRadius; // 쉘과 심장과의 거리
         public float hp;
 
@@ -50,7 +50,7 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        CreateOrganism(Vector2.zero, 16,2.0f); //*****************************************************************************
+        CreateOrganism(Vector2.zero, 50, 2.0f); //*****************************************************************************
 
 
     }
@@ -60,14 +60,14 @@ public class CellManager : MonoBehaviour
     {
         spatialHash.Clear(); // 딕셔너리 내부 데이터 지우기
 
-        for (int i = 0;  i < cells.Count; i++)
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
 
             spatialHash.Insert(c.currentPos, i);
         }
 
-        for (int i = 0;  i < cells.Count; i++) 
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
             c.nextVelocity = c.currentVelocity; //더블버퍼중 첫번째
@@ -76,13 +76,14 @@ public class CellManager : MonoBehaviour
 
             foreach (int otherIndex in spatialHash.Query(c.currentPos)) // Query 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
             {
-                if(otherIndex == i) continue;
-                ResolveOverlap(i,otherIndex);
+                if (otherIndex == i) continue;
+                ResolveOverlap(i, otherIndex);
                 ApplyCohesion(i, otherIndex);
+                ApplyKeepDistance(i, otherIndex);
             }
         }
 
-        for (int i = 0; i < cells.Count; i++) 
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
 
@@ -90,16 +91,59 @@ public class CellManager : MonoBehaviour
             c.currentPos = c.nextPos;
             cells[i] = c;
         }
-        
+
     }
 
     void CreateOrganism(Vector2 center, int shellCount, float targetRadius)
     {
+        Organisms org = new Organisms();
+        org.id = organisms.Count;
+        org.targetRadius = targetRadius;
 
+
+        //core 
+
+        Cell core = new Cell();
+        core.currentPos = center;
+        core.currentVelocity = Vector2.zero;
+        core.cellRadius = 0.20f;
+        core.detectRadius = core.cellRadius * 5f;
+        core.organismId = org.id;
+        core.role = CellRole.Core;
+
+        int coreIndex = cells.Count;
+        cells.Add(core);
+
+        org.coreIndex = coreIndex;
+        org.members.Add(coreIndex);
+
+        //Shell
+
+        for (int i = 0; i < shellCount; i++)
+        {
+            float angle = (Mathf.PI * 2f) * (i / (float)shellCount);
+            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            Vector2 pos = center + dir * targetRadius;
+
+            Cell shell = new Cell();
+            shell.currentPos = pos;
+            shell.currentVelocity = Vector2.zero;
+            shell.cellRadius = 0.1f;
+            shell.detectRadius = shell.cellRadius * 5f;
+            shell.organismId = org.id;
+            shell.role = CellRole.Shell;
+
+            int shellIndex = cells.Count;
+            cells.Add(shell);
+            org.members.Add(shellIndex);
+
+        }
+
+        organisms.Add(org);
     }
 
 
-    void ResolveOverlap(int CurrentIndex,int OtherIndex)
+    void ResolveOverlap(int CurrentIndex, int OtherIndex)
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
@@ -109,7 +153,7 @@ public class CellManager : MonoBehaviour
         float d2 = delta.sqrMagnitude;
         if (d2 <= 0f) return;
 
-        float minDist = currentCell.cellRadius +otherCell.cellRadius;
+        float minDist = currentCell.cellRadius + otherCell.cellRadius;
         float minDist2 = minDist * minDist;
         if (d2 >= minDist2) return;
 
@@ -126,9 +170,9 @@ public class CellManager : MonoBehaviour
         cells[OtherIndex] = otherCell;
 
     }
-   
 
-#region Cell_Rules
+
+    #region Cell_Rules
 
     void ApplyCohesion(int CurrentIndex, int OtherIndex)
     {
@@ -144,36 +188,78 @@ public class CellManager : MonoBehaviour
 
         Vector2 delta = otherCell.currentPos - currentCell.currentPos;
         float d2 = delta.sqrMagnitude;
-        if(d2 <= 0f) return;
+        if (d2 <= 0f) return;
 
 
         float detectR = currentCell.detectRadius;
         float detectR2 = detectR * detectR;
-        if(d2 > detectR2) return;
+        if (d2 > detectR2) return;
 
         float minDist = currentCell.cellRadius + otherCell.cellRadius;
         float minDist2 = minDist * minDist;
-        if(d2 <= minDist2) return;
+        if (d2 <= minDist2) return;
 
         float dist = Mathf.Sqrt(d2);
         Vector2 dir = delta / dist; //벡터를 순수 거리로 나눔
 
         float speed = 0.01f;
-        Vector2 move = dir * (speed*Time.deltaTime);
+        Vector2 move = dir * (speed * Time.deltaTime);
 
         currentCell.nextPos += move * 0.5f;
-        otherCell.nextPos -=move * 0.5f;
+        otherCell.nextPos -= move * 0.5f;
 
         cells[CurrentIndex] = currentCell;
         cells[OtherIndex] = otherCell;
     }
 
+    void ApplyKeepDistance(int CurrentIndex, int OtherIndex)
+    {
+        Cell currentCell = cells[CurrentIndex];
+        Cell otherCell = cells[OtherIndex];
+
+        //if (currentCell.organismId != otherCell.organismId) return;
+        //if (currentCell.role != CellRole.Core) return;
+        //if (otherCell.role != CellRole.Core) return;
 
 
-#endregion
+
+        Vector2 delta = otherCell.currentPos - currentCell.currentPos;
+        float d2 = delta.sqrMagnitude;
+        if (d2 < 1e-8f) return; // 너무 가까워도 안됨
+
+        float dist = Mathf.Sqrt(d2);
+        Vector2 dir = delta / dist;
+
+        float radius = currentCell.cellRadius;
+        float maxRadius = radius * 1.5f;
+
+        if (dist > maxRadius) return; //맥시멈 사거리 밖
 
 
-void OnDrawGizmos()
+        float speed = 0.3f;
+        Vector2 move = dir * (speed * Time.deltaTime);
+
+
+
+
+        if (radius < dist) // 레이더 밖이되 맥시멈 안쪽이면
+        {
+            otherCell.nextPos += move * 0.5f;
+        }
+
+        else
+        {
+            otherCell.nextPos -= move * 0.2f;
+        }
+
+
+    }
+
+
+    #endregion
+
+
+    void OnDrawGizmos()
     {
         if (cells == null)
         {
@@ -189,5 +275,5 @@ void OnDrawGizmos()
     }
 }
 
-    
+
 
