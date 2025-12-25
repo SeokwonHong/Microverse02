@@ -41,6 +41,11 @@ public class CellManager : MonoBehaviour
         public int coreIndex; // 중심은 누구냐 (인덱스로 찾을거임)
         public List<int> members = new List<int>(); // 그룹의 집합 다 넣을거임
         public float coreDistance; // 쉘과 심장과의 거리
+
+        public Vector2 anchorPos;
+        public Vector2 heading; //normalized 방향
+        public float headingPower; // 속도보다는 tendency 로 봐야함. 값을 낮게 유지시켜 더 생물같이 표현해야함.
+        public bool anchorEnabled; //앵커가 쉘들을 붙잡거나 놓아버리거나: 나중에 죽으면 구조가 파괴되게
         public float hp;
 
     }
@@ -153,6 +158,7 @@ public class CellManager : MonoBehaviour
     }
 
 
+    #region Cell_Constraint
     void ResolveOverlap(int CurrentIndex, int OtherIndex)
     {
         Cell currentCell = cells[CurrentIndex];
@@ -180,6 +186,11 @@ public class CellManager : MonoBehaviour
         cells[OtherIndex] = otherCell;
 
     }
+    void ApplyCoreAnchor()
+    {
+
+    }
+    #endregion
 
 
     #region Cell_Rules
