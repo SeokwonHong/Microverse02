@@ -31,7 +31,7 @@ public class CellManager : MonoBehaviour
         public float cellRadius; // 셀 하나하나의 경계
         public float detectRadius; // 이웃 인식 경계
 
-        public int organismId; //-1 이면 독립 셀 (백혈구)
+        public int organismId; //-1 이면 독립 셀 (백혈구), 1 이면 생물1
         public CellRole role; // Core / Shell / WhiteBlood
     }
 
@@ -40,7 +40,7 @@ public class CellManager : MonoBehaviour
         public int id; // 이 셀이 무엇인지
         public int coreIndex; // 중심은 누구냐 (인덱스로 찾을거임)
         public List<int> members = new List<int>(); // 그룹의 집합 다 넣을거임
-        public float targetRadius; // 쉘과 심장과의 거리
+        public float coreDistance; // 쉘과 심장과의 거리
         public float hp;
 
     }
@@ -50,7 +50,7 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        CreateOrganism(Vector2.zero, 50, 2.0f); //*****************************************************************************
+        CreateOrganism(Vector2.zero); //*****************************************************************************
 
 
     }
@@ -94,20 +94,26 @@ public class CellManager : MonoBehaviour
 
     }
 
-    void CreateOrganism(Vector2 center, int shellCount, float targetRadius)
+    void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
+        int shellCount = 90;
+        float coreDistance = 2f;
+
         org.id = organisms.Count;
-        org.targetRadius = targetRadius;
+        org.coreDistance = coreDistance;
 
-
+        
         //core 
 
         Cell core = new Cell();
-        core.currentPos = center;
+        core.currentPos = currentPos; // 이건 상관없음
         core.currentVelocity = Vector2.zero;
-        core.cellRadius = 0.20f;
+
+        //이부분부터 프로퍼티화해야할듯.
+        core.cellRadius = 0.30f;
         core.detectRadius = core.cellRadius * 5f;
+
         core.organismId = org.id;
         core.role = CellRole.Core;
 
@@ -121,15 +127,19 @@ public class CellManager : MonoBehaviour
 
         for (int i = 0; i < shellCount; i++)
         {
-            float angle = (Mathf.PI * 2f) * (i / (float)shellCount);
-            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
-            Vector2 pos = center + dir * targetRadius;
+            float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) 는 각도로 이해 * 그걸 비율로 슬라이스
+            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)); //각도를 normalized 된 벡터값으로 바꿈 그걸 해주는게 x 축인 cos , y 축인 sin
+            //+ 계산하기 편하게 사분면에 표현가능하게 단위화
+            Vector2 pos = currentPos + dir * coreDistance;
 
             Cell shell = new Cell();
             shell.currentPos = pos;
             shell.currentVelocity = Vector2.zero;
-            shell.cellRadius = 0.1f;
+
+            //이부분부터 프로퍼티화해야할듯.
+            shell.cellRadius = 0.15f;
             shell.detectRadius = shell.cellRadius * 5f;
+
             shell.organismId = org.id;
             shell.role = CellRole.Shell;
 
@@ -180,9 +190,9 @@ public class CellManager : MonoBehaviour
         Cell otherCell = cells[(OtherIndex)];
 
         // 셀 종류에 따른 거름망. 쉘이 아니면 함수 실행을 안함.
-        if (currentCell.organismId != otherCell.organismId) return;
-        if (currentCell.role != CellRole.Shell) return;
-        if (otherCell.role != CellRole.Shell) return;
+        if (currentCell.organismId != otherCell.organismId) return; // 같은 생물 아니면 무시
+        if (currentCell.role != CellRole.Shell) return; //쉘들만 모이게
+        if (otherCell.role != CellRole.Shell) return; //비교대상이 쉘이 아니면 무시
 
 
 
@@ -217,42 +227,45 @@ public class CellManager : MonoBehaviour
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
 
-        //if (currentCell.organismId != otherCell.organismId) return;
-        //if (currentCell.role != CellRole.Core) return;
-        //if (otherCell.role != CellRole.Core) return;
+        bool currentIsCore = currentCell.role == CellRole.Core;
+        bool otherIsCore = otherCell.role == CellRole.Core;
+        if(currentIsCore==otherIsCore) return;
+        
+        
+        Cell core = currentIsCore? currentCell : otherCell; //current 가 핵이면 핵, current 가 핵이 아니면 other 이 핵
+        Cell shell = currentIsCore ? otherCell : currentCell; // current 가 핵이면 other 은 쉘, current 가 핵이 아니면 쉘은 current
 
+        if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
 
+        float target = organisms[core.organismId].coreDistance; //적정거리
+        float tolerance = 0.5f; // 적정거리에서 이정도면 봐줄게 +-
 
-        Vector2 delta = otherCell.currentPos - currentCell.currentPos;
+        Vector2 delta = shell.currentPos - core.currentPos;
         float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return; // 너무 가까워도 안됨
+        if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
+        float error = dist - target;
+        if (Mathf.Abs(error) < tolerance) return; // coreDistance 내부에서 에러가 기준선보다 더 커지면 밀어냄. 
+        //tolerance 안쪽이면 형태유지. 
+
         Vector2 dir = delta / dist;
 
-        float radius = currentCell.cellRadius;
-        float maxRadius = radius * 1.5f;
+        float strength = 1.0f;
+        Vector2 move = dir*(error*strength*Time.deltaTime);
 
-        if (dist > maxRadius) return; //맥시멈 사거리 밖
+        shell.nextPos -= move;
 
-
-        float speed = 0.3f;
-        Vector2 move = dir * (speed * Time.deltaTime);
-
-
-
-
-        if (radius < dist) // 레이더 밖이되 맥시멈 안쪽이면
+        if(currentIsCore)
         {
-            otherCell.nextPos += move * 0.5f;
+            otherCell = shell;
+            cells[OtherIndex] = otherCell;
         }
-
         else
         {
-            otherCell.nextPos -= move * 0.2f;
+            currentCell = shell;
+            cells[CurrentIndex] = currentCell;
         }
-
-
     }
 
 
