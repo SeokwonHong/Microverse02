@@ -487,7 +487,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cellSpeed: 0.35
   BoxSize: 4
-  cellAmount: 500
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

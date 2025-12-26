@@ -188,7 +188,29 @@ public class CellManager : MonoBehaviour
     }
     void ApplyCoreAnchor()
     {
+        foreach (var org in organisms)
+        {
+            if(!org.anchorEnabled) continue; 
 
+            int coreIdx = org.coreIndex;
+            Cell core = cells[coreIdx];
+
+            core.nextPos = org.anchorPos;
+            core.nextVelocity = Vector2.zero;
+            cells[coreIdx] = core;
+        }
+    }
+
+    void ApplyOrganismDeath()
+    {
+        foreach(var org in organisms)
+        {
+            if(org.hp>0f) continue; 
+
+            org.anchorEnabled = false;
+            org.heading = Vector2.zero;
+            org.headingPower = 0f;
+        }
     }
     #endregion
 
