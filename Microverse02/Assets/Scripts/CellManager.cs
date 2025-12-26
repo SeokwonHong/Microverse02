@@ -5,11 +5,12 @@ using UnityEngine;
 
 public class CellManager : MonoBehaviour
 {
-    SpatialHash spatialHash;
+    public Transform PlayerPos;
 
     public float cellSpeed = 2f;
 
     //해쉬 
+    SpatialHash spatialHash;
     [SerializeField] float BoxSize = 4f;
 
 
@@ -67,9 +68,7 @@ public class CellManager : MonoBehaviour
 
         for (int i = 0; i < cells.Count; i++)
         {
-            Cell c = cells[i];
-
-            spatialHash.Insert(c.currentPos, i);
+            spatialHash.Insert(cells[i].currentPos, i);
         }
 
         for (int i = 0; i < cells.Count; i++)
@@ -87,16 +86,20 @@ public class CellManager : MonoBehaviour
                 ApplyKeepDistance(i, otherIndex);
             }
         }
+        ApplyCoreShellConstraints();
+        ApplyOrganismTendency();
+        ApplyCoreAnchor();
+        ApplyOrganismDeath();
+        
 
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-
             c.currentVelocity = c.nextVelocity;//더블버퍼중 두번째
             c.currentPos = c.nextPos;
             cells[i] = c;
         }
-
+        
     }
 
     void CreateOrganism(Vector2 currentPos)
@@ -200,7 +203,23 @@ public class CellManager : MonoBehaviour
             cells[coreIdx] = core;
         }
     }
+    void ApplyCoreShellConstraints() //해쉬 거치지 않음 - 셀 하나가 기존 해쉬 영역을 초과해도 organism 규칙 따르게 
+    {
+        foreach(var org in organisms)
+        {
+            int coreIdx = org.coreIndex;
+            if(coreIdx < 0) continue;
 
+            for(int i =0; i<org.members.Count; i++)
+            {
+                int idx = org.members[i];
+                if(idx==coreIdx) continue;
+
+                ApplyKeepDistance(coreIdx, idx);
+            }
+        } 
+            
+    }
     void ApplyOrganismDeath()
     {
         foreach(var org in organisms)
@@ -212,6 +231,32 @@ public class CellManager : MonoBehaviour
             org.headingPower = 0f;
         }
     }
+
+    void ApplyOrganismTendency()
+    {
+        Vector2 playerPos = (Vector2)PlayerPos.position;
+
+        foreach (var org in organisms)
+        {
+            //if(org.hp<=0f) continue;
+            int coreIdx = org.coreIndex;
+            if (coreIdx < 0) continue;
+
+            Vector2 corePos = cells[coreIdx].currentPos;
+            Vector2 toPlayer = playerPos-corePos;
+
+            float d2 = toPlayer.sqrMagnitude;
+            if (d2 < 1e-8f) continue;
+
+            org.heading = toPlayer.normalized;
+            org.headingPower = 0.5f;
+
+            Cell core = cells[coreIdx];
+            core.nextPos += org.heading * org.headingPower * Time.deltaTime;
+            cells[coreIdx] = core;
+        }
+    }
+    
     #endregion
 
 
@@ -268,10 +313,12 @@ public class CellManager : MonoBehaviour
         Cell core = currentIsCore? currentCell : otherCell; //current 가 핵이면 핵, current 가 핵이 아니면 other 이 핵
         Cell shell = currentIsCore ? otherCell : currentCell; // current 가 핵이면 other 은 쉘, current 가 핵이 아니면 쉘은 current
 
+        
+
         if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
 
         float target = organisms[core.organismId].coreDistance; //적정거리
-        float tolerance = 0.5f; // 적정거리에서 이정도면 봐줄게 +-
+        float tolerance = 0.1f; // 적정거리에서 이정도면 봐줄게 +-
 
         Vector2 delta = shell.currentPos - core.currentPos;
         float d2 = delta.sqrMagnitude;
