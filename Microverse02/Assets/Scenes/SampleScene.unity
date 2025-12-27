@@ -485,6 +485,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PlayerPos: {fileID: 1268927147}
   cellSpeed: 0.35
   BoxSize: 4
 --- !u!1660057539 &9223372036854775807

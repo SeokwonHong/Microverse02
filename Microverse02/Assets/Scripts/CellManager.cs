@@ -83,14 +83,20 @@ public class CellManager : MonoBehaviour
                 if (otherIndex == i) continue;
                 ResolveOverlap(i, otherIndex);
                 ApplyCohesion(i, otherIndex);
-                ApplyKeepDistance(i, otherIndex);
+              
             }
         }
-        ApplyCoreShellConstraints();
+        
+        
         ApplyOrganismTendency();
         ApplyCoreAnchor();
         ApplyOrganismDeath();
         
+        for(int iter = 0; iter<8; iter++)
+        {
+            ApplyCoreShellConstraints();
+            //ApplyShellBarrierShape();
+        }
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -105,7 +111,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 90;
+        int shellCount = 40;
         float coreDistance = 2f;
 
         org.id = organisms.Count;
@@ -256,7 +262,53 @@ public class CellManager : MonoBehaviour
             cells[coreIdx] = core;
         }
     }
-    
+
+    //void ApplyShellBarrierShape()
+    //{
+    //    foreach (var org in organisms)
+    //    {
+    //        if (org.hp <= 0f) continue;
+
+    //        int coreIdx = org.coreIndex;
+    //        if (coreIdx < 0) continue;
+
+    //        int total = org.members.Count;
+    //        if (total < 4) continue; //구조물은 core 포함 셀 4개 이상여야함
+
+    //        int shellCount = total - 1;
+    //        float targetDist = (2f * Mathf.PI * org.coreDistance) / shellCount;
+
+    //        float tolerance = targetDist * 0.15f;
+    //        float strength = 1.0f;
+
+    //        for (int k = 1; k < total; k++)
+    //        {
+    //            int aIdx = org.members[k];
+    //            int bIdx = org.members[(k == total - 1) ? 1 : (k + 1)]; //마지막 쉘의 다음 쉘은 1, 그게 아니면 현재 인덱스+1
+
+    //            Cell a = cells[aIdx];
+    //            Cell b = cells[bIdx];
+
+    //            Vector2 d = b.nextPos - a.nextPos;
+    //            float d2 = d.sqrMagnitude;
+    //            if (d2 < 1e-8f) continue;
+
+    //            float dist = Mathf.Sqrt(d2);
+    //            float error = dist - targetDist;
+    //            if (Mathf.Abs(error) < tolerance) continue; //정상범위면 쉘에 힘들 안더함
+
+    //            Vector2 dir = d / dist;
+
+    //            Vector2 corr = dir * (error * 0.5f * strength);
+
+    //            a.nextPos += corr;
+    //            b.nextPos -= corr;
+
+    //            cells[aIdx] = a;
+    //            cells[bIdx] = b;
+    //        }
+    //    }
+    //}
     #endregion
 
 
@@ -318,21 +370,28 @@ public class CellManager : MonoBehaviour
         if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
 
         float target = organisms[core.organismId].coreDistance; //적정거리
-        float tolerance = 0.1f; // 적정거리에서 이정도면 봐줄게 +-
+        float tolerance = 0.05f; // 적정거리에서 이정도면 봐줄게 +-
 
-        Vector2 delta = shell.currentPos - core.currentPos;
+        Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
         if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
         float error = dist - target;
-        if (Mathf.Abs(error) < tolerance) return; // coreDistance 내부에서 에러가 기준선보다 더 커지면 밀어냄. 
+        float absErr = Mathf.Abs(error);
+        if (absErr < tolerance) return; // coreDistance 내부에서 에러가 기준선보다 더 커지면 밀어냄. 
         //tolerance 안쪽이면 형태유지. 
 
+        float rampRange = target * 0.5f;
+        float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
+        float strength = t;
         Vector2 dir = delta / dist;
+        Vector2 move = dir * (error * strength);
 
-        float strength = 1.0f;
-        Vector2 move = dir*(error*strength*Time.deltaTime);
+        
+
+        
+        
 
         shell.nextPos -= move;
 
