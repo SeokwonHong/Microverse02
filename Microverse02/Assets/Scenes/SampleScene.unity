@@ -350,7 +350,7 @@ Transform:
   m_GameObject: {fileID: 1268927145}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -6.66, y: -2.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -486,6 +486,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerPos: {fileID: 1268927147}
+  playerRadius: 0.2
+  playerPushStrength: 0.5
   cellSpeed: 0.35
   BoxSize: 4
 --- !u!1660057539 &9223372036854775807

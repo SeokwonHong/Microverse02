@@ -6,6 +6,9 @@ using UnityEngine;
 public class CellManager : MonoBehaviour
 {
     public Transform PlayerPos;
+    public float playerRadius;
+    public float playerPushStrength =1.0f;  
+
 
     public float cellSpeed = 2f;
 
@@ -56,6 +59,8 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
+        playerRadius = PlayerPos.transform.localScale.x*0.5f;    
+
         CreateOrganism(Vector2.zero); //*****************************************************************************
 
 
@@ -64,8 +69,8 @@ public class CellManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // 1) 해시 적용
         spatialHash.Clear(); // 딕셔너리 내부 데이터 지우기
-
         for (int i = 0; i < cells.Count; i++)
         {
             spatialHash.Insert(cells[i].currentPos, i);
@@ -78,7 +83,8 @@ public class CellManager : MonoBehaviour
             c.nextPos = c.currentPos + c.nextVelocity * cellSpeed * Time.deltaTime;
             cells[i] = c;
 
-            foreach (int otherIndex in spatialHash.Query(c.currentPos)) // Query 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
+            
+            foreach (int otherIndex in spatialHash.Query(c.nextPos)) // Query 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
             {
                 if (otherIndex == i) continue;
                 ResolveOverlap(i, otherIndex);
@@ -90,11 +96,12 @@ public class CellManager : MonoBehaviour
         
         ApplyOrganismTendency();
         ApplyCoreAnchor();
-        ApplyOrganismDeath();
+        
         
         for(int iter = 0; iter<8; iter++)
         {
             ApplyCoreShellConstraints();
+            for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
             //ApplyShellBarrierShape();
         }
 
@@ -105,7 +112,7 @@ public class CellManager : MonoBehaviour
             c.currentPos = c.nextPos;
             cells[i] = c;
         }
-        
+        ApplyOrganismDeath();
     }
 
     void CreateOrganism(Vector2 currentPos)
@@ -174,7 +181,7 @@ public class CellManager : MonoBehaviour
         Cell otherCell = cells[OtherIndex];
 
 
-        Vector2 delta = otherCell.currentPos - currentCell.currentPos;
+        Vector2 delta = otherCell.nextPos - currentCell.nextPos;
         float d2 = delta.sqrMagnitude;
         if (d2 <= 0f) return;
 
@@ -194,6 +201,30 @@ public class CellManager : MonoBehaviour
         cells[CurrentIndex] = currentCell;
         cells[OtherIndex] = otherCell;
 
+    }
+
+    void ResolvePlayerOverlap(int cellIndex)
+    {
+        var c = cells[cellIndex];
+        if (c.role == CellRole.Core) return;
+
+        Vector2 playerPos = PlayerPos.position;
+
+        Vector2 delta = c.nextPos - playerPos;
+        float d2 = delta.sqrMagnitude;
+        if (d2 < 1e-8f) return;
+        
+        float dist = Mathf.Sqrt(d2);
+        float minDist = c.cellRadius + playerRadius;
+
+        if(dist >=minDist) return;
+
+        Vector2 dir = delta/ dist;
+        float penetration = (minDist - dist);
+
+        c.nextPos += dir * penetration * playerPushStrength;
+
+        cells[cellIndex] = c;   
     }
     void ApplyCoreAnchor()
     {
@@ -248,7 +279,7 @@ public class CellManager : MonoBehaviour
             int coreIdx = org.coreIndex;
             if (coreIdx < 0) continue;
 
-            Vector2 corePos = cells[coreIdx].currentPos;
+            Vector2 corePos = cells[coreIdx].nextPos;
             Vector2 toPlayer = playerPos-corePos;
 
             float d2 = toPlayer.sqrMagnitude;
@@ -326,7 +357,7 @@ public class CellManager : MonoBehaviour
 
 
 
-        Vector2 delta = otherCell.currentPos - currentCell.currentPos;
+        Vector2 delta = otherCell.nextPos - currentCell.nextPos;
         float d2 = delta.sqrMagnitude;
         if (d2 <= 0f) return;
 
@@ -370,7 +401,7 @@ public class CellManager : MonoBehaviour
         if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
 
         float target = organisms[core.organismId].coreDistance; //적정거리
-        float tolerance = 0.05f; // 적정거리에서 이정도면 봐줄게 +-
+        float tolerance = 0.03f; // 적정거리에서 이정도면 봐줄게 +-
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
