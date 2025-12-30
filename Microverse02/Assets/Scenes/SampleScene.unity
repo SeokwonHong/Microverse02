@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 216798732}
   - component: {fileID: 216798733}
   m_Layer: 0
-  m_Name: Circle
+  m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -268,7 +268,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 10.64
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -323,7 +323,7 @@ GameObject:
   - component: {fileID: 1268927147}
   - component: {fileID: 1268927146}
   m_Layer: 0
-  m_Name: Player
+  m_Name: PlayerGO
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -485,11 +485,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerPos: {fileID: 1268927147}
-  playerRadius: 0.2
-  playerPushStrength: 0.5
+  PlayerPos: {fileID: 216798732}
+  playerRadius: 0
+  playerPushStrength: 0.1
   cellSpeed: 0.35
   BoxSize: 4
+  isOrganismDead: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

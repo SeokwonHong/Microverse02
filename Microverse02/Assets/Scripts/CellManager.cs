@@ -1,5 +1,6 @@
 
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 
 
@@ -22,7 +23,7 @@ public class CellManager : MonoBehaviour
 
     enum CellRole { Core, Shell, WhiteBlood }
 
-
+    public bool isOrganismDead = false;
 
     class Cell
     {
@@ -51,7 +52,7 @@ public class CellManager : MonoBehaviour
         public float headingPower; // 속도보다는 tendency 로 봐야함. 값을 낮게 유지시켜 더 생물같이 표현해야함.
         public bool anchorEnabled; //앵커가 쉘들을 붙잡거나 놓아버리거나: 나중에 죽으면 구조가 파괴되게
         public float hp;
-
+        public bool isDead;
     }
 
     //velocity 는 vector 2 의 좌표를 하나 찍고 그걸  0,0 로 직선연결한다 가정. 끝부분에 화살표를 단것이라 보면 됨: 방향+힘
@@ -62,7 +63,7 @@ public class CellManager : MonoBehaviour
         playerRadius = PlayerPos.transform.localScale.x*0.5f;    
 
         CreateOrganism(Vector2.zero); //*****************************************************************************
-
+       
 
     }
 
@@ -175,7 +176,7 @@ public class CellManager : MonoBehaviour
 
 
     #region Cell_Constraint
-    void ResolveOverlap(int CurrentIndex, int OtherIndex)
+    void ResolveOverlap(int CurrentIndex, int OtherIndex) //기본 충돌
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
@@ -203,7 +204,7 @@ public class CellManager : MonoBehaviour
 
     }
 
-    void ResolvePlayerOverlap(int cellIndex)
+    void ResolvePlayerOverlap(int cellIndex) //플레이어 - 세포 기본 충돌
     {
         var c = cells[cellIndex];
         if (c.role == CellRole.Core) return;
@@ -226,7 +227,7 @@ public class CellManager : MonoBehaviour
 
         cells[cellIndex] = c;   
     }
-    void ApplyCoreAnchor()
+    void ApplyCoreAnchor() //셀의 앵커 등록
     {
         foreach (var org in organisms)
         {
@@ -257,24 +258,32 @@ public class CellManager : MonoBehaviour
         } 
             
     }
-    void ApplyOrganismDeath()
+    void ApplyOrganismDeath() //생물 죽었을때 함수
     {
-        foreach(var org in organisms)
+        for (int i=0; i<organisms.Count; i++)  
         {
-            if(org.hp>0f) continue; 
+            var org = organisms[i];
+            //if(org.hp>0f) continue; 
 
+
+            if(!isOrganismDead)continue;
+
+            org.isDead = true;
             org.anchorEnabled = false;
             org.heading = Vector2.zero;
             org.headingPower = 0f;
+            organisms[i] = org;
         }
     }
 
-    void ApplyOrganismTendency()
+    void ApplyOrganismTendency() //생물 움직임
     {
         Vector2 playerPos = (Vector2)PlayerPos.position;
 
+        
         foreach (var org in organisms)
         {
+            if (org.isDead) continue;
             //if(org.hp<=0f) continue;
             int coreIdx = org.coreIndex;
             if (coreIdx < 0) continue;
@@ -345,7 +354,7 @@ public class CellManager : MonoBehaviour
 
     #region Cell_Rules
 
-    void ApplyCohesion(int CurrentIndex, int OtherIndex)
+    void ApplyCohesion(int CurrentIndex, int OtherIndex)  //세포 집결 함수
     {
         Cell currentCell = cells[(CurrentIndex)];
         Cell otherCell = cells[(OtherIndex)];
@@ -383,7 +392,7 @@ public class CellManager : MonoBehaviour
         cells[OtherIndex] = otherCell;
     }
 
-    void ApplyKeepDistance(int CurrentIndex, int OtherIndex)
+    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //핵과 쉘 거리유지 
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
