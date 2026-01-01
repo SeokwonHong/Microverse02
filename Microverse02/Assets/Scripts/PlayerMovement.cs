@@ -22,9 +22,9 @@ public class PlayerMovement : MonoBehaviour
         
     }
 
-    /*ÇÃ·¹ÀÌ¾î°¡ ¸¶¿ì½º°¡ °¡¸£Å°´Â ¹æÇâÀ¸·Î ÀÌµ¿ÇÏ°Ô ÇØ¾ßÇÔ:
+    /*í”Œë ˆì´ì–´ê°€ ë§ˆìš°ìŠ¤ê°€ ê°€ë¥´í‚¤ëŠ” ë°©í–¥ìœ¼ë¡œ ì´ë™í•˜ê²Œ í•´ì•¼í•¨:
 
-    vector ¸¦ ½á¼­ ¹æÇâÀ» °è»êÇÒ¼ö ÀÖÀ½. normalized ¸¦ ½á¼­ °­µµ¸¦ ¹«½ÃÇÏÀÚ. 
+    vector ë¥¼ ì¨ì„œ ë°©í–¥ì„ ê³„ì‚°í• ìˆ˜ ìˆìŒ. normalized ë¥¼ ì¨ì„œ ê°•ë„ë¥¼ ë¬´ì‹œí•˜ì. 
 
     */
     private void Start()
@@ -43,5 +43,5 @@ public class PlayerMovement : MonoBehaviour
         this.transform.position = Vector2.MoveTowards(this.transform.position, mousePos, playerSpeed * Time.deltaTime);
     }
 
-  // ui ·Î Æ¯Á¤ ¼Óµµ ÀÌ»óÀÌ¸é ¹ÙÀÌ·¯½º°¡ ±×ÂÊ¹æÇâÀ¸·Î ½ò¸®´ÂµíÇÑ È¿°úµµ °í·Á
+  // ui ë¡œ íŠ¹ì • ì†ë„ ì´ìƒì´ë©´ ë°”ì´ëŸ¬ìŠ¤ê°€ ê·¸ìª½ë°©í–¥ìœ¼ë¡œ ì ë¦¬ëŠ”ë“¯í•œ íš¨ê³¼ë„ ê³ ë ¤
 }

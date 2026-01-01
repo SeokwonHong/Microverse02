@@ -13,7 +13,7 @@ public class CellManager : MonoBehaviour
 
     public float cellSpeed = 2f;
 
-    //ÇØ½¬ 
+    //í•´ì‰¬ 
     SpatialHash spatialHash;
     [SerializeField] float BoxSize = 4f;
 
@@ -33,29 +33,29 @@ public class CellManager : MonoBehaviour
         public Vector2 nextPos;
         public Vector2 nextVelocity;
 
-        public float cellRadius; // ¼¿ ÇÏ³ªÇÏ³ªÀÇ °æ°è
-        public float detectRadius; // ÀÌ¿ô ÀÎ½Ä °æ°è
+        public float cellRadius; // ì…€ í•˜ë‚˜í•˜ë‚˜ì˜ ê²½ê³„
+        public float detectRadius; // ì´ì›ƒ ì¸ì‹ ê²½ê³„
 
-        public int organismId; //-1 ÀÌ¸é µ¶¸³ ¼¿ (¹éÇ÷±¸), 1 ÀÌ¸é »ı¹°1
+        public int organismId; //-1 ì´ë©´ ë…ë¦½ ì…€ (ë°±í˜ˆêµ¬), 1 ì´ë©´ ìƒë¬¼1
         public CellRole role; // Core / Shell / WhiteBlood
     }
 
     class Organisms
     {
-        public int id; // ÀÌ ¼¿ÀÌ ¹«¾ùÀÎÁö
-        public int coreIndex; // Áß½ÉÀº ´©±¸³Ä (ÀÎµ¦½º·Î Ã£À»°ÅÀÓ)
-        public List<int> members = new List<int>(); // ±×·ìÀÇ ÁıÇÕ ´Ù ³ÖÀ»°ÅÀÓ
-        public float coreDistance; // ½©°ú ½ÉÀå°úÀÇ °Å¸®
+        public int id; // ì´ ì…€ì´ ë¬´ì—‡ì¸ì§€
+        public int coreIndex; // ì¤‘ì‹¬ì€ ëˆ„êµ¬ëƒ (ì¸ë±ìŠ¤ë¡œ ì°¾ì„ê±°ì„)
+        public List<int> members = new List<int>(); // // ê·¸ë£¹ì˜ ì§‘í•© ë‹¤ ë„£ì„ê±°ì„
+        public float coreDistance; // ì‰˜ê³¼ ì‹¬ì¥ê³¼ì˜ ê±°ë¦¬
 
         public Vector2 anchorPos;
-        public Vector2 heading; //normalized ¹æÇâ
-        public float headingPower; // ¼Óµµº¸´Ù´Â tendency ·Î ºÁ¾ßÇÔ. °ªÀ» ³·°Ô À¯Áö½ÃÄÑ ´õ »ı¹°°°ÀÌ Ç¥ÇöÇØ¾ßÇÔ.
-        public bool anchorEnabled; //¾ŞÄ¿°¡ ½©µéÀ» ºÙÀâ°Å³ª ³õ¾Æ¹ö¸®°Å³ª: ³ªÁß¿¡ Á×À¸¸é ±¸Á¶°¡ ÆÄ±«µÇ°Ô
+        public Vector2 heading; //normalized ë°©í–¥
+        public float headingPower; // ì†ë„ë³´ë‹¤ëŠ” tendency ë¡œ ë´ì•¼í•¨. ê°’ì„ ë‚®ê²Œ ìœ ì§€ì‹œì¼œ ë” ìƒë¬¼ê°™ì´ í‘œí˜„í•´ì•¼í•¨.
+        public bool anchorEnabled; //ì•µì»¤ê°€ ì‰˜ë“¤ì„ ë¶™ì¡ê±°ë‚˜ ë†“ì•„ë²„ë¦¬ê±°ë‚˜: ë‚˜ì¤‘ì— ì£½ìœ¼ë©´ êµ¬ì¡°ê°€ íŒŒê´´ë˜ê²Œ
         public float hp;
         public bool isDead;
     }
 
-    //velocity ´Â vector 2 ÀÇ ÁÂÇ¥¸¦ ÇÏ³ª Âï°í ±×°É  0,0 ·Î Á÷¼±¿¬°áÇÑ´Ù °¡Á¤. ³¡ºÎºĞ¿¡ È­»ìÇ¥¸¦ ´Ü°ÍÀÌ¶ó º¸¸é µÊ: ¹æÇâ+Èû
+    //velocity ëŠ” vector 2 ì˜ ì¢Œí‘œë¥¼ í•˜ë‚˜ ì°ê³  ê·¸ê±¸  0,0 ë¡œ ì§ì„ ì—°ê²°í•œë‹¤ ê°€ì •. ëë¶€ë¶„ì— í™”ì‚´í‘œë¥¼ ë‹¨ê²ƒì´ë¼ ë³´ë©´ ë¨: ë°©í–¥+í˜
     void Start()
     {
         spatialHash = new SpatialHash(BoxSize);
@@ -70,8 +70,8 @@ public class CellManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // 1) ÇØ½Ã Àû¿ë
-        spatialHash.Clear(); // µñ¼Å³Ê¸® ³»ºÎ µ¥ÀÌÅÍ Áö¿ì±â
+        // 1) í•´ì‹œ ì ìš©
+        spatialHash.Clear(); // ë”•ì…”ë„ˆë¦¬ ë‚´ë¶€ ë°ì´í„° ì§€ìš°ê¸°
         for (int i = 0; i < cells.Count; i++)
         {
             spatialHash.Insert(cells[i].currentPos, i);
@@ -80,12 +80,12 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-            c.nextVelocity = c.currentVelocity; //´õºí¹öÆÛÁß Ã¹¹øÂ°
+            c.nextVelocity = c.currentVelocity; //ë”ë¸”ë²„í¼ì¤‘ ì²«ë²ˆì§¸
             c.nextPos = c.currentPos + c.nextVelocity * cellSpeed * Time.deltaTime;
             cells[i] = c;
 
             
-            foreach (int otherIndex in spatialHash.Query(c.nextPos)) // Query ¿¡¼­ ÀÎµ¦½º int ¸¦ ÇÏ³ªÇÏ³ª ÁÙ°ÅÀÓ. ±×°É ¾²¸é ¹Ù·Î other Index ´Â µ¤¾î¾º¿öÁú°ÅÀÓ.
+            foreach (int otherIndex in spatialHash.Query(c.nextPos)) // QQuery ì—ì„œ ì¸ë±ìŠ¤ int ë¥¼ í•˜ë‚˜í•˜ë‚˜ ì¤„ê±°ì„. ê·¸ê±¸ ì“°ë©´ ë°”ë¡œ other Index ëŠ” ë®ì–´ì”Œì›Œì§ˆê±°ì„.
             {
                 if (otherIndex == i) continue;
                 ResolveOverlap(i, otherIndex);
@@ -109,7 +109,7 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-            c.currentVelocity = c.nextVelocity;//´õºí¹öÆÛÁß µÎ¹øÂ°
+            c.currentVelocity = c.nextVelocity;//ë”ë¸”ë²„í¼ì¤‘ ë‘ë²ˆì§¸
             c.currentPos = c.nextPos;
             cells[i] = c;
         }
@@ -129,10 +129,10 @@ public class CellManager : MonoBehaviour
         //core 
 
         Cell core = new Cell();
-        core.currentPos = currentPos; // ÀÌ°Ç »ó°ü¾øÀ½
+        core.currentPos = currentPos; // ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         core.currentVelocity = Vector2.zero;
 
-        //ÀÌºÎºĞºÎÅÍ ÇÁ·ÎÆÛÆ¼È­ÇØ¾ßÇÒµí.
+        //ï¿½ÌºÎºĞºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼È­ï¿½Ø¾ï¿½ï¿½Òµï¿½.
         core.cellRadius = 0.30f;
         core.detectRadius = core.cellRadius * 5f;
 
@@ -149,16 +149,16 @@ public class CellManager : MonoBehaviour
 
         for (int i = 0; i < shellCount; i++)
         {
-            float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) ´Â °¢µµ·Î ÀÌÇØ * ±×°É ºñÀ²·Î ½½¶óÀÌ½º
-            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)); //°¢µµ¸¦ normalized µÈ º¤ÅÍ°ªÀ¸·Î ¹Ù²Ş ±×°É ÇØÁÖ´Â°Ô x ÃàÀÎ cos , y ÃàÀÎ sin
-            //+ °è»êÇÏ±â ÆíÇÏ°Ô »çºĞ¸é¿¡ Ç¥Çö°¡´ÉÇÏ°Ô ´ÜÀ§È­
+            float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) ëŠ” ê°ë„ë¡œ ì´í•´ * ê·¸ê±¸ ë¹„ìœ¨ë¡œ ìŠ¬ë¼ì´ìŠ¤
+            Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)); //ê°ë„ë¥¼ normalized ëœ ë²¡í„°ê°’ìœ¼ë¡œ ë°”ê¿ˆ ê·¸ê±¸ í•´ì£¼ëŠ”ê²Œ x ì¶•ì¸ cos , y ì¶•ì¸ sin
+            //+ ê³„ì‚°í•˜ê¸° í¸í•˜ê²Œ ì‚¬ë¶„ë©´ì— í‘œí˜„ê°€ëŠ¥í•˜ê²Œ ë‹¨ìœ„í™”
             Vector2 pos = currentPos + dir * coreDistance;
 
             Cell shell = new Cell();
             shell.currentPos = pos;
             shell.currentVelocity = Vector2.zero;
 
-            //ÀÌºÎºĞºÎÅÍ ÇÁ·ÎÆÛÆ¼È­ÇØ¾ßÇÒµí.
+            //ì´ë¶€ë¶„ë¶€í„° í”„ë¡œí¼í‹°í™”í•´ì•¼í• ë“¯.
             shell.cellRadius = 0.15f;
             shell.detectRadius = shell.cellRadius * 5f;
 
@@ -176,7 +176,7 @@ public class CellManager : MonoBehaviour
 
 
     #region Cell_Constraint
-    void ResolveOverlap(int CurrentIndex, int OtherIndex) //±âº» Ãæµ¹
+    void ResolveOverlap(int CurrentIndex, int OtherIndex) //ê¸°ë³¸ ì¶©ëŒ
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
@@ -190,12 +190,11 @@ public class CellManager : MonoBehaviour
         float minDist2 = minDist * minDist;
         if (d2 >= minDist2) return;
 
-        float dist = Mathf.Sqrt(d2); //dist ´Â °Å¸®°ªÀÌ´Ï±î
-        Vector2 direction = delta / dist; //º¤ÅÍ°ªÀ» °Å¸®·Î ³ª´²¼­ ¹æÇâ¸¸ ³ª¿À°Ô
+        float dist = Mathf.Sqrt(d2); //dist ëŠ” ê±°ë¦¬ê°’ì´ë‹ˆê¹Œ
+        Vector2 direction = delta / dist; //ë²¡í„°ê°’ì„ ê±°ë¦¬ë¡œ ë‚˜ëˆ ì„œ ë°©í–¥ë§Œ ë‚˜ì˜¤ê²Œ
 
         float overlap = minDist - dist;
-        Vector2 push = direction * (overlap * 0.5f); // push ´Â ¹æÇâ * »ó¼è°ªÀÇ Àı¹İ
-
+        Vector2 push = direction * (overlap * 0.5f); // push ëŠ” ë°©í–¥ * ìƒì‡ ê°’ì˜ ì ˆë°˜
         currentCell.nextPos -= push;
         otherCell.nextPos += push;
 
@@ -204,7 +203,7 @@ public class CellManager : MonoBehaviour
 
     }
 
-    void ResolvePlayerOverlap(int cellIndex) //ÇÃ·¹ÀÌ¾î - ¼¼Æ÷ ±âº» Ãæµ¹
+    void ResolvePlayerOverlap(int cellIndex) //í”Œë ˆì´ì–´ - ì„¸í¬ ê¸°ë³¸ ì¶©ëŒ
     {
         var c = cells[cellIndex];
         if (c.role == CellRole.Core) return;
@@ -227,7 +226,7 @@ public class CellManager : MonoBehaviour
 
         cells[cellIndex] = c;   
     }
-    void ApplyCoreAnchor() //¼¿ÀÇ ¾ŞÄ¿ µî·Ï
+    void ApplyCoreAnchor() //ì…€ì˜ ì•µì»¤ ë“±ë¡
     {
         foreach (var org in organisms)
         {
@@ -241,7 +240,7 @@ public class CellManager : MonoBehaviour
             cells[coreIdx] = core;
         }
     }
-    void ApplyCoreShellConstraints() //ÇØ½¬ °ÅÄ¡Áö ¾ÊÀ½ - ¼¿ ÇÏ³ª°¡ ±âÁ¸ ÇØ½¬ ¿µ¿ªÀ» ÃÊ°úÇØµµ organism ±ÔÄ¢ µû¸£°Ô 
+    void ApplyCoreShellConstraints() //í•´ì‰¬ ê±°ì¹˜ì§€ ì•ŠìŒ - ì…€ í•˜ë‚˜ê°€ ê¸°ì¡´ í•´ì‰¬ ì˜ì—­ì„ ì´ˆê³¼í•´ë„ organism ê·œì¹™ ë”°ë¥´ê²Œ 
     {
         foreach(var org in organisms)
         {
@@ -258,7 +257,7 @@ public class CellManager : MonoBehaviour
         } 
             
     }
-    void ApplyOrganismDeath() //»ı¹° Á×¾úÀ»¶§ ÇÔ¼ö
+    void ApplyOrganismDeath() //ìƒë¬¼ ì£½ì—ˆì„ë•Œ í•¨ìˆ˜
     {
         for (int i=0; i<organisms.Count; i++)  
         {
@@ -276,7 +275,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyOrganismTendency() //»ı¹° ¿òÁ÷ÀÓ
+    void ApplyOrganismTendency() //ìƒë¬¼ ì›€ì§ì„
     {
         Vector2 playerPos = (Vector2)PlayerPos.position;
 
@@ -313,7 +312,7 @@ public class CellManager : MonoBehaviour
     //        if (coreIdx < 0) continue;
 
     //        int total = org.members.Count;
-    //        if (total < 4) continue; //±¸Á¶¹°Àº core Æ÷ÇÔ ¼¿ 4°³ ÀÌ»ó¿©¾ßÇÔ
+    //        if (total < 4) continue; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ core ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ 4ï¿½ï¿½ ï¿½Ì»ó¿©¾ï¿½ï¿½ï¿½
 
     //        int shellCount = total - 1;
     //        float targetDist = (2f * Mathf.PI * org.coreDistance) / shellCount;
@@ -324,7 +323,7 @@ public class CellManager : MonoBehaviour
     //        for (int k = 1; k < total; k++)
     //        {
     //            int aIdx = org.members[k];
-    //            int bIdx = org.members[(k == total - 1) ? 1 : (k + 1)]; //¸¶Áö¸· ½©ÀÇ ´ÙÀ½ ½©Àº 1, ±×°Ô ¾Æ´Ï¸é ÇöÀç ÀÎµ¦½º+1
+    //            int bIdx = org.members[(k == total - 1) ? 1 : (k + 1)]; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 1, ï¿½×°ï¿½ ï¿½Æ´Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½+1
 
     //            Cell a = cells[aIdx];
     //            Cell b = cells[bIdx];
@@ -335,7 +334,7 @@ public class CellManager : MonoBehaviour
 
     //            float dist = Mathf.Sqrt(d2);
     //            float error = dist - targetDist;
-    //            if (Mathf.Abs(error) < tolerance) continue; //Á¤»ó¹üÀ§¸é ½©¿¡ Èûµé ¾È´õÇÔ
+    //            if (Mathf.Abs(error) < tolerance) continue; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È´ï¿½ï¿½ï¿½
 
     //            Vector2 dir = d / dist;
 
@@ -354,15 +353,15 @@ public class CellManager : MonoBehaviour
 
     #region Cell_Rules
 
-    void ApplyCohesion(int CurrentIndex, int OtherIndex)  //¼¼Æ÷ Áı°á ÇÔ¼ö
+    void ApplyCohesion(int CurrentIndex, int OtherIndex)  //ì„¸í¬ ì§‘ê²° í•¨ìˆ˜
     {
         Cell currentCell = cells[(CurrentIndex)];
         Cell otherCell = cells[(OtherIndex)];
 
-        // ¼¿ Á¾·ù¿¡ µû¸¥ °Å¸§¸Á. ½©ÀÌ ¾Æ´Ï¸é ÇÔ¼ö ½ÇÇàÀ» ¾ÈÇÔ.
-        if (currentCell.organismId != otherCell.organismId) return; // °°Àº »ı¹° ¾Æ´Ï¸é ¹«½Ã
-        if (currentCell.role != CellRole.Shell) return; //½©µé¸¸ ¸ğÀÌ°Ô
-        if (otherCell.role != CellRole.Shell) return; //ºñ±³´ë»óÀÌ ½©ÀÌ ¾Æ´Ï¸é ¹«½Ã
+        // ì…€ ì¢…ë¥˜ì— ë”°ë¥¸ ê±°ë¦„ë§. ì‰˜ì´ ì•„ë‹ˆë©´ í•¨ìˆ˜ ì‹¤í–‰ì„ ì•ˆí•¨.
+        if (currentCell.organismId != otherCell.organismId) return; // ê°™ì€ ìƒë¬¼ ì•„ë‹ˆë©´ ë¬´ì‹œ
+        if (currentCell.role != CellRole.Shell) return; //ì‰˜ë“¤ë§Œ ëª¨ì´ê²Œ
+        if (otherCell.role != CellRole.Shell) return; //ë¹„êµëŒ€ìƒì´ ì‰˜ì´ ì•„ë‹ˆë©´ ë¬´ì‹œ
 
 
 
@@ -380,7 +379,7 @@ public class CellManager : MonoBehaviour
         if (d2 <= minDist2) return;
 
         float dist = Mathf.Sqrt(d2);
-        Vector2 dir = delta / dist; //º¤ÅÍ¸¦ ¼ø¼ö °Å¸®·Î ³ª´®
+        Vector2 dir = delta / dist; //ë²¡í„°ë¥¼ ìˆœìˆ˜ ê±°ë¦¬ë¡œ ë‚˜ëˆ”
 
         float speed = 0.01f;
         Vector2 move = dir * (speed * Time.deltaTime);
@@ -392,7 +391,7 @@ public class CellManager : MonoBehaviour
         cells[OtherIndex] = otherCell;
     }
 
-    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //ÇÙ°ú ½© °Å¸®À¯Áö 
+    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //í•µê³¼ ì‰˜ ê±°ë¦¬ìœ ì§€ 
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
@@ -402,15 +401,15 @@ public class CellManager : MonoBehaviour
         if(currentIsCore==otherIsCore) return;
         
         
-        Cell core = currentIsCore? currentCell : otherCell; //current °¡ ÇÙÀÌ¸é ÇÙ, current °¡ ÇÙÀÌ ¾Æ´Ï¸é other ÀÌ ÇÙ
-        Cell shell = currentIsCore ? otherCell : currentCell; // current °¡ ÇÙÀÌ¸é other Àº ½©, current °¡ ÇÙÀÌ ¾Æ´Ï¸é ½©Àº current
+        Cell core = currentIsCore? currentCell : otherCell; //current ê°€ í•µì´ë©´ í•µ, current ê°€ í•µì´ ì•„ë‹ˆë©´ other ì´ í•µ
+        Cell shell = currentIsCore ? otherCell : currentCell; // current ê°€ í•µì´ë©´ other ì€ ì‰˜, current ê°€ í•µì´ ì•„ë‹ˆë©´ ì‰˜ì€ current
 
         
 
-        if(core.organismId != shell.organismId) return; //¼­·Î ´Ù¸¥ »ı¸íÃ¼¸é ¹«½Ã
+        if(core.organismId != shell.organismId) return; //ì„œë¡œ ë‹¤ë¥¸ ìƒëª…ì²´ë©´ ë¬´ì‹œ
 
-        float target = organisms[core.organismId].coreDistance; //ÀûÁ¤°Å¸®
-        float tolerance = 0.03f; // ÀûÁ¤°Å¸®¿¡¼­ ÀÌÁ¤µµ¸é ºÁÁÙ°Ô +-
+        float target = organisms[core.organismId].coreDistance; //ì ì •ê±°ë¦¬
+        float tolerance = 0.03f; // ì ì •ê±°ë¦¬ì—ì„œ ì´ì •ë„ë©´ ë´ì¤„ê²Œ +-
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -419,8 +418,8 @@ public class CellManager : MonoBehaviour
         float dist = Mathf.Sqrt(d2);
         float error = dist - target;
         float absErr = Mathf.Abs(error);
-        if (absErr < tolerance) return; // coreDistance ³»ºÎ¿¡¼­ ¿¡·¯°¡ ±âÁØ¼±º¸´Ù ´õ Ä¿Áö¸é ¹Ğ¾î³¿. 
-        //tolerance ¾ÈÂÊÀÌ¸é ÇüÅÂÀ¯Áö. 
+        if (absErr < tolerance) return; //  coreDistance ë‚´ë¶€ì—ì„œ ì—ëŸ¬ê°€ ê¸°ì¤€ì„ ë³´ë‹¤ ë” ì»¤ì§€ë©´ ë°€ì–´ëƒ„. 
+        //tolerance ì•ˆìª½ì´ë©´ í˜•íƒœìœ ì§€. 
 
         float rampRange = target * 0.5f;
         float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
@@ -455,7 +454,7 @@ public class CellManager : MonoBehaviour
     {
         if (cells == null)
         {
-            Debug.Log("cell list °¡ ºñ¾îÀÖÀ½");
+            Debug.Log("cell list ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½");
             return;
         }
 
