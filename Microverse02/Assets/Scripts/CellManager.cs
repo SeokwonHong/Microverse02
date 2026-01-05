@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using UnityEngine;
@@ -7,15 +8,16 @@ using UnityEngine;
 public class CellManager : MonoBehaviour
 {
     public Transform PlayerPos;
-    public float playerRadius;
-    public float playerPushStrength =1.0f;  
+    private float playerRadius;
+    private float playerInfluenceRadius;
+    [SerializeField] private float playerPushStrength =1.0f;  
 
 
     public float cellSpeed = 2f;
 
     //해쉬 
     SpatialHash spatialHash;
-    [SerializeField] float BoxSize = 4f;
+    [SerializeField] float BoxSize = 3f;
 
 
     private List<Cell> cells = new List<Cell>();
@@ -60,7 +62,8 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        playerRadius = PlayerPos.transform.localScale.x*0.5f;    
+        playerRadius = PlayerPos.transform.localScale.x*0.5f;  
+        playerInfluenceRadius = playerRadius*18f;  
 
         CreateOrganism(Vector2.zero); //*****************************************************************************
        
@@ -93,7 +96,7 @@ public class CellManager : MonoBehaviour
               
             }
         }
-        
+        ApplyPlayerFunctions();
         
         ApplyOrganismTendency();
         ApplyCoreAnchor();
@@ -129,17 +132,16 @@ public class CellManager : MonoBehaviour
         //core 
 
         Cell core = new Cell();
-        core.currentPos = currentPos; // �̰� �������
+        core.currentPos = currentPos; 
         core.currentVelocity = Vector2.zero;
 
-        //�̺κк��� ������Ƽȭ�ؾ��ҵ�.
         core.cellRadius = 0.30f;
         core.detectRadius = core.cellRadius * 5f;
 
         core.organismId = org.id;
         core.role = CellRole.Core;
 
-        int coreIndex = cells.Count;
+        int coreIndex = cells.Count; 
         cells.Add(core);
 
         org.coreIndex = coreIndex;
@@ -242,8 +244,11 @@ public class CellManager : MonoBehaviour
     }
     void ApplyCoreShellConstraints() //해쉬 거치지 않음 - 셀 하나가 기존 해쉬 영역을 초과해도 organism 규칙 따르게 
     {
+        
         foreach(var org in organisms)
         {
+            if(org.isDead)continue;
+
             int coreIdx = org.coreIndex;
             if(coreIdx < 0) continue;
 
@@ -409,7 +414,7 @@ public class CellManager : MonoBehaviour
         if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
 
         float target = organisms[core.organismId].coreDistance; //적정거리
-        float tolerance = 0.03f; // 적정거리에서 이정도면 봐줄게 +-
+        float tolerance = 0.02f; // 적정거리에서 이정도면 봐줄게 +-
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -446,7 +451,37 @@ public class CellManager : MonoBehaviour
         }
     }
 
+    void ApplyPlayerFunctions()
+    {
+        ApplyPlayerPush();
+    }
 
+    void ApplyPlayerPush()
+    {
+        Vector2 playerPos = PlayerPos.position;
+        
+
+        for(int i =0; i<cells.Count;i++)
+        {
+            Cell c = cells[i];
+            if(c.role !=CellRole.Shell) continue;
+
+            Vector2 delta = c.nextPos - playerPos;
+            float d2 = delta.sqrMagnitude;
+            if(d2 >playerInfluenceRadius*playerInfluenceRadius) continue;
+
+            float dist=Mathf.Sqrt(d2);
+            if(dist<1e-5f) continue;
+
+
+            Vector2 dir = delta/dist;
+            float force = (playerInfluenceRadius - dist)/playerInfluenceRadius;
+
+            c.nextPos += dir*force*playerPushStrength*Time.deltaTime;
+            cells[i]=c;
+
+        }
+    }
     #endregion
 
 
@@ -454,7 +489,7 @@ public class CellManager : MonoBehaviour
     {
         if (cells == null)
         {
-            Debug.Log("cell list �� �������");
+            Debug.Log("cell list 없음");
             return;
         }
 
