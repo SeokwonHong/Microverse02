@@ -1,15 +1,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using UnityEngine;
 
 
 public class CellManager : MonoBehaviour
 {
-    public Transform PlayerPos;
+    [Header("Mouse and Player")]
+    float mousePlayerDistance;
+    private Vector2 mousePos;
+    float playerSpeed;
+    float normalSpeed=0;
+    float maxSpeed=5f;
+    float threshold=5f;
+
+
     private float playerRadius;
     private float playerInfluenceRadius;
+    int playerCellIndex=-1;
     [SerializeField] private float playerPushStrength =1.0f;  
 
 
@@ -23,10 +31,10 @@ public class CellManager : MonoBehaviour
     private List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
 
-    enum CellRole { Core, Shell, WhiteBlood }
+    enum CellRole { Player, Core, Shell, WhiteBlood}
 
     public bool isOrganismDead = false;
-
+    const float maxDeadTime = 20f;
     class Cell
     {
         public Vector2 currentPos;
@@ -55,6 +63,7 @@ public class CellManager : MonoBehaviour
         public bool anchorEnabled; //앵커가 쉘들을 붙잡거나 놓아버리거나: 나중에 죽으면 구조가 파괴되게
         public float hp;
         public bool isDead;
+        public float deadTimer;
     }
 
     //velocity 는 vector 2 의 좌표를 하나 찍고 그걸  0,0 로 직선연결한다 가정. 끝부분에 화살표를 단것이라 보면 됨: 방향+힘
@@ -62,17 +71,34 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        playerRadius = PlayerPos.transform.localScale.x*0.5f;  
-        playerInfluenceRadius = playerRadius*18f;  
+        playerRadius = GetPlayerRadius();
+        playerInfluenceRadius = playerRadius*10f;
+
+        CreatePlayerCell(Vector2.zero);
 
         CreateOrganism(Vector2.zero); //*****************************************************************************
-       
+        CreateOrganism(new Vector2(  8f,   6f ));
+        CreateOrganism(new Vector2( -9f,   7f ));
+        CreateOrganism(new Vector2( 12f,  -4f ));
+        CreateOrganism(new Vector2( -6f, -10f ));
+        CreateOrganism(new Vector2( 15f,   3f ));
+        CreateOrganism(new Vector2( -14f,  2f ));
+        CreateOrganism(new Vector2(  4f,  14f ));
+        CreateOrganism(new Vector2( -3f, -15f ));
+        CreateOrganism(new Vector2( 18f, -12f ));
+        CreateOrganism(new Vector2( -17f, 11f ));
+        CreateOrganism(new Vector2( 10f,  18f ));
+        CreateOrganism(new Vector2( -19f, -5f ));
+
 
     }
-
+/// <summary>
+/// ////////////////////////////////////////////////////////////////////////////////////////////////
+/// </summary>
     // Update is called once per frame
     void Update()
     {
+        if(Input.GetKeyDown(KeyCode.Space))isOrganismDead=true;
         // 1) 해시 적용
         spatialHash.Clear(); // 딕셔너리 내부 데이터 지우기
         for (int i = 0; i < cells.Count; i++)
@@ -96,6 +122,8 @@ public class CellManager : MonoBehaviour
               
             }
         }
+        ApplyPlayerInput();
+        ApplyPlayerFunctions();
         ApplyPlayerFunctions();
         
         ApplyOrganismTendency();
@@ -109,6 +137,7 @@ public class CellManager : MonoBehaviour
             //ApplyShellBarrierShape();
         }
 
+        ApplyCellMovement();
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
@@ -117,13 +146,80 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
         ApplyOrganismDeath();
+        UpdateDeadOrganisms();
+    }
+/// <summary>
+/// ////////////////////////////////////////////////////////////////////////////////////////////////
+/// </summary>
+/// 
+    #region Input, player function
+
+    void ApplyInput(Cell player)
+    {
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        mousePlayerDistance = Vector2.Distance(GetPlayerPosition(),mousePos);
+
+        playerSpeed = Mathf.Lerp(normalSpeed,maxSpeed,Mathf.InverseLerp(0f,threshold,mousePlayerDistance));
+
+        player.nextPos = Vector2.MoveTowards(GetPlayerNextPosition(), mousePos,playerSpeed*Time.deltaTime);
+    }
+    void ApplyPlayerInput()
+    {
+        if(playerCellIndex<0)return;
+
+        Cell player = cells[playerCellIndex];
+        ApplyInput(player);
+        cells[playerCellIndex]= player;
+    }
+    public Vector2 GetPlayerPosition()
+    {
+        if(playerCellIndex<0)
+        {
+            return Vector2.zero;
+        }
+        return cells[playerCellIndex].currentPos;
+    }
+    Vector2 GetPlayerNextPosition()
+    {
+        if(playerCellIndex<0)
+        {
+            return Vector2.zero;
+        }
+        return cells[playerCellIndex].nextPos;
     }
 
+    float GetPlayerRadius()
+    {
+        if(playerCellIndex<0)
+        {
+            return 0.4f;
+        }
+        return cells[playerCellIndex].cellRadius;
+    }
+
+    #endregion
+    #region Create
+
+    void CreatePlayerCell(Vector2 pos)
+    {
+        Cell player = new Cell();
+        player.currentPos = pos;
+        player.currentVelocity = Vector2.zero;
+
+        player.cellRadius = 0.4f;
+        player.detectRadius = player.cellRadius*6f;
+
+        player.organismId =-1;
+        player.role=CellRole.Player;
+
+        playerCellIndex = cells.Count;
+        cells.Add(player);
+    }
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 40;
-        float coreDistance = 2f;
+        int shellCount = 33;
+        float coreDistance = 1.5f;
 
         org.id = organisms.Count;
         org.coreDistance = coreDistance;
@@ -135,7 +231,7 @@ public class CellManager : MonoBehaviour
         core.currentPos = currentPos; 
         core.currentVelocity = Vector2.zero;
 
-        core.cellRadius = 0.30f;
+        core.cellRadius = 0.2f;
         core.detectRadius = core.cellRadius * 5f;
 
         core.organismId = org.id;
@@ -175,7 +271,7 @@ public class CellManager : MonoBehaviour
 
         organisms.Add(org);
     }
-
+#endregion
 
     #region Cell_Constraint
     void ResolveOverlap(int CurrentIndex, int OtherIndex) //기본 충돌
@@ -208,16 +304,17 @@ public class CellManager : MonoBehaviour
     void ResolvePlayerOverlap(int cellIndex) //플레이어 - 세포 기본 충돌
     {
         var c = cells[cellIndex];
+        if(c.role==CellRole.Player) return;
         if (c.role == CellRole.Core) return;
 
-        Vector2 playerPos = PlayerPos.position;
+        Vector2 playerPos = GetPlayerNextPosition();
 
         Vector2 delta = c.nextPos - playerPos;
         float d2 = delta.sqrMagnitude;
         if (d2 < 1e-8f) return;
         
         float dist = Mathf.Sqrt(d2);
-        float minDist = c.cellRadius + playerRadius;
+        float minDist = c.cellRadius + GetPlayerRadius();
 
         if(dist >=minDist) return;
 
@@ -272,21 +369,39 @@ public class CellManager : MonoBehaviour
 
             if(!isOrganismDead)continue;
 
+            if(org.isDead) continue;
+
             org.isDead = true;
             org.anchorEnabled = false;
             org.heading = Vector2.zero;
             org.headingPower = 0f;
+            org.deadTimer=0;
             organisms[i] = org;
         }
     }
+    void UpdateDeadOrganisms()
+    {
+        for(int i =0; i<organisms.Count; i++)
+        {
+            var org = organisms[i];
+            if(!org.isDead) continue;
 
+            org.deadTimer+=Time.deltaTime;
+            if(org.deadTimer>=maxDeadTime)
+            {
+                org.deadTimer=maxDeadTime;
+            }
+            organisms[i]=org;
+        }
+    }
     void ApplyOrganismTendency() //생물 움직임
     {
-        Vector2 playerPos = (Vector2)PlayerPos.position;
+        Vector2 playerPos = GetPlayerNextPosition();
 
         
-        foreach (var org in organisms)
+        for (int i=0; i<organisms.Count; i++)
         {
+            var org = organisms[i];
             if (org.isDead) continue;
             //if(org.hp<=0f) continue;
             int coreIdx = org.coreIndex;
@@ -355,7 +470,6 @@ public class CellManager : MonoBehaviour
     //}
     #endregion
 
-
     #region Cell_Rules
 
     void ApplyCohesion(int CurrentIndex, int OtherIndex)  //세포 집결 함수
@@ -414,7 +528,7 @@ public class CellManager : MonoBehaviour
         if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
 
         float target = organisms[core.organismId].coreDistance; //적정거리
-        float tolerance = 0.02f; // 적정거리에서 이정도면 봐줄게 +-
+        float tolerance = 0.01f; // 적정거리에서 이정도면 봐줄게 +-
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -450,7 +564,30 @@ public class CellManager : MonoBehaviour
             cells[CurrentIndex] = currentCell;
         }
     }
+    void ApplyCellMovement()
+    {
+        
+        for (int i=0; i<cells.Count; i++)
+        {
+            Cell c = cells[i];
+            if(c.role==CellRole.Core) continue;
+            if(c.organismId<0||c.organismId>=organisms.Count)continue;
+            Organisms org = organisms[c.organismId];
+            if (!org.isDead) continue;
 
+            float t = Mathf.Clamp01(org.deadTimer/maxDeadTime);
+        
+            Vector2 ramdomDir = UnityEngine.Random.insideUnitCircle;
+            if(ramdomDir.sqrMagnitude<1e-6f)continue;
+
+            float speed = Mathf.Lerp(0.4f,0.0f,t);
+            float drag = 9f;
+            c.nextVelocity *= Mathf.Exp(-drag*Time.deltaTime);
+            c.nextVelocity += ramdomDir*speed;
+        
+            cells[i] = c;
+        }
+    }
     void ApplyPlayerFunctions()
     {
         ApplyPlayerPush();
@@ -458,7 +595,7 @@ public class CellManager : MonoBehaviour
 
     void ApplyPlayerPush()
     {
-        Vector2 playerPos = PlayerPos.position;
+        Vector2 playerPos = GetPlayerNextPosition();
         
 
         for(int i =0; i<cells.Count;i++)
