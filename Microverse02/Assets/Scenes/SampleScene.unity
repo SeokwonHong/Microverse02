@@ -227,7 +227,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f42eb9f157a8da4eab044d3ace80927, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  refToPlayer: {fileID: 1268927147}
+  cellManager: {fileID: 1569142224}
 --- !u!1 &1268927145
 GameObject:
   m_ObjectHideFlags: 0
@@ -272,6 +272,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1376bcbb23bc84684a599bae4c39b486, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cellManager: {fileID: 1569142224}
 --- !u!1 &1410216324
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,8 +401,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPushStrength: 5
-  cellSpeed: 0.35
+  playerPushStrength: 4
+  cellSpeed: 0.7
   BoxSize: 4
   isOrganismDead: 0
 --- !u!1660057539 &9223372036854775807

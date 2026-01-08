@@ -71,10 +71,11 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        playerRadius = GetPlayerRadius();
-        playerInfluenceRadius = playerRadius*10f;
+        
 
         CreatePlayerCell(Vector2.zero);
+        playerRadius = GetPlayerRadius();
+        playerInfluenceRadius = playerRadius*7f;
 
         CreateOrganism(Vector2.zero); //*****************************************************************************
         CreateOrganism(new Vector2(  8f,   6f ));
@@ -98,13 +99,9 @@ public class CellManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))isOrganismDead=true;
+        if(Input.GetKeyDown(KeyCode.Space))isOrganismDead=!isOrganismDead;
         // 1) 해시 적용
-        spatialHash.Clear(); // 딕셔너리 내부 데이터 지우기
-        for (int i = 0; i < cells.Count; i++)
-        {
-            spatialHash.Insert(cells[i].currentPos, i);
-        }
+        
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -112,9 +109,17 @@ public class CellManager : MonoBehaviour
             c.nextVelocity = c.currentVelocity; //더블버퍼중 첫번째
             c.nextPos = c.currentPos + c.nextVelocity * cellSpeed * Time.deltaTime;
             cells[i] = c;
+        }
 
-            
-            foreach (int otherIndex in spatialHash.Query(c.nextPos)) // QQuery 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
+        spatialHash.Clear(); // 딕셔너리 내부 데이터 지우기
+        for (int i = 0; i < cells.Count; i++)
+        {
+            spatialHash.Insert(cells[i].nextPos, i);
+        }
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            foreach (int otherIndex in spatialHash.Query(cells[i].nextPos)) // QQuery 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
             {
                 if (otherIndex == i) continue;
                 ResolveOverlap(i, otherIndex);
@@ -124,7 +129,7 @@ public class CellManager : MonoBehaviour
         }
         ApplyPlayerInput();
         ApplyPlayerFunctions();
-        ApplyPlayerFunctions();
+       
         
         ApplyOrganismTendency();
         ApplyCoreAnchor();
@@ -268,8 +273,10 @@ public class CellManager : MonoBehaviour
             org.members.Add(shellIndex);
 
         }
-
+        //org.anchorEnabled=true;
+        
         organisms.Add(org);
+
     }
 #endregion
 
@@ -419,6 +426,7 @@ public class CellManager : MonoBehaviour
             Cell core = cells[coreIdx];
             core.nextPos += org.heading * org.headingPower * Time.deltaTime;
             cells[coreIdx] = core;
+            organisms[i]=org;
         }
     }
 
