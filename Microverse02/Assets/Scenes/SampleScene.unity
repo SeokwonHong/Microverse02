@@ -402,7 +402,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPushStrength: 4
-  cellSpeed: 0.7
+  cellSpeed: 0.3
   BoxSize: 4
   isOrganismDead: 0
 --- !u!1660057539 &9223372036854775807

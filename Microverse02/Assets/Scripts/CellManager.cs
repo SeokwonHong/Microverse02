@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
 {
@@ -46,7 +46,7 @@ public class CellManager : MonoBehaviour
         public float cellRadius; // 셀 하나하나의 경계
         public float detectRadius; // 이웃 인식 경계
 
-        public int organismId; //-1 이면 독립 셀 (백혈구), 1 이면 생물1
+        public int organismId; //-1 이면 독립 셀, 1 이면 생물1
         public CellRole role; // Core / Shell / WhiteBlood
     }
 
@@ -121,14 +121,14 @@ public class CellManager : MonoBehaviour
         {
             foreach (int otherIndex in spatialHash.Query(cells[i].nextPos)) // QQuery 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
             {
-                if (otherIndex == i) continue;
+                if (otherIndex <= i) continue;
                 ResolveOverlap(i, otherIndex);
                 ApplyCohesion(i, otherIndex);
               
             }
         }
         ApplyPlayerInput();
-        ApplyPlayerFunctions();
+        //ApplyPlayerFunctions();
        
         
         ApplyOrganismTendency();
@@ -138,6 +138,7 @@ public class CellManager : MonoBehaviour
         for(int iter = 0; iter<8; iter++)
         {
             ApplyCoreShellConstraints();
+            ApplyOrganismPushPlayer();
             for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
             //ApplyShellBarrierShape();
         }
@@ -430,6 +431,99 @@ public class CellManager : MonoBehaviour
         }
     }
 
+    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //핵과 쉘 거리유지 
+    {
+        Cell currentCell = cells[CurrentIndex];
+        Cell otherCell = cells[OtherIndex];
+
+        bool currentIsCore = currentCell.role == CellRole.Core;
+        bool otherIsCore = otherCell.role == CellRole.Core;
+        if(currentIsCore==otherIsCore) return;
+        
+        
+        Cell core = currentIsCore? currentCell : otherCell; //current 가 핵이면 핵, current 가 핵이 아니면 other 이 핵
+        Cell shell = currentIsCore ? otherCell : currentCell; // current 가 핵이면 other 은 쉘, current 가 핵이 아니면 쉘은 current
+
+        
+
+        if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
+
+        float target = organisms[core.organismId].coreDistance; //적정거리
+        float tolerance = 0.01f; // 적정거리에서 이정도면 봐줄게 +-
+
+        Vector2 delta = shell.nextPos - core.nextPos;
+        float d2 = delta.sqrMagnitude;
+        if (d2 < 1e-8f) return;
+
+        float dist = Mathf.Sqrt(d2);
+        float error = dist - target;
+        float absErr = Mathf.Abs(error);
+        if (absErr < tolerance) return; //  coreDistance 내부에서 에러가 기준선보다 더 커지면 밀어냄. 
+        //tolerance 안쪽이면 형태유지. 
+
+        float rampRange = target * 0.5f;
+        float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
+        float strength = t;
+        Vector2 dir = delta / dist;
+        Vector2 move = dir * (error * strength);
+
+        shell.nextPos -= move;
+
+        if(currentIsCore)
+        {
+            otherCell = shell;
+            cells[OtherIndex] = otherCell;
+        }
+        else
+        {
+            currentCell = shell;
+            cells[CurrentIndex] = currentCell;
+        }
+    }
+
+    void ApplyOrganismPushPlayer()
+    {
+        if(playerCellIndex<0) return;
+
+        Cell player = cells[playerCellIndex];
+        float dt = Time.deltaTime;
+
+        float k = 15f; //스프링 강도(커질수록 딱딱 / 반발 큼)
+        float c = 2f; // 댐핑(커질수록 덜 튐, 끈적)
+        float skin = 0.25f; // 이 이상 깊게 들어가면 힘을 더 세게(클램프용)
+
+        for(int o=0; o<organisms.Count; o++)
+        {
+            var org = organisms[o];
+            if(org.isDead) continue;
+
+            Cell core = cells[org.coreIndex];
+
+            float barrier = org.coreDistance+player.cellRadius;
+
+            Vector2 delta= player.nextPos - core.nextPos;
+            float d2 = delta.sqrMagnitude;
+            if(d2<1e-8f)continue;
+
+            float dist = Mathf.Sqrt(d2);
+            float penetration = barrier- dist;
+            if(penetration<=0) continue;
+
+            Vector2 n = delta/dist;
+            
+
+            float x = Mathf.Min(penetration,skin);
+            float v_n = Vector2.Dot(player.nextVelocity,n);
+
+            float accel = (k*x)-(c*v_n);
+
+
+            player.nextVelocity += n*accel*dt;
+            player.nextPos += n* x*0.15f;
+        }
+        cells[playerCellIndex]=player;
+    }
+
     //void ApplyShellBarrierShape()
     //{
     //    foreach (var org in organisms)
@@ -518,60 +612,7 @@ public class CellManager : MonoBehaviour
         cells[OtherIndex] = otherCell;
     }
 
-    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //핵과 쉘 거리유지 
-    {
-        Cell currentCell = cells[CurrentIndex];
-        Cell otherCell = cells[OtherIndex];
-
-        bool currentIsCore = currentCell.role == CellRole.Core;
-        bool otherIsCore = otherCell.role == CellRole.Core;
-        if(currentIsCore==otherIsCore) return;
-        
-        
-        Cell core = currentIsCore? currentCell : otherCell; //current 가 핵이면 핵, current 가 핵이 아니면 other 이 핵
-        Cell shell = currentIsCore ? otherCell : currentCell; // current 가 핵이면 other 은 쉘, current 가 핵이 아니면 쉘은 current
-
-        
-
-        if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
-
-        float target = organisms[core.organismId].coreDistance; //적정거리
-        float tolerance = 0.01f; // 적정거리에서 이정도면 봐줄게 +-
-
-        Vector2 delta = shell.nextPos - core.nextPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return;
-
-        float dist = Mathf.Sqrt(d2);
-        float error = dist - target;
-        float absErr = Mathf.Abs(error);
-        if (absErr < tolerance) return; //  coreDistance 내부에서 에러가 기준선보다 더 커지면 밀어냄. 
-        //tolerance 안쪽이면 형태유지. 
-
-        float rampRange = target * 0.5f;
-        float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
-        float strength = t;
-        Vector2 dir = delta / dist;
-        Vector2 move = dir * (error * strength);
-
-        
-
-        
-        
-
-        shell.nextPos -= move;
-
-        if(currentIsCore)
-        {
-            otherCell = shell;
-            cells[OtherIndex] = otherCell;
-        }
-        else
-        {
-            currentCell = shell;
-            cells[CurrentIndex] = currentCell;
-        }
-    }
+    
     void ApplyCellMovement()
     {
         
@@ -632,15 +673,27 @@ public class CellManager : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        if (cells == null)
+        if (cells == null||cells.Count==0)
         {
             Debug.Log("cell list 없음");
             return;
         }
 
-        Gizmos.color = Color.green;
+        
         foreach (Cell c in cells)
         {
+            switch (c.role)
+        {
+            case CellRole.Player:
+                Gizmos.color = Color.white;
+                break;
+            case CellRole.Core:
+                Gizmos.color = Color.green; 
+                break;
+            default: // Shell
+                Gizmos.color = Color.green;
+                break;
+        }
             Gizmos.DrawSphere(c.currentPos, c.cellRadius);
         }
     }
