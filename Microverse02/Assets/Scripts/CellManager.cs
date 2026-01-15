@@ -17,7 +17,7 @@ public class CellManager : MonoBehaviour
 
     private float playerRadius;
     private float playerInfluenceRadius;
-    int playerCellIndex=-1;
+    int playerCellIndex=-1; // -1이란 뜻은 플레이어가 할당되지 않았다는 뜻. 플레이어가 만들어지면 제대로된 정수 인덱스가 들어감.
     [SerializeField] private float playerPushStrength =1.0f;  
 
 
@@ -138,9 +138,9 @@ public class CellManager : MonoBehaviour
         for(int iter = 0; iter<8; iter++)
         {
             ApplyCoreShellConstraints();
-            ApplyOrganismPushPlayer();
+            //ApplyOrganismJelly();
             for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
-            //ApplyShellBarrierShape();
+           
         }
 
         ApplyCellMovement();
@@ -481,16 +481,16 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyOrganismPushPlayer()
+    void ApplyOrganismJelly()
     {
-        if(playerCellIndex<0) return;
+        if(playerCellIndex<0) return; //플레이어가 만들어지지 않았으면 return. CreatePlayerCell() 에서 정상적으로 만들어졌으면 양수가 와야함.
 
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
         float k = 15f; //스프링 강도(커질수록 딱딱 / 반발 큼)
-        float c = 2f; // 댐핑(커질수록 덜 튐, 끈적)
-        float skin = 0.25f; // 이 이상 깊게 들어가면 힘을 더 세게(클램프용)
+        float c = 1f; // 댐핑(커질수록 덜 튐, 끈적)
+        float skin = 1f; // 이 이상 깊게 들어가면 힘을 더 세게(클램프용)
 
         for(int o=0; o<organisms.Count; o++)
         {
@@ -500,76 +500,31 @@ public class CellManager : MonoBehaviour
             Cell core = cells[org.coreIndex];
 
             float barrier = org.coreDistance+player.cellRadius;
-
+            Debug.Log(barrier);
             Vector2 delta= player.nextPos - core.nextPos;
             float d2 = delta.sqrMagnitude;
             if(d2<1e-8f)continue;
 
             float dist = Mathf.Sqrt(d2);
             float penetration = barrier- dist;
-            if(penetration<=0) continue;
+            if(penetration<=0) continue; // 멀면 무시
 
             Vector2 n = delta/dist;
             
 
-            float x = Mathf.Min(penetration,skin);
-            float v_n = Vector2.Dot(player.nextVelocity,n);
+            float x = Mathf.Min(penetration,skin); //둘중 더 작은값을 반환함. 
+            float v_n = Vector2.Dot(player.nextVelocity-core.nextVelocity,n); //플레이어 방향값과 플레이어와 핵과의 방향이 얼마나 일치하는지?
 
             float accel = (k*x)-(c*v_n);
 
 
             player.nextVelocity += n*accel*dt;
-            player.nextPos += n* x*0.15f;
+            //player.nextPos += n* x*0.15f;
         }
         cells[playerCellIndex]=player;
     }
 
-    //void ApplyShellBarrierShape()
-    //{
-    //    foreach (var org in organisms)
-    //    {
-    //        if (org.hp <= 0f) continue;
 
-    //        int coreIdx = org.coreIndex;
-    //        if (coreIdx < 0) continue;
-
-    //        int total = org.members.Count;
-    //        if (total < 4) continue; //�������� core ���� �� 4�� �̻󿩾���
-
-    //        int shellCount = total - 1;
-    //        float targetDist = (2f * Mathf.PI * org.coreDistance) / shellCount;
-
-    //        float tolerance = targetDist * 0.15f;
-    //        float strength = 1.0f;
-
-    //        for (int k = 1; k < total; k++)
-    //        {
-    //            int aIdx = org.members[k];
-    //            int bIdx = org.members[(k == total - 1) ? 1 : (k + 1)]; //������ ���� ���� ���� 1, �װ� �ƴϸ� ���� �ε���+1
-
-    //            Cell a = cells[aIdx];
-    //            Cell b = cells[bIdx];
-
-    //            Vector2 d = b.nextPos - a.nextPos;
-    //            float d2 = d.sqrMagnitude;
-    //            if (d2 < 1e-8f) continue;
-
-    //            float dist = Mathf.Sqrt(d2);
-    //            float error = dist - targetDist;
-    //            if (Mathf.Abs(error) < tolerance) continue; //��������� ���� ���� �ȴ���
-
-    //            Vector2 dir = d / dist;
-
-    //            Vector2 corr = dir * (error * 0.5f * strength);
-
-    //            a.nextPos += corr;
-    //            b.nextPos -= corr;
-
-    //            cells[aIdx] = a;
-    //            cells[bIdx] = b;
-    //        }
-    //    }
-    //}
     #endregion
 
     #region Cell_Rules
@@ -673,6 +628,7 @@ public class CellManager : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        if(!Application.isPlaying) return; 
         if (cells == null||cells.Count==0)
         {
             Debug.Log("cell list 없음");
