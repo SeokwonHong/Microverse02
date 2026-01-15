@@ -489,7 +489,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyOrganismJelly()
+    void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
     {
         if(playerCellIndex<0) return; //if player is not made yet, return. if player is successfully made using CreatePlayerCell(), playerCellIndex will be integer
 
