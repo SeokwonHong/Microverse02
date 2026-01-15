@@ -17,7 +17,7 @@ public class CellManager : MonoBehaviour
 
     private float playerRadius;
     private float playerInfluenceRadius;
-    int playerCellIndex=-1; // -1이란 뜻은 플레이어가 할당되지 않았다는 뜻. 플레이어가 만들어지면 제대로된 정수 인덱스가 들어감.
+    int playerCellIndex=-1; //-1 means player not allocated yet. If player is made, int number will be allocated
     [SerializeField] private float playerPushStrength =1.0f;  
 
 
@@ -43,30 +43,31 @@ public class CellManager : MonoBehaviour
         public Vector2 nextPos;
         public Vector2 nextVelocity;
 
-        public float cellRadius; // 셀 하나하나의 경계
-        public float detectRadius; // 이웃 인식 경계
+        public float cellRadius; // each cell's radius
+        public float detectRadius; // neibor detecting radius
 
-        public int organismId; //-1 이면 독립 셀, 1 이면 생물1
+        public int organismId; //-1 = indipendent cell, 1 = Organism 1
         public CellRole role; // Core / Shell / WhiteBlood
     }
 
     class Organisms
     {
-        public int id; // 이 셀이 무엇인지
-        public int coreIndex; // 중심은 누구냐 (인덱스로 찾을거임)
-        public List<int> members = new List<int>(); // // 그룹의 집합 다 넣을거임
-        public float coreDistance; // 쉘과 심장과의 거리
+        public int id; // who this organism is 
+        public int coreIndex; // what's the core (find with index)
+        public List<int> members = new List<int>(); // // all cell memebers inside the organism
+        public float coreDistance; // distance between Core and Shell
 
         public Vector2 anchorPos;
-        public Vector2 heading; //normalized 방향
-        public float headingPower; // 속도보다는 tendency 로 봐야함. 값을 낮게 유지시켜 더 생물같이 표현해야함.
-        public bool anchorEnabled; //앵커가 쉘들을 붙잡거나 놓아버리거나: 나중에 죽으면 구조가 파괴되게
+        public Vector2 heading; //normalized direction
+        public float headingPower; // Its more tendency likely than speed. must keep value low to inturrupt less
+        public bool anchorEnabled; //anchor holds cells: structure is destroied once its dead
         public float hp;
         public bool isDead;
         public float deadTimer;
     }
 
-    //velocity 는 vector 2 의 좌표를 하나 찍고 그걸  0,0 로 직선연결한다 가정. 끝부분에 화살표를 단것이라 보면 됨: 방향+힘
+    //vector assume that there's two points and in the end of the point they have a invisible arrow
+    //direction * power(magnitude)
     void Start()
     {
         spatialHash = new SpatialHash(BoxSize);
@@ -100,18 +101,18 @@ public class CellManager : MonoBehaviour
     void Update()
     {
         if(Input.GetKeyDown(KeyCode.Space))isOrganismDead=!isOrganismDead;
-        // 1) 해시 적용
+        // 1) Apply Hash
         
 
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-            c.nextVelocity = c.currentVelocity; //더블버퍼중 첫번째
+            c.nextVelocity = c.currentVelocity; //First among double buffer
             c.nextPos = c.currentPos + c.nextVelocity * cellSpeed * Time.deltaTime;
             cells[i] = c;
         }
 
-        spatialHash.Clear(); // 딕셔너리 내부 데이터 지우기
+        spatialHash.Clear(); // Delete data inside the dictionary 
         for (int i = 0; i < cells.Count; i++)
         {
             spatialHash.Insert(cells[i].nextPos, i);
@@ -119,7 +120,7 @@ public class CellManager : MonoBehaviour
 
         for (int i = 0; i < cells.Count; i++)
         {
-            foreach (int otherIndex in spatialHash.Query(cells[i].nextPos)) // QQuery 에서 인덱스 int 를 하나하나 줄거임. 그걸 쓰면 바로 other Index 는 덮어씌워질거임.
+            foreach (int otherIndex in spatialHash.Query(cells[i].nextPos)) // QQuery will give this the index id. Once it's sent, it will be replaced to next one right after
             {
                 if (otherIndex <= i) continue;
                 ResolveOverlap(i, otherIndex);
@@ -147,7 +148,7 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-            c.currentVelocity = c.nextVelocity;//더블버퍼중 두번째
+            c.currentVelocity = c.nextVelocity;// second among double buffer
             c.currentPos = c.nextPos;
             cells[i] = c;
         }
@@ -282,7 +283,7 @@ public class CellManager : MonoBehaviour
 #endregion
 
     #region Cell_Constraint
-    void ResolveOverlap(int CurrentIndex, int OtherIndex) //기본 충돌
+    void ResolveOverlap(int CurrentIndex, int OtherIndex) //basic colliding 
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
@@ -296,11 +297,11 @@ public class CellManager : MonoBehaviour
         float minDist2 = minDist * minDist;
         if (d2 >= minDist2) return;
 
-        float dist = Mathf.Sqrt(d2); //dist 는 거리값이니까
-        Vector2 direction = delta / dist; //벡터값을 거리로 나눠서 방향만 나오게
+        float dist = Mathf.Sqrt(d2); //get distance
+        Vector2 direction = delta / dist; //get the direction by dividing the vector by its distance     vector/distance = distance
 
         float overlap = minDist - dist;
-        Vector2 push = direction * (overlap * 0.5f); // push 는 방향 * 상쇠값의 절반
+        Vector2 push = direction * (overlap * 0.5f); // push(power*direction) * half of the 
         currentCell.nextPos -= push;
         otherCell.nextPos += push;
 
@@ -309,7 +310,7 @@ public class CellManager : MonoBehaviour
 
     }
 
-    void ResolvePlayerOverlap(int cellIndex) //플레이어 - 세포 기본 충돌
+    void ResolvePlayerOverlap(int cellIndex) //player - basic cell collision
     {
         var c = cells[cellIndex];
         if(c.role==CellRole.Player) return;
@@ -333,7 +334,7 @@ public class CellManager : MonoBehaviour
 
         cells[cellIndex] = c;   
     }
-    void ApplyCoreAnchor() //셀의 앵커 등록
+    void ApplyCoreAnchor() //apply core cell an anchor
     {
         foreach (var org in organisms)
         {
@@ -347,7 +348,14 @@ public class CellManager : MonoBehaviour
             cells[coreIdx] = core;
         }
     }
-    void ApplyCoreShellConstraints() //해쉬 거치지 않음 - 셀 하나가 기존 해쉬 영역을 초과해도 organism 규칙 따르게 
+    void ApplyCoreShellConstraints() // not through hash system- even if two cells are too far away, they'll detect still.
+                                     // CHANGE FOR OPTIMIZATION???
+                                     // CHANGE FOR OPTIMIZATION???
+                                     // CHANGE FOR OPTIMIZATION???
+                                     // CHANGE FOR OPTIMIZATION???
+                                     // CHANGE FOR OPTIMIZATION???
+                                     // CHANGE FOR OPTIMIZATION???
+                                     // otherwise each organism must detect 50 cells per cell - crazy
     {
         
         foreach(var org in organisms)
@@ -367,7 +375,7 @@ public class CellManager : MonoBehaviour
         } 
             
     }
-    void ApplyOrganismDeath() //생물 죽었을때 함수
+    void ApplyOrganismDeath() //function when the orgarnism is die
     {
         for (int i=0; i<organisms.Count; i++)  
         {
@@ -402,7 +410,7 @@ public class CellManager : MonoBehaviour
             organisms[i]=org;
         }
     }
-    void ApplyOrganismTendency() //생물 움직임
+    void ApplyOrganismTendency() //Organism movement, more likely tendency
     {
         Vector2 playerPos = GetPlayerNextPosition();
 
@@ -431,7 +439,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //핵과 쉘 거리유지 
+    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //distance betwween core and shell - keep organism shape still
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
@@ -441,15 +449,15 @@ public class CellManager : MonoBehaviour
         if(currentIsCore==otherIsCore) return;
         
         
-        Cell core = currentIsCore? currentCell : otherCell; //current 가 핵이면 핵, current 가 핵이 아니면 other 이 핵
-        Cell shell = currentIsCore ? otherCell : currentCell; // current 가 핵이면 other 은 쉘, current 가 핵이 아니면 쉘은 current
+        Cell core = currentIsCore? currentCell : otherCell; // if current is core, core. if current is not core, shell
+        Cell shell = currentIsCore ? otherCell : currentCell; // if current is core, other is shell, if current is not core, other is core
 
         
 
-        if(core.organismId != shell.organismId) return; //서로 다른 생명체면 무시
+        if(core.organismId != shell.organismId) return; //if organism is different, ignore
 
-        float target = organisms[core.organismId].coreDistance; //적정거리
-        float tolerance = 0.01f; // 적정거리에서 이정도면 봐줄게 +-
+        float target = organisms[core.organismId].coreDistance; // appropritate distance
+        float tolerance = 0.01f; // allow gap +-
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -458,8 +466,8 @@ public class CellManager : MonoBehaviour
         float dist = Mathf.Sqrt(d2);
         float error = dist - target;
         float absErr = Mathf.Abs(error);
-        if (absErr < tolerance) return; //  coreDistance 내부에서 에러가 기준선보다 더 커지면 밀어냄. 
-        //tolerance 안쪽이면 형태유지. 
+        if (absErr < tolerance) return; //  if core and shell distance is under control(tolerance can cover),
+        // apply no power
 
         float rampRange = target * 0.5f;
         float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
@@ -483,14 +491,14 @@ public class CellManager : MonoBehaviour
 
     void ApplyOrganismJelly()
     {
-        if(playerCellIndex<0) return; //플레이어가 만들어지지 않았으면 return. CreatePlayerCell() 에서 정상적으로 만들어졌으면 양수가 와야함.
+        if(playerCellIndex<0) return; //if player is not made yet, return. if player is successfully made using CreatePlayerCell(), playerCellIndex will be integer
 
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 30f; //스프링 강도(커질수록 딱딱 / 반발 큼)
-        float c = 1f; // 댐핑(커질수록 덜 튐, 끈적)
-        float skin = 1f; // 이 이상 깊게 들어가면 힘을 더 세게(클램프용)
+        float k = 30f; // spring strengh
+        float c = 1f; // damping (bigger, more tough surface)
+        float skin = 1f; // if player goes deeper than skin, 
 
         for(int o=0; o<organisms.Count; o++)
         {
@@ -505,14 +513,17 @@ public class CellManager : MonoBehaviour
             if(d2<1e-8f)continue;
 
             float dist = Mathf.Sqrt(d2);
-            float penetration = barrier- dist;
+            float penetration = barrier- dist; // if player is inside of organism, penetration is integer. deeper = greater value
 
 
             Vector2 n = delta/dist;
             
 
-            float x = Mathf.Min(penetration,skin); //둘중 더 작은값을 반환함. 
-            float v_n = Vector2.Dot(player.nextVelocity-core.nextVelocity,n); //플레이어 방향값과 플레이어와 핵과의 방향이 얼마나 일치하는지?
+            float x = Mathf.Min(penetration,skin); //return smaller value. prevent player goes all the way in and bounce off heavily
+            float v_n = Vector2.Dot(player.nextVelocity-core.nextVelocity,n); //player direction vs core direction
+            // v_n > 0  = Moving in the same direction as n
+            // v_n < 0  = Moving opposite to n
+            // v_n == 0 = 90 degree 
 
             float accel = (k*x)-(c*v_n);
             Debug.Log(accel);
@@ -630,7 +641,7 @@ public class CellManager : MonoBehaviour
         if(!Application.isPlaying) return; 
         if (cells == null||cells.Count==0)
         {
-            Debug.Log("cell list 없음");
+            Debug.Log("there's no cell list!");
             return;
         }
 
