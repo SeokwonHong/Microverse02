@@ -136,7 +136,7 @@ public class CellManager : MonoBehaviour
         ApplyCoreAnchor();
         
         
-        for(int iter = 0; iter<8; iter++)
+        for(int iter = 0; iter<8; iter++) // play eight times in one frame
         {
             ApplyCoreShellConstraints();
             ApplyOrganismJelly();
@@ -520,6 +520,11 @@ public class CellManager : MonoBehaviour
             
 
             float x = Mathf.Min(penetration,skin); //return smaller value. prevent player goes all the way in and bounce off heavily
+            //0/3
+            //1/3
+            //2/3
+            //3/3
+            //4/3
             float v_n = Vector2.Dot(player.nextVelocity-core.nextVelocity,n); //player direction vs core direction
             // v_n > 0  = Moving in the same direction as n
             // v_n < 0  = Moving opposite to n
