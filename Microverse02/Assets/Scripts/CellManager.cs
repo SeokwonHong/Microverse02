@@ -78,18 +78,18 @@ public class CellManager : MonoBehaviour
         playerInfluenceRadius = playerRadius*7f;
 
         CreateOrganism(Vector2.zero); //*****************************************************************************
-        CreateOrganism(new Vector2(  8f,   6f ));
-        CreateOrganism(new Vector2( -9f,   7f ));
-        CreateOrganism(new Vector2( 12f,  -4f ));
-        CreateOrganism(new Vector2( -6f, -10f ));
-        CreateOrganism(new Vector2( 15f,   3f ));
-        CreateOrganism(new Vector2( -14f,  2f ));
-        CreateOrganism(new Vector2(  4f,  14f ));
-        CreateOrganism(new Vector2( -3f, -15f ));
-        CreateOrganism(new Vector2( 18f, -12f ));
-        CreateOrganism(new Vector2( -17f, 11f ));
-        CreateOrganism(new Vector2( 10f,  18f ));
-        CreateOrganism(new Vector2( -19f, -5f ));
+        //CreateOrganism(new Vector2(  8f,   6f ));
+        //CreateOrganism(new Vector2( -9f,   7f ));
+        //CreateOrganism(new Vector2( 12f,  -4f ));
+        //CreateOrganism(new Vector2( -6f, -10f ));
+        //CreateOrganism(new Vector2( 15f,   3f ));
+        //CreateOrganism(new Vector2( -14f,  2f ));
+        //CreateOrganism(new Vector2(  4f,  14f ));
+        //CreateOrganism(new Vector2( -3f, -15f ));
+        //CreateOrganism(new Vector2( 18f, -12f ));
+        //CreateOrganism(new Vector2( -17f, 11f ));
+        //CreateOrganism(new Vector2( 10f,  18f ));
+        //CreateOrganism(new Vector2( -19f, -5f ));
 
 
     }
@@ -138,7 +138,7 @@ public class CellManager : MonoBehaviour
         for(int iter = 0; iter<8; iter++)
         {
             ApplyCoreShellConstraints();
-            //ApplyOrganismJelly();
+            ApplyOrganismJelly();
             for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
            
         }
@@ -488,7 +488,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 15f; //스프링 강도(커질수록 딱딱 / 반발 큼)
+        float k = 30f; //스프링 강도(커질수록 딱딱 / 반발 큼)
         float c = 1f; // 댐핑(커질수록 덜 튐, 끈적)
         float skin = 1f; // 이 이상 깊게 들어가면 힘을 더 세게(클램프용)
 
@@ -500,14 +500,13 @@ public class CellManager : MonoBehaviour
             Cell core = cells[org.coreIndex];
 
             float barrier = org.coreDistance+player.cellRadius;
-            Debug.Log(barrier);
             Vector2 delta= player.nextPos - core.nextPos;
             float d2 = delta.sqrMagnitude;
             if(d2<1e-8f)continue;
 
             float dist = Mathf.Sqrt(d2);
             float penetration = barrier- dist;
-            if(penetration<=0) continue; // 멀면 무시
+
 
             Vector2 n = delta/dist;
             
@@ -516,8 +515,8 @@ public class CellManager : MonoBehaviour
             float v_n = Vector2.Dot(player.nextVelocity-core.nextVelocity,n); //플레이어 방향값과 플레이어와 핵과의 방향이 얼마나 일치하는지?
 
             float accel = (k*x)-(c*v_n);
-
-
+            Debug.Log(accel);
+        
             player.nextVelocity += n*accel*dt;
             //player.nextPos += n* x*0.15f;
         }
