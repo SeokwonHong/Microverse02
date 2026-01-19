@@ -1,14 +1,17 @@
 
 using System;
 using System.Collections.Generic;
-using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
 {
+
+
+    public int count=20;
+    public float size = 20;
+
+
 
     [Header("Mouse and Player")]
     float mousePlayerDistance;
@@ -83,18 +86,22 @@ public class CellManager : MonoBehaviour
         playerInfluenceRadius = playerRadius*7f;
 
         //CreateOrganism(Vector2.zero); //*****************************************************************************
-        CreateOrganism(new Vector2(  8f,   6f ));
-        CreateOrganism(new Vector2(-9f, 7f));
-        CreateOrganism(new Vector2(12f, -4f));
-        CreateOrganism(new Vector2(-6f, -10f));
-        CreateOrganism(new Vector2(15f, 3f));
-        CreateOrganism(new Vector2(-14f, 2f));
-        CreateOrganism(new Vector2(4f, 14f));
-        CreateOrganism(new Vector2(-3f, -15f));
-        CreateOrganism(new Vector2(18f, -12f));
-        CreateOrganism(new Vector2(-17f, 11f));
-        CreateOrganism(new Vector2(10f, 18f));
-        CreateOrganism(new Vector2(-19f, -5f));
+        
+
+        float minX = -size;
+        float maxX = size;
+        float minY = -size;
+        float maxY = size;
+
+        for (int i = 0; i < count; i++)
+        {
+            Vector2 pos = new Vector2(
+                UnityEngine.Random.Range(minX, maxX),
+                UnityEngine.Random.Range(minY, maxY)
+            );
+
+            CreateOrganism(pos);
+        }
 
 
     }
@@ -104,6 +111,8 @@ public class CellManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.V)) Debug.Log(cells.Count);
+
         if(Input.GetKeyDown(KeyCode.Space))isOrganismDead=!isOrganismDead;
         // 1) Apply Hash
         
@@ -238,11 +247,12 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 15;
-        float coreDistance = 1.5f;
+        int shellCount = 17;
 
+        //float coreDistance = 2f;
+        
         org.id = organisms.Count;
-        org.coreDistance = coreDistance;
+        
 
         
         //core 
@@ -252,10 +262,13 @@ public class CellManager : MonoBehaviour
         core.currentVelocity = Vector2.zero;
 
         core.cellRadius = 0.3f;
-        core.detectRadius = core.cellRadius * 5f;
+        core.detectRadius = core.cellRadius * 6f;
+        org.coreDistance = core.detectRadius;
 
         core.organismId = org.id;
         core.role = CellRole.Core;
+
+
 
         int coreIndex = cells.Count; 
         cells.Add(core);
@@ -270,7 +283,7 @@ public class CellManager : MonoBehaviour
             float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) 는 각도로 이해 * 그걸 비율로 슬라이스
             Vector2 dir = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)); //각도를 normalized 된 벡터값으로 바꿈 그걸 해주는게 x 축인 cos , y 축인 sin
             //+ 계산하기 편하게 사분면에 표현가능하게 단위화
-            Vector2 pos = currentPos + dir * coreDistance;
+            Vector2 pos = currentPos + dir * org.coreDistance;
 
             Cell shell = new Cell();
             shell.currentPos = pos;
@@ -488,6 +501,8 @@ public class CellManager : MonoBehaviour
         if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
+        //if(dist<=target+tolerance) return;  
+
         float error = dist - target;
         float absErr = Mathf.Abs(error);
         if (absErr < tolerance) return; //  if core and shell distance is under control(tolerance can cover),
@@ -518,8 +533,8 @@ public class CellManager : MonoBehaviour
         Cell Other = cells[otherIndex];
 
         if(Current.role==CellRole.Player || Other.role==CellRole.Player) return;
-        if (Current.role == CellRole.Core || Other.role == CellRole.Core) return;
-        if (Current.organismId != Other.organismId) return;
+        if (Current.role == CellRole.Core && Other.role == CellRole.Shell) return;
+        if (Current.role == CellRole.Shell && Other.role == CellRole.Core) return;
 
         Vector2 delta = Other.nextPos - Current.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -528,7 +543,7 @@ public class CellManager : MonoBehaviour
         float distance = Mathf.Sqrt(d2);
 
         float minDist = Current.cellRadius+ Other.cellRadius;
-        float maxDist = Current.detectRadius+ Other.detectRadius;
+        float maxDist = Current.detectRadius + Other.detectRadius;
 
         if (distance <= minDist) return;
         if(distance > maxDist) return;
@@ -554,7 +569,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 800f; // spring strengh
+        float k = 600f; // spring strengh
         float c = 1.5f; // damping (bigger, more tough surface)
        
 
