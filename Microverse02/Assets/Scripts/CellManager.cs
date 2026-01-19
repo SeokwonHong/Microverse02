@@ -1,7 +1,10 @@
 
 using System;
 using System.Collections.Generic;
+using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
@@ -125,8 +128,9 @@ public class CellManager : MonoBehaviour
             {
                 if (otherIndex <= i) continue;
                 ResolveOverlap(i, otherIndex);
-                //sApplyCohesion(i, otherIndex);
-              
+                //ApplyCellPushing(i, otherIndex);
+                ApplyCohesion(i, otherIndex);
+
             }
         }
         ApplyPlayerInput();
@@ -135,9 +139,11 @@ public class CellManager : MonoBehaviour
         
         ApplyOrganismTendency();
         ApplyCoreAnchor();
+
         
-        
-        for(int iter = 0; iter<8; iter++) // play eight times in one frame
+
+
+        for (int iter = 0; iter<3; iter++) // play eight times in one frame
         {
             ApplyCoreShellConstraints();
             ApplyOrganismJelly();
@@ -232,7 +238,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 33;
+        int shellCount = 17;
         float coreDistance = 1.5f;
 
         org.id = organisms.Count;
@@ -446,7 +452,18 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //distance betwween core and shell - keep organism shape still
+    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //distance betwween core and shell - keep organism shape still  
+        ////////
+        ////////
+        ////
+        ///////
+        /////
+        /////// OPTIMIZATION
+        //////
+        /////
+        ///////
+        ////
+        /////
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
@@ -464,7 +481,7 @@ public class CellManager : MonoBehaviour
         if(core.organismId != shell.organismId) return; //if organism is different, ignore
 
         float target = organisms[core.organismId].coreDistance; // appropritate distance
-        float tolerance = 0.01f; // allow gap +-
+        float tolerance = 0.5f; // allow gap +-
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -495,7 +512,39 @@ public class CellManager : MonoBehaviour
             cells[CurrentIndex] = currentCell;
         }
     }
+    void ApplyCellPushing(int i, int j)
+    {
+        Cell a = cells[i];
+        Cell b = cells[j];
 
+        // Skip player/core
+        if (a.role == CellRole.Player || b.role == CellRole.Player ||
+            a.role == CellRole.Core || b.role == CellRole.Core) return;
+        if (a.organismId != b.organismId) return;
+
+        Vector2 delta = a.nextPos - b.nextPos;
+        float d2 = delta.sqrMagnitude;
+        if (d2 < 1e-8f) return;
+
+        float dist = Mathf.Sqrt(d2);
+        float barrier = a.detectRadius + b.detectRadius;
+        float penetration = barrier - dist;
+        if (penetration <= 0f) return;
+
+        Vector2 n = delta / dist;
+
+        float k = 200f;
+        float dt = Time.deltaTime;
+
+        Vector2 dv = n * (penetration * k) * dt;
+
+        a.nextVelocity += dv * 0.5f;
+        b.nextVelocity -= dv * 0.5f;
+
+        cells[i] = a;
+        cells[j] = b;
+
+    }
     void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
     {
 
@@ -504,7 +553,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 300f; // spring strengh
+        float k = 600f; // spring strengh
         float c = 2f; // damping (bigger, more tough surface)
        
 
@@ -585,7 +634,7 @@ public class CellManager : MonoBehaviour
         float dist = Mathf.Sqrt(d2);
         Vector2 dir = delta / dist; //벡터를 순수 거리로 나눔
 
-        float speed = 0.01f;
+        float speed = 0.1f;
         Vector2 move = dir * (speed * Time.deltaTime);
 
         currentCell.nextPos += move * 0.5f;
@@ -595,15 +644,7 @@ public class CellManager : MonoBehaviour
         cells[OtherIndex] = otherCell;
     }
 
-    void ApplyCellPushing(int CurrentIndex, int OtherIndex)
-    {
-        Cell currentCell = cells[CurrentIndex];
-        Cell otherCell = cells[OtherIndex];
-
-        if (currentCell.role == CellRole.Player || otherCell.role == CellRole.Player) return; //aint gonna apply to player
-
-
-    }
+    
     
     void ApplyCellMovement()// cell tendency
     {
