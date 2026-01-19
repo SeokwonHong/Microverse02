@@ -238,7 +238,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 17;
+        int shellCount = 35;
         float coreDistance = 1.5f;
 
         org.id = organisms.Count;
@@ -481,7 +481,7 @@ public class CellManager : MonoBehaviour
         if(core.organismId != shell.organismId) return; //if organism is different, ignore
 
         float target = organisms[core.organismId].coreDistance; // appropritate distance
-        float tolerance = 0.5f; // allow gap +-
+        float tolerance = 0.01f; // allow gap +-
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
