@@ -128,8 +128,8 @@ public class CellManager : MonoBehaviour
             {
                 if (otherIndex <= i) continue;
                 ResolveOverlap(i, otherIndex);
-                //ApplyCellPushing(i, otherIndex);
-                ApplyCohesion(i, otherIndex);
+                ApplyCellPushing(i, otherIndex);
+                //ApplyCohesion(i, otherIndex);
 
             }
         }
@@ -238,7 +238,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 35;
+        int shellCount = 15;
         float coreDistance = 1.5f;
 
         org.id = organisms.Count;
@@ -251,7 +251,7 @@ public class CellManager : MonoBehaviour
         core.currentPos = currentPos; 
         core.currentVelocity = Vector2.zero;
 
-        core.cellRadius = 0.2f;
+        core.cellRadius = 0.3f;
         core.detectRadius = core.cellRadius * 5f;
 
         core.organismId = org.id;
@@ -481,7 +481,7 @@ public class CellManager : MonoBehaviour
         if(core.organismId != shell.organismId) return; //if organism is different, ignore
 
         float target = organisms[core.organismId].coreDistance; // appropritate distance
-        float tolerance = 0.01f; // allow gap +-
+        float tolerance = 0.06f; // allow gap +-
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -512,38 +512,39 @@ public class CellManager : MonoBehaviour
             cells[CurrentIndex] = currentCell;
         }
     }
-    void ApplyCellPushing(int i, int j)
+    void ApplyCellPushing(int currentIndex, int otherIndex)
     {
-        Cell a = cells[i];
-        Cell b = cells[j];
+        Cell Current = cells[currentIndex];
+        Cell Other = cells[otherIndex];
 
-        // Skip player/core
-        if (a.role == CellRole.Player || b.role == CellRole.Player ||
-            a.role == CellRole.Core || b.role == CellRole.Core) return;
-        if (a.organismId != b.organismId) return;
+        if(Current.role==CellRole.Player || Other.role==CellRole.Player) return;
+        if (Current.role == CellRole.Core || Other.role == CellRole.Core) return;
+        if (Current.organismId != Other.organismId) return;
 
-        Vector2 delta = a.nextPos - b.nextPos;
+        Vector2 delta = Other.nextPos - Current.nextPos;
         float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return;
+        if (d2 < 1e-5f) return;
 
-        float dist = Mathf.Sqrt(d2);
-        float barrier = a.detectRadius + b.detectRadius;
-        float penetration = barrier - dist;
-        if (penetration <= 0f) return;
+        float distance = Mathf.Sqrt(d2);
 
-        Vector2 n = delta / dist;
+        float minDist = Current.cellRadius+ Other.cellRadius;
+        float maxDist = Current.detectRadius+ Other.detectRadius;
 
-        float k = 200f;
-        float dt = Time.deltaTime;
+        if (distance <= minDist) return;
+        if(distance > maxDist) return;
 
-        Vector2 dv = n * (penetration * k) * dt;
+      
+        Vector2 dir = delta / distance;
 
-        a.nextVelocity += dv * 0.5f;
-        b.nextVelocity -= dv * 0.5f;
+        float penetration = (maxDist - distance) * 0.1f;
 
-        cells[i] = a;
-        cells[j] = b;
+        Vector2 push = dir * (penetration * 0.5f);
 
+        Current.nextPos -= push;
+        Other.nextPos += push;
+
+        cells[currentIndex] = Current;
+        cells[otherIndex] = Other;   
     }
     void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
     {
@@ -553,8 +554,8 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 600f; // spring strengh
-        float c = 2f; // damping (bigger, more tough surface)
+        float k = 800f; // spring strengh
+        float c = 1.5f; // damping (bigger, more tough surface)
        
 
         for(int o=0; o<organisms.Count; o++)
