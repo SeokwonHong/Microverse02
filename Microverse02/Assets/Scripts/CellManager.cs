@@ -113,7 +113,7 @@ public class CellManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.V)) Debug.Log(cells.Count);
 
-        if(Input.GetKeyDown(KeyCode.Space))isOrganismDead=!isOrganismDead;
+        
         // 1) Apply Hash
         
 
@@ -168,6 +168,7 @@ public class CellManager : MonoBehaviour
             c.currentPos = c.nextPos;
             cells[i] = c;
         }
+        ApplyPlayerKillsOrganism();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         
@@ -247,7 +248,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 17;
+        int shellCount = 20;
 
         //float coreDistance = 2f;
         
@@ -290,7 +291,7 @@ public class CellManager : MonoBehaviour
             shell.currentVelocity = Vector2.zero;
 
             //이부분부터 프로퍼티화해야할듯.
-            shell.cellRadius = 0.15f;
+            shell.cellRadius = 0.13f;
             shell.detectRadius = shell.cellRadius * 5f;
 
             shell.organismId = org.id;
@@ -678,7 +679,7 @@ public class CellManager : MonoBehaviour
             Vector2 ramdomDir = UnityEngine.Random.insideUnitCircle;
             if(ramdomDir.sqrMagnitude<1e-6f)continue;
 
-            float speed = Mathf.Lerp(0.4f,0.0f,t);
+            float speed = Mathf.Lerp(1f,0.0f,t);
             float drag = 9f;
             c.nextVelocity *= Mathf.Exp(-drag*Time.deltaTime);
             c.nextVelocity += ramdomDir*speed;
@@ -719,7 +720,45 @@ public class CellManager : MonoBehaviour
     }
     #endregion
 
+    #region Player VS Shell
 
+    void ApplyPlayerKillsOrganism()
+    {
+        for (int i=0; i<organisms.Count; i++)
+        {
+            var org = organisms[i];
+            int CoreIndex = org.coreIndex;
+
+            Cell coreCell = cells[CoreIndex];
+            Cell player = cells[playerCellIndex];
+            Vector2 delta = coreCell.nextPos-player.nextPos;
+
+            float d2 = delta.sqrMagnitude;
+
+            if(d2<1e-5f) continue;  
+
+            float minDist = player.cellRadius+org.coreDistance+coreCell.cellRadius;
+            float minDist2 = minDist*minDist;
+
+            float dist = Mathf.Sqrt(d2); 
+
+            if(dist>minDist) continue;
+
+            if (dist <= minDist)
+            {
+
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    org.isDead = true;
+                }
+            }
+        }
+        
+    }
+
+    #endregion
+
+    #region Gizmo
     void OnDrawGizmos()
     {
         if(!Application.isPlaying) return; 
@@ -747,6 +786,8 @@ public class CellManager : MonoBehaviour
             Gizmos.DrawSphere(c.currentPos, c.cellRadius);
         }
     }
+
+    #endregion
 }
 
 
