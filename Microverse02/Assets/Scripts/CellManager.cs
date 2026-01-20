@@ -138,7 +138,7 @@ public class CellManager : MonoBehaviour
                 if (otherIndex <= i) continue;
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                //ApplyCohesion(i, otherIndex);
+                ApplyCohesion(i, otherIndex);
 
             }
         }
@@ -570,7 +570,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 600f; // spring strengh
+        float k = 300f; // spring strengh
         float c = 1.5f; // damping (bigger, more tough surface)
        
 
@@ -768,22 +768,24 @@ public class CellManager : MonoBehaviour
             return;
         }
 
-        
+
         foreach (Cell c in cells)
         {
-            switch (c.role)
-        {
-            case CellRole.Player:
+            Gizmos.color = Color.green;
+
+            if(c.role == CellRole.Player)
+            {
                 Gizmos.color = Color.white;
-                break;
-            case CellRole.Core:
-                Gizmos.color = Color.green; 
-                break;
-            default: // Shell
-                Gizmos.color = Color.green;
-                break;
-        }
-            Gizmos.DrawSphere(c.currentPos, c.cellRadius);
+            }
+            else if (c.organismId>=0 &&c.organismId<organisms.Count)
+            {
+                if(organisms[c.organismId].isDead)
+                {
+                    Gizmos.color = Color.white;
+                }
+            }
+            Gizmos.DrawSphere(c.currentPos,c.cellRadius);
+
         }
     }
 
