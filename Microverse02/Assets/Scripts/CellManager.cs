@@ -576,6 +576,7 @@ public class CellManager : MonoBehaviour
 
         for(int o=0; o<organisms.Count; o++)
         {
+            
             var org = organisms[o];
             if(org.isDead) continue;
 

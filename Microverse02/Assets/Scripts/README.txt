@@ -20,15 +20,18 @@ For emergence:
 	Self-directing (motility)
 
 		Directing based on Lennard-Jones potential?
+	
 
 	Self-replicating (reproduction)
 
 		If organism becomes too massive, reproduce himself?
 
+
 	Entropy reduction (metabolism)
 
 		organism eats dead cells?
 		Otherwise Death?
+
 
 	Growth (development)
 
