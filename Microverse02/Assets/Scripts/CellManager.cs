@@ -776,7 +776,7 @@ public class CellManager : MonoBehaviour
 
             if(c.role == CellRole.Player)
             {
-                Gizmos.color = Color.white;
+                Gizmos.color = Color.black;
             }
             else if (c.organismId>=0 &&c.organismId<organisms.Count)
             {
