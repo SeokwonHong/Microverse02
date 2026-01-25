@@ -1,0 +1,44 @@
+void ApplyPlayerInput()
+
+public Vector2 GetPlayerPosition()
+
+Vector2 GetPlayerNextPosition()
+
+float GetPlayerRadius()
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void CreatePlayerCell(Vector2 pos)
+
+void CreateOrganism(Vector2 currentPos)
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+void ResolveOverlap(int CurrentIndex, int OtherIndex)
+
+void ResolvePlayerOverlap(int cellIndex)
+
+void ApplyCoreAnchor()
+
+void ApplyCoreShellConstraints()
+
+void ApplyOrganismDeath() 
+
+void UpdateDeadOrganisms()
+
+void ApplyOrganismTendency()
+
+void ApplyKeepDistance(int CurrentIndex, int OtherIndex)
+
+void ApplyCellPushing(int currentIndex, int otherIndex)
+
+void ApplyOrganismJelly()
+
+void ApplyCohesion(int CurrentIndex, int OtherIndex) 
+
+void ApplyCellMovement()
+
+void ApplyPlayerFunctions()
+	ApplyPlayerPush()
+
+ApplyPlayerKillsOrganism()

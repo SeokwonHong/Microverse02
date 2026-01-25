@@ -138,7 +138,7 @@ public class CellManager : MonoBehaviour
                 if (otherIndex <= i) continue;
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                ApplyCohesion(i, otherIndex);
+                //ApplyCohesion(i, otherIndex);
 
             }
         }
@@ -501,7 +501,7 @@ public class CellManager : MonoBehaviour
         if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
-        if(dist<=target+tolerance) return;  
+        //if(dist<=target+tolerance) return;  
 
         float error = dist - target;
         float absErr = Mathf.Abs(error);
@@ -533,8 +533,7 @@ public class CellManager : MonoBehaviour
         Cell Other = cells[otherIndex];
 
         if(Current.role==CellRole.Player || Other.role==CellRole.Player) return;
-        if (Current.role == CellRole.Core && Other.role == CellRole.Shell) return;
-        if (Current.role == CellRole.Shell && Other.role == CellRole.Core) return;
+ 
 
         Vector2 delta = Other.nextPos - Current.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -555,8 +554,20 @@ public class CellManager : MonoBehaviour
 
         Vector2 push = dir * (penetration * 0.5f);
 
-        Current.nextPos -= push;
-        Other.nextPos += push;
+        if (Current.role == CellRole.Core && Other.role == CellRole.Shell)
+        {
+            Other.nextPos += push;
+        }
+        else if (Current.role == CellRole.Shell && Other.role == CellRole.Core)
+        {
+            Current.nextPos -= push;
+        }
+        else
+        {
+            Current.nextPos -= push;
+            Other.nextPos += push;
+        }
+        
 
         cells[currentIndex] = Current;
         cells[otherIndex] = Other;   
@@ -569,8 +580,8 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 200f; // spring strengh
-        float c = 1.2f; // damping (bigger, more tough surface)
+        float k = 7f; // spring strengh
+        float c = 1.3f; // damping (bigger, more tough surface)
        
 
         for(int o=0; o<organisms.Count; o++)
@@ -607,7 +618,7 @@ public class CellManager : MonoBehaviour
                 continue;
             }
             
-            Vector2 pushingPower = n * accel * dt;
+            Vector2 pushingPower = n * accel;
 
            
 
