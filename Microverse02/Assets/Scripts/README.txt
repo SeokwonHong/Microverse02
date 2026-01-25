@@ -57,3 +57,8 @@ For emergence:
 	1. Hover the mouse
 	2. Click
 	3. Space
+
+
+	Variation? 
+
+	small organism -> eat -> bigger -> split

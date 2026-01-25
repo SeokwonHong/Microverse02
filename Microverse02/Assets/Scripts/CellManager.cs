@@ -146,7 +146,7 @@ public class CellManager : MonoBehaviour
         ApplyPlayerFunctions();
        
         
-        ApplyOrganismTendency();
+        //ApplyOrganismTendency();
         ApplyCoreAnchor();
 
         
@@ -248,7 +248,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = UnityEngine.Random.Range(20,30);
+        int shellCount = UnityEngine.Random.Range(20,26);
 
         //float coreDistance = 2f;
         
@@ -467,17 +467,6 @@ public class CellManager : MonoBehaviour
     }
 
     void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //distance betwween core and shell - keep organism shape still  
-        ////////
-        ////////
-        ////
-        ///////
-        /////
-        /////// OPTIMIZATION
-        //////
-        /////
-        ///////
-        ////
-        /////
     {
         Cell currentCell = cells[CurrentIndex];
         Cell otherCell = cells[OtherIndex];
@@ -485,14 +474,9 @@ public class CellManager : MonoBehaviour
         bool currentIsCore = currentCell.role == CellRole.Core;
         bool otherIsCore = otherCell.role == CellRole.Core;
         
-        
-        
         Cell core = currentIsCore? currentCell : otherCell; // if current is core, core. if current is not core, shell
         Cell shell = currentIsCore ? otherCell : currentCell; // if current is core, other is shell, if current is not core, other is core
 
-        
-
-        
         float target = organisms[core.organismId].coreDistance; // appropritate distance
         float tolerance = 0.06f; // allow gap +-
 
@@ -501,7 +485,7 @@ public class CellManager : MonoBehaviour
         if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
-        //if(dist<=target+tolerance) return;  
+        if(dist<=target) return;  
 
         float error = dist - target;
         float absErr = Mathf.Abs(error);
@@ -511,20 +495,30 @@ public class CellManager : MonoBehaviour
         float rampRange = target * 0.5f;
         float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
         float strength = t;
-        Vector2 dir = delta / dist;
-        Vector2 move = dir * (error * strength);
 
-        shell.nextPos -= move;
+        Vector2 dir = delta / dist;
+        Vector2 corr = dir * (error * strength);
+
+
+        float coreWeight = 0.25f;
+        float shellWeight = 0.75f;
+
+        shell.nextPos -= corr* shellWeight;
+        core.nextPos += corr* coreWeight;
 
         if(currentIsCore)
         {
             otherCell = shell;
+            currentCell = core;
             cells[OtherIndex] = otherCell;
+            cells[CurrentIndex] = currentCell;
         }
         else
         {
             currentCell = shell;
+            otherCell = core;
             cells[CurrentIndex] = currentCell;
+            cells[OtherIndex] = otherCell;
         }
     }
     void ApplyCellPushing(int currentIndex, int otherIndex)
@@ -580,7 +574,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 70f; // spring strengh
+        float k = 200f; // spring strengh
         float c = 1.3f; // damping (bigger, more tough surface)
        
 
@@ -683,14 +677,14 @@ public class CellManager : MonoBehaviour
          
             if(c.organismId<0||c.organismId>=organisms.Count)continue;
             Organisms org = organisms[c.organismId];
-            if (!org.isDead) continue;
+           
 
             float t = Mathf.Clamp01(org.deadTimer/maxDeadTime);
         
             Vector2 ramdomDir = UnityEngine.Random.insideUnitCircle;
             if(ramdomDir.sqrMagnitude<1e-6f)continue;
 
-            float speed = Mathf.Lerp(1f,0.0f,t);
+            float speed = Mathf.Lerp(3f,0.0f,t);
             float drag = 9f;
             c.nextVelocity *= Mathf.Exp(-drag*Time.deltaTime);
             c.nextVelocity += ramdomDir*speed;
