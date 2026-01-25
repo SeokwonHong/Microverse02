@@ -248,7 +248,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 20;
+        int shellCount = 25;
 
         //float coreDistance = 2f;
         
@@ -291,7 +291,7 @@ public class CellManager : MonoBehaviour
             shell.currentVelocity = Vector2.zero;
 
             //이부분부터 프로퍼티화해야할듯.
-            shell.cellRadius = 0.13f;
+            shell.cellRadius = 0.1f;
             shell.detectRadius = shell.cellRadius * 5f;
 
             shell.organismId = org.id;
@@ -484,7 +484,7 @@ public class CellManager : MonoBehaviour
 
         bool currentIsCore = currentCell.role == CellRole.Core;
         bool otherIsCore = otherCell.role == CellRole.Core;
-        if(currentIsCore==otherIsCore) return;
+        
         
         
         Cell core = currentIsCore? currentCell : otherCell; // if current is core, core. if current is not core, shell
@@ -492,8 +492,7 @@ public class CellManager : MonoBehaviour
 
         
 
-        if(core.organismId != shell.organismId) return; //if organism is different, ignore
-
+        
         float target = organisms[core.organismId].coreDistance; // appropritate distance
         float tolerance = 0.06f; // allow gap +-
 
@@ -502,7 +501,7 @@ public class CellManager : MonoBehaviour
         if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
-        //if(dist<=target+tolerance) return;  
+        if(dist<=target+tolerance) return;  
 
         float error = dist - target;
         float absErr = Mathf.Abs(error);
@@ -570,8 +569,8 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 300f; // spring strengh
-        float c = 1.5f; // damping (bigger, more tough surface)
+        float k = 200f; // spring strengh
+        float c = 1.2f; // damping (bigger, more tough surface)
        
 
         for(int o=0; o<organisms.Count; o++)
@@ -670,7 +669,7 @@ public class CellManager : MonoBehaviour
         for (int i=0; i<cells.Count; i++)
         {
             Cell c = cells[i];
-            if(c.role==CellRole.Core) continue;
+         
             if(c.organismId<0||c.organismId>=organisms.Count)continue;
             Organisms org = organisms[c.organismId];
             if (!org.isDead) continue;
@@ -701,7 +700,7 @@ public class CellManager : MonoBehaviour
         for(int i =0; i<cells.Count;i++)
         {
             Cell c = cells[i];
-            if(c.role !=CellRole.Shell) continue;
+           // if(c.role !=CellRole.Shell) continue;
 
             Vector2 delta = c.nextPos - playerPos;
             float d2 = delta.sqrMagnitude;
@@ -776,7 +775,7 @@ public class CellManager : MonoBehaviour
 
             if(c.role == CellRole.Player)
             {
-                Gizmos.color = Color.black;
+                Gizmos.color = Color.red;
             }
             else if (c.organismId>=0 &&c.organismId<organisms.Count)
             {
