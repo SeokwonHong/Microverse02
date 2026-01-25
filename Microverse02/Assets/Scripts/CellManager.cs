@@ -248,7 +248,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = 25;
+        int shellCount = UnityEngine.Random.Range(20,30);
 
         //float coreDistance = 2f;
         
@@ -262,7 +262,7 @@ public class CellManager : MonoBehaviour
         core.currentPos = currentPos; 
         core.currentVelocity = Vector2.zero;
 
-        core.cellRadius = 0.3f;
+        core.cellRadius = UnityEngine.Random.Range(0.3f, 0.4f);
         core.detectRadius = core.cellRadius * 6f;
         org.coreDistance = core.detectRadius;
 
@@ -278,7 +278,7 @@ public class CellManager : MonoBehaviour
         org.members.Add(coreIndex);
 
         //Shell
-
+        float CellRadius = UnityEngine.Random.Range(0.1f, 0.13f);
         for (int i = 0; i < shellCount; i++)
         {
             float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) 는 각도로 이해 * 그걸 비율로 슬라이스
@@ -291,7 +291,7 @@ public class CellManager : MonoBehaviour
             shell.currentVelocity = Vector2.zero;
 
             //이부분부터 프로퍼티화해야할듯.
-            shell.cellRadius = 0.1f;
+            shell.cellRadius = CellRadius;
             shell.detectRadius = shell.cellRadius * 5f;
 
             shell.organismId = org.id;
@@ -580,7 +580,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 7f; // spring strengh
+        float k = 70f; // spring strengh
         float c = 1.3f; // damping (bigger, more tough surface)
        
 
@@ -622,7 +622,7 @@ public class CellManager : MonoBehaviour
 
            
 
-            player.nextVelocity += pushingPower;
+            player.nextVelocity += pushingPower*Time.deltaTime;
             
             
         }

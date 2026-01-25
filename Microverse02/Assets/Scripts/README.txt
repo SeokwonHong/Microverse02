@@ -47,3 +47,13 @@ For emergence:
 
 
 	Evolving through mutation and selection (evolvability) 
+
+
+
+
+	//
+
+	Procedual Design? 
+	1. Hover the mouse
+	2. Click
+	3. Space
