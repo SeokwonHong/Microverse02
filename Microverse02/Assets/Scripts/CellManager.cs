@@ -79,7 +79,7 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        
+        Cursor.visible = false;
 
         CreatePlayerCell(Vector2.zero);
         playerRadius = GetPlayerRadius();
@@ -142,36 +142,39 @@ public class CellManager : MonoBehaviour
 
             }
         }
-        ApplyPlayerInput();
-        ApplyPlayerFunctions();
-       
-        
-        //ApplyOrganismTendency();
-        ApplyCoreAnchor();
 
-        
-
-
-        for (int iter = 0; iter<3; iter++) // play eight times in one frame
+        if (Time.frameCount % 2 == 0)
         {
-            ApplyCoreShellConstraints();
-            ApplyOrganismJelly();
-            for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
-           
-        }
+            ApplyPlayerInput();
+            ApplyPlayerFunctions();
 
-        ApplyCellMovement();
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell c = cells[i];
-            c.currentVelocity = c.nextVelocity;// second among double buffer
-            c.currentPos = c.nextPos;
-            cells[i] = c;
+
+            //ApplyOrganismTendency();
+            ApplyCoreAnchor();
+
+
+
+
+            for (int iter = 0; iter < 3; iter++) // play eight times in one frame
+            {
+                ApplyCoreShellConstraints();
+                ApplyOrganismJelly();
+                for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
+
+            }
+
+            ApplyCellMovement();
+            for (int i = 0; i < cells.Count; i++)
+            {
+                Cell c = cells[i];
+                c.currentVelocity = c.nextVelocity;// second among double buffer
+                c.currentPos = c.nextPos;
+                cells[i] = c;
+            }
+            ApplyPlayerKillsOrganism();
+            ApplyOrganismDeath();
+            UpdateDeadOrganisms();
         }
-        ApplyPlayerKillsOrganism();
-        ApplyOrganismDeath();
-        UpdateDeadOrganisms();
-        
     }
 /// <summary>
 /// ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -746,13 +749,14 @@ public class CellManager : MonoBehaviour
 
             if(dist>minDist) continue;
 
-            if (dist <= minDist)
+            if (dist <= minDist/3)
             {
+                org.isDead = true;
 
-                if (Input.GetKeyDown(KeyCode.Space))
+                /*if (Input.GetKeyDown(KeyCode.Space))
                 {
                     org.isDead = true;
-                }
+                }*/
             }
         }
         
