@@ -574,7 +574,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        float k = 200f; // spring strengh
+        float k = 400f; // spring strengh
         float c = 1.3f; // damping (bigger, more tough surface)
        
 
