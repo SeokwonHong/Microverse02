@@ -62,3 +62,5 @@ For emergence:
 	Variation? 
 
 	small organism -> eat -> bigger -> split
+
+	Bacteria is like a Snake

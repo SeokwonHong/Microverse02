@@ -9,7 +9,7 @@ public class CellManager : MonoBehaviour
 
 
     public int count=20;
-    public float size = 20;
+    public float SceneGenerateSize = 20;
 
 
 
@@ -88,10 +88,10 @@ public class CellManager : MonoBehaviour
         //CreateOrganism(Vector2.zero); //*****************************************************************************
         
 
-        float minX = -size;
-        float maxX = size;
-        float minY = -size;
-        float maxY = size;
+        float minX = -SceneGenerateSize;
+        float maxX = SceneGenerateSize;
+        float minY = -SceneGenerateSize;
+        float maxY = SceneGenerateSize;
 
         for (int i = 0; i < count; i++)
         {
@@ -551,10 +551,7 @@ public class CellManager : MonoBehaviour
         if (Current.role == CellRole.Core && Other.role == CellRole.Shell)
         {
             Other.nextPos += push;
-        }
-        else if (Current.role == CellRole.Shell && Other.role == CellRole.Core)
-        {
-            Current.nextPos -= push;
+            Current.nextPos -= push*0.6f;
         }
         else
         {
