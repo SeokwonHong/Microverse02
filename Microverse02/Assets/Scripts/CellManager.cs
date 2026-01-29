@@ -590,30 +590,21 @@ public class CellManager : MonoBehaviour
 
             float dist = Mathf.Sqrt(d2);
             float penetration = barrier- dist; // if player is inside of organism, penetration is integer. deeper = greater value
-            if(penetration <= 1e-2f) penetration = 0f;
+            if(penetration <= 0f) continue;
 
             Vector2 n = delta/dist;
 
-
-            float x = penetration; //return smaller value. prevent player goes all the way in and bounce off heavily
 
             float v_n = Vector2.Dot(player.nextVelocity-core.nextVelocity,n); //player direction vs core direction
             // v_n > 0  = Moving in the same direction as n
             // v_n < 0  = Moving opposite to n
             // v_n == 0 = 90 degree 
 
-            float accel = (k*x)-(c*v_n);
-            if (accel <= 1e-2f)
-            {
-                accel = 0f;
-                continue;
-            }
-            
-            Vector2 pushingPower = n * accel;
+            float accel = (k*penetration)-(c*v_n);
+            if (accel <= 0f)continue;
 
-           
 
-            player.nextVelocity += pushingPower*Time.deltaTime;
+            player.nextVelocity += n*accel*Time.deltaTime;
             
             
         }
@@ -681,7 +672,7 @@ public class CellManager : MonoBehaviour
             Vector2 ramdomDir = UnityEngine.Random.insideUnitCircle;
             if(ramdomDir.sqrMagnitude<1e-6f)continue;
 
-            float speed = Mathf.Lerp(3f,0.0f,t);
+            float speed = Mathf.Lerp(100f,0.0f,t);
             float drag = 9f;
             c.nextVelocity *= Mathf.Exp(-drag*Time.deltaTime);
             c.nextVelocity += ramdomDir*speed;
@@ -749,10 +740,12 @@ public class CellManager : MonoBehaviour
             if (dist <= minDist)
             {
 
-                if (Input.GetKeyDown(KeyCode.Space))
+                if(d2-coreCell.cellRadius<0.3f)
                 {
                     org.isDead = true;
                 }
+
+                
             }
         }
         
