@@ -2056,7 +2056,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   count: 30
-  SceneGenerateSize: 20
+  size: 5
   playerPushStrength: 4
   cellSpeed: 0.4
   BoxSize: 4
