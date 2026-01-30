@@ -145,6 +145,7 @@ public class CellManager : MonoBehaviour
             {
                 if (otherIndex <= i) continue;
                 ResolveOverlap(i, otherIndex);
+                ApplyCellPlayerDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
                 //ApplyCohesion(i, otherIndex);
                 
@@ -162,7 +163,7 @@ public class CellManager : MonoBehaviour
 
         for (int iter = 0; iter<3; iter++) // play eight times in one frame
         {
-            ApplyCellPlayerDetection();
+            
             ApplyCoreShellConstraints();
             ApplyOrganismJelly();
             for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
@@ -555,7 +556,7 @@ public class CellManager : MonoBehaviour
 
         float penetration = (maxDist - distance) * 0.1f;
 
-        Vector2 push = dir * (penetration * 0.5f);
+        Vector2 push = dir * (penetration * 0.8f);
 
         if (Current.role == CellRole.Core && Other.role == CellRole.Shell)
         {
@@ -620,27 +621,30 @@ public class CellManager : MonoBehaviour
         cells[playerCellIndex]=player;
     }
 
-    void ApplyCellPlayerDetection()
+    void ApplyCellPlayerDetection(int a, int b)
     {
-        if (playerCellIndex < 0) return;
-        
-        Cell player = cells[playerCellIndex];
-        Vector2 p = player.nextPos;
+        Cell A = cells[a];
+        Cell B = cells[b];
 
-        for(int i = 0;i<cells.Count;i++)
+        if(A.role == CellRole.Player&&B.role!=CellRole.Player)
         {
-            if(i==playerCellIndex) continue;
-
-            Cell c = cells[i];  
-
-            float minDist = player.detectRadius+c.cellRadius;
-            float minDist2 = minDist * minDist;
-
-            Vector2 d = p - c.nextPos;
-            float d2 = d.sqrMagnitude;
-
-            c.detected = (d2 <= minDist2) ? 1 : 0;
-            cells[i] = c;
+            float r= A.detectRadius+B.cellRadius;
+            if((A.nextPos-B.nextPos).sqrMagnitude<=r*r)
+            {
+                B.detected = 1;
+                cells[b] = B;
+            }
+            else B.detected = -1;
+        }
+        else if(B.role==CellRole.Player&&A.role!=CellRole.Player)
+        {
+            float r = B.detectRadius+A.cellRadius;
+            if ((B.nextPos - A.nextPos).sqrMagnitude <= r * r)
+            {
+                A.detected = 1;
+                cells[a] = A;
+            }
+            else A.detected = -1;
         }
     }
 
@@ -711,7 +715,7 @@ public class CellManager : MonoBehaviour
             float speed;
             if(cells[i].detected==1)
             {
-                speed = Mathf.Lerp(50f, 0.0f, t);
+                speed = Mathf.Lerp(10f, 0.0f, t);
             }
             else speed = Mathf.Lerp(3f, 0.0f, t);
 
@@ -825,6 +829,10 @@ public class CellManager : MonoBehaviour
                 {
                     Gizmos.color = Color.white;
                 }
+            }
+            else if (organisms[c.organismId].playerInside==1)
+            {
+                Gizmos.color = Color.red;
             }
             Gizmos.DrawSphere(c.currentPos,c.cellRadius);
 
