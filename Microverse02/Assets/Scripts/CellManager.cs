@@ -17,9 +17,9 @@ public class CellManager : MonoBehaviour
     float mousePlayerDistance;
     private Vector2 mousePos;
     float playerSpeed;
-    float normalSpeed=0;
-    float maxSpeed=5f;
-    float threshold=5f;
+
+    private float maxSpeed =10f;
+    private float threshold =17f;
 
 
     private float playerRadius;
@@ -71,6 +71,7 @@ public class CellManager : MonoBehaviour
         public float hp;
         public bool isDead;
         public float deadTimer;
+        public float playerInside;
     }
 
     //vector assume that there's two points and in the end of the point they have a invisible arrow
@@ -111,7 +112,12 @@ public class CellManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.V)) Debug.Log(cells.Count);
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            Cell player= cells[playerCellIndex];
+            Debug.Log(cells.Count);
+            Debug.Log(player.nextVelocity);
+        }
 
         
         // 1) Apply Hash
@@ -159,7 +165,7 @@ public class CellManager : MonoBehaviour
             for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
            
         }
-
+        ApplyPlayerKillsOrganism();
         ApplyCellMovement();
         for (int i = 0; i < cells.Count; i++)
         {
@@ -168,7 +174,7 @@ public class CellManager : MonoBehaviour
             c.currentPos = c.nextPos;
             cells[i] = c;
         }
-        ApplyPlayerKillsOrganism();
+        
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         
@@ -185,7 +191,7 @@ public class CellManager : MonoBehaviour
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePlayerDistance = Vector2.Distance(GetPlayerPosition(), mousePos);
 
-        playerSpeed = Mathf.Lerp(normalSpeed, maxSpeed, Mathf.InverseLerp(0f, threshold, mousePlayerDistance));
+        playerSpeed = Mathf.Lerp(0, maxSpeed, Mathf.InverseLerp(0f, threshold, mousePlayerDistance));
 
         player.nextPos = Vector2.MoveTowards(GetPlayerNextPosition(), mousePos, playerSpeed * Time.deltaTime);
 
@@ -672,7 +678,15 @@ public class CellManager : MonoBehaviour
             Vector2 ramdomDir = UnityEngine.Random.insideUnitCircle;
             if(ramdomDir.sqrMagnitude<1e-6f)continue;
 
-            float speed = Mathf.Lerp(100f,0.0f,t);
+            float speed;
+            if(org.playerInside==1) //player is inside of the organism
+            {
+                speed = Mathf.Lerp(12f, 0.0f, t);
+            }
+            else speed = Mathf.Lerp(3f, 0.0f, t);
+
+
+
             float drag = 9f;
             c.nextVelocity *= Mathf.Exp(-drag*Time.deltaTime);
             c.nextVelocity += ramdomDir*speed;
@@ -733,20 +747,24 @@ public class CellManager : MonoBehaviour
             float minDist = player.cellRadius+org.coreDistance+coreCell.cellRadius;
             float minDist2 = minDist*minDist;
 
-            float dist = Mathf.Sqrt(d2); 
+            float dist = Mathf.Sqrt(d2);
 
-            if(dist>minDist) continue;
+            if (dist > minDist)
+            {
+                org.playerInside = 0;
+                continue;
+            }
 
             if (dist <= minDist)
             {
+                org.playerInside = 1;
 
                 if(d2-coreCell.cellRadius<0.3f)
                 {
                     org.isDead = true;
-                }
-
-                
+                }   
             }
+            
         }
         
     }
