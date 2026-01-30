@@ -711,7 +711,7 @@ public class CellManager : MonoBehaviour
             float speed;
             if(cells[i].detected==1)
             {
-                speed = Mathf.Lerp(12f, 0.0f, t);
+                speed = Mathf.Lerp(50f, 0.0f, t);
             }
             else speed = Mathf.Lerp(3f, 0.0f, t);
 
