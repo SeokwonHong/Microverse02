@@ -55,6 +55,8 @@ public class CellManager : MonoBehaviour
 
         public int organismId; //-1 = indipendent cell, 1 = Organism 1
         public CellRole role; // Core / Shell / WhiteBlood
+
+        public float detected;  // 1=detected  0=not detected
     }
 
     class Organisms
@@ -145,13 +147,13 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
                 //ApplyCohesion(i, otherIndex);
-
+                
             }
         }
         ApplyPlayerInput();
         ApplyPlayerFunctions();
-       
         
+
         //ApplyOrganismTendency();
         ApplyCoreAnchor();
 
@@ -160,6 +162,7 @@ public class CellManager : MonoBehaviour
 
         for (int iter = 0; iter<3; iter++) // play eight times in one frame
         {
+            ApplyCellPlayerDetection();
             ApplyCoreShellConstraints();
             ApplyOrganismJelly();
             for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
@@ -617,12 +620,39 @@ public class CellManager : MonoBehaviour
         cells[playerCellIndex]=player;
     }
 
+    void ApplyCellPlayerDetection()
+    {
+        if (playerCellIndex < 0) return;
+        
+        Cell player = cells[playerCellIndex];
+        Vector2 p = player.nextPos;
 
-    #endregion
+        for(int i = 0;i<cells.Count;i++)
+        {
+            if(i==playerCellIndex) continue;
 
-    #region Cell_Rules
+            Cell c = cells[i];  
 
-    void ApplyCohesion(int CurrentIndex, int OtherIndex)  //cell gathering method
+            float minDist = player.detectRadius+c.cellRadius;
+            float minDist2 = minDist * minDist;
+
+            Vector2 d = p - c.nextPos;
+            float d2 = d.sqrMagnitude;
+
+            c.detected = (d2 <= minDist2) ? 1 : 0;
+            cells[i] = c;
+        }
+    }
+
+
+
+
+
+        #endregion
+
+        #region Cell_Rules
+
+        void ApplyCohesion(int CurrentIndex, int OtherIndex)  //cell gathering method
     {
         Cell currentCell = cells[(CurrentIndex)];
         Cell otherCell = cells[(OtherIndex)];
@@ -679,7 +709,7 @@ public class CellManager : MonoBehaviour
             if(ramdomDir.sqrMagnitude<1e-6f)continue;
 
             float speed;
-            if(org.playerInside==1) //player is inside of the organism
+            if(cells[i].detected==1)
             {
                 speed = Mathf.Lerp(12f, 0.0f, t);
             }
@@ -751,7 +781,6 @@ public class CellManager : MonoBehaviour
 
             if (dist > minDist)
             {
-                org.playerInside = 0;
                 continue;
             }
 
