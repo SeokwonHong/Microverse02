@@ -450,61 +450,6 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    //void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //distance betwween core and shell - keep organism shape still  
-    //{
-    //    Cell currentCell = cells[CurrentIndex];
-    //    Cell otherCell = cells[OtherIndex];
-
-    //    bool currentIsCore = currentCell.role == CellRole.Core;
-    //    bool otherIsCore = otherCell.role == CellRole.Core;
-
-    //    Cell core = currentIsCore? currentCell : otherCell; // if current is core, core. if current is not core, shell
-    //    Cell shell = currentIsCore ? otherCell : currentCell; // if current is core, other is shell, if current is not core, other is core
-
-    //    float target = organisms[core.organismId].coreDistance; // appropritate distance
-    //    float tolerance = 0.06f; // allow gap +-
-
-    //    Vector2 delta = shell.nextPos - core.nextPos;
-    //    float d2 = delta.sqrMagnitude;
-    //    if (d2 < 1e-8f) return;
-
-    //    float dist = Mathf.Sqrt(d2);
-    //    if(dist<=target) return;  
-
-    //    float error = dist - target;
-    //    float absErr = Mathf.Abs(error);
-    //    if (absErr < tolerance) return; //  if core and shell distance is under control(tolerance can cover),
-    //    // apply no power
-
-    //    float rampRange = target * 0.5f;
-    //    float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
-    //    float strength = t;
-
-    //    Vector2 dir = delta / dist;
-    //    Vector2 corr = dir * (error * strength);
-
-
-    //    float coreWeight = 0.25f;
-    //    float shellWeight = 0.75f;
-
-    //    shell.nextPos -= corr* shellWeight;
-    //    core.nextPos += corr* coreWeight;
-
-    //    if(currentIsCore)
-    //    {
-    //        otherCell = shell;
-    //        currentCell = core;
-    //        cells[OtherIndex] = otherCell;
-    //        cells[CurrentIndex] = currentCell;
-    //    }
-    //    else
-    //    {
-    //        currentCell = shell;
-    //        otherCell = core;
-    //        cells[CurrentIndex] = currentCell;
-    //        cells[OtherIndex] = otherCell;
-    //    }
-    //}
 
 
     void ApplyKeepDistance(int CurrentIndex, int OtherIndex)
@@ -518,7 +463,7 @@ public class CellManager : MonoBehaviour
 
         bool aIsCore = a.role == CellRole.Core;
         bool bIsCore = b.role == CellRole.Core;
-        if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
+       // if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
       
 
         int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
