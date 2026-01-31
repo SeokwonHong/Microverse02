@@ -5051,7 +5051,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   count: 30
   SceneGenerateSize: 20
-  playerPushStrength: 4
+  playerPushStrength: 7
   cellSpeed: 0.4
   BoxSize: 4
   isOrganismDead: 0

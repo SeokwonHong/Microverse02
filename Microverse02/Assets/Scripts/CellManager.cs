@@ -147,8 +147,9 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPlayerDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
+                ApplyKeepDistance(i, otherIndex);
                 //ApplyCohesion(i, otherIndex);
-                
+
             }
         }
         ApplyPlayerInput();
@@ -161,10 +162,9 @@ public class CellManager : MonoBehaviour
         
 
 
-        for (int iter = 0; iter<3; iter++) // play eight times in one frame
+        for (int iter = 0; iter<3; iter++) // play iter times in one frame
         {
-            
-            ApplyCoreShellConstraints();
+           
             ApplyOrganismJelly();
             for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
            
@@ -273,7 +273,7 @@ public class CellManager : MonoBehaviour
         core.currentVelocity = Vector2.zero;
 
         core.cellRadius = UnityEngine.Random.Range(0.3f, 0.4f);
-        core.detectRadius = core.cellRadius * 6f;
+        core.detectRadius = core.cellRadius * 5f;
         org.coreDistance = core.detectRadius;
 
         core.organismId = org.id;
@@ -385,33 +385,7 @@ public class CellManager : MonoBehaviour
             cells[coreIdx] = core;
         }
     }
-    void ApplyCoreShellConstraints() // not through hash system- even if two cells are too far away, they'll detect still.
-                                     // CHANGE FOR OPTIMIZATION???
-                                     // CHANGE FOR OPTIMIZATION???
-                                     // CHANGE FOR OPTIMIZATION???
-                                     // CHANGE FOR OPTIMIZATION???
-                                     // CHANGE FOR OPTIMIZATION???
-                                     // CHANGE FOR OPTIMIZATION???
-                                     // otherwise each organism must detect 50 cells per cell - crazy
-    {
-        
-        foreach(var org in organisms)
-        {
-            if(org.isDead)continue;
 
-            int coreIdx = org.coreIndex;
-            if(coreIdx < 0) continue;
-
-            for(int i =0; i<org.members.Count; i++)
-            {
-                int idx = org.members[i];
-                if(idx==coreIdx) continue;
-
-                ApplyKeepDistance(coreIdx, idx);
-            }
-        } 
-            
-    }
     void ApplyOrganismDeath() //function when the orgarnism is die
     {
         for (int i=0; i<organisms.Count; i++)  
@@ -476,61 +450,130 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //distance betwween core and shell - keep organism shape still  
+    //void ApplyKeepDistance(int CurrentIndex, int OtherIndex) //distance betwween core and shell - keep organism shape still  
+    //{
+    //    Cell currentCell = cells[CurrentIndex];
+    //    Cell otherCell = cells[OtherIndex];
+
+    //    bool currentIsCore = currentCell.role == CellRole.Core;
+    //    bool otherIsCore = otherCell.role == CellRole.Core;
+
+    //    Cell core = currentIsCore? currentCell : otherCell; // if current is core, core. if current is not core, shell
+    //    Cell shell = currentIsCore ? otherCell : currentCell; // if current is core, other is shell, if current is not core, other is core
+
+    //    float target = organisms[core.organismId].coreDistance; // appropritate distance
+    //    float tolerance = 0.06f; // allow gap +-
+
+    //    Vector2 delta = shell.nextPos - core.nextPos;
+    //    float d2 = delta.sqrMagnitude;
+    //    if (d2 < 1e-8f) return;
+
+    //    float dist = Mathf.Sqrt(d2);
+    //    if(dist<=target) return;  
+
+    //    float error = dist - target;
+    //    float absErr = Mathf.Abs(error);
+    //    if (absErr < tolerance) return; //  if core and shell distance is under control(tolerance can cover),
+    //    // apply no power
+
+    //    float rampRange = target * 0.5f;
+    //    float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
+    //    float strength = t;
+
+    //    Vector2 dir = delta / dist;
+    //    Vector2 corr = dir * (error * strength);
+
+
+    //    float coreWeight = 0.25f;
+    //    float shellWeight = 0.75f;
+
+    //    shell.nextPos -= corr* shellWeight;
+    //    core.nextPos += corr* coreWeight;
+
+    //    if(currentIsCore)
+    //    {
+    //        otherCell = shell;
+    //        currentCell = core;
+    //        cells[OtherIndex] = otherCell;
+    //        cells[CurrentIndex] = currentCell;
+    //    }
+    //    else
+    //    {
+    //        currentCell = shell;
+    //        otherCell = core;
+    //        cells[CurrentIndex] = currentCell;
+    //        cells[OtherIndex] = otherCell;
+    //    }
+    //}
+
+
+    void ApplyKeepDistance(int CurrentIndex, int OtherIndex)
     {
-        Cell currentCell = cells[CurrentIndex];
-        Cell otherCell = cells[OtherIndex];
 
-        bool currentIsCore = currentCell.role == CellRole.Core;
-        bool otherIsCore = otherCell.role == CellRole.Core;
+        Cell a = cells[CurrentIndex];
+        Cell b = cells[OtherIndex];
+
+       
         
-        Cell core = currentIsCore? currentCell : otherCell; // if current is core, core. if current is not core, shell
-        Cell shell = currentIsCore ? otherCell : currentCell; // if current is core, other is shell, if current is not core, other is core
 
-        float target = organisms[core.organismId].coreDistance; // appropritate distance
-        float tolerance = 0.06f; // allow gap +-
+        bool aIsCore = a.role == CellRole.Core;
+        bool bIsCore = b.role == CellRole.Core;
+        if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
+      
+
+        int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
+        int shellIdx = aIsCore ? OtherIndex : CurrentIndex;
+
+        Cell core = cells[coreIdx];
+        Cell shell = cells[shellIdx];
+
+
+
+        int orgId = core.organismId;
+        if (orgId < 0 || orgId >= organisms.Count) return;
+        if (shell.organismId != orgId) return;
+
+        if (organisms[orgId].isDead) return;    
+
+        float coreDist = organisms[orgId].coreDistance;
 
         Vector2 delta = shell.nextPos - core.nextPos;
         float d2 = delta.sqrMagnitude;
         if (d2 < 1e-8f) return;
 
-        float dist = Mathf.Sqrt(d2);
-        if(dist<=target) return;  
+        float distance = Mathf.Sqrt(d2);
+        Vector2 direction = delta / distance;
 
-        float error = dist - target;
-        float absErr = Mathf.Abs(error);
-        if (absErr < tolerance) return; //  if core and shell distance is under control(tolerance can cover),
-        // apply no power
+        float shellGap = distance - coreDist;
 
-        float rampRange = target * 0.5f;
-        float t = Mathf.Clamp01((absErr - tolerance) / rampRange);
-        float strength = t;
+        float tolerance = 0.02f;
+        if (Mathf.Abs(shellGap) < tolerance) return; //  if  |shellGap| < tolerance 
 
-        Vector2 dir = delta / dist;
-        Vector2 corr = dir * (error * strength);
+        float k = 100f;
+        float c = 6f;
+
+        float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity,direction);
+
+        float springPower = (-k * shellGap) - (c * vectorAngle);
+
+        springPower = Mathf.Clamp(springPower, -100f, 100f);
+
+        float massCore = Mathf.Max(0.001f, core.cellRadius*core.cellRadius);
+        float massShell = Mathf.Max(0,001f,shell.cellRadius* shell.cellRadius);
+
+        float massRatio = 1f/(massCore+massShell);  
+
+        float coreShare = massShell * massRatio;
+        float shellShare = massCore * massRatio;
+
+        core.nextVelocity -= direction*(springPower*coreShare)*Time.deltaTime;
+        shell.nextVelocity += direction * (springPower * shellShare) * Time.deltaTime;
 
 
-        float coreWeight = 0.25f;
-        float shellWeight = 0.75f;
-
-        shell.nextPos -= corr* shellWeight;
-        core.nextPos += corr* coreWeight;
-
-        if(currentIsCore)
-        {
-            otherCell = shell;
-            currentCell = core;
-            cells[OtherIndex] = otherCell;
-            cells[CurrentIndex] = currentCell;
-        }
-        else
-        {
-            currentCell = shell;
-            otherCell = core;
-            cells[CurrentIndex] = currentCell;
-            cells[OtherIndex] = otherCell;
-        }
+        cells[coreIdx] = core;
+        cells[shellIdx] = shell;
     }
+
     void ApplyCellPushing(int currentIndex, int otherIndex)
     {
         Cell Current = cells[currentIndex];
@@ -546,7 +589,7 @@ public class CellManager : MonoBehaviour
         float distance = Mathf.Sqrt(d2);
 
         float minDist = Current.cellRadius+ Other.cellRadius;
-        float maxDist = Current.detectRadius + Other.detectRadius;
+        float maxDist = Current.detectRadius;
 
         if (distance <= minDist) return;
         if(distance > maxDist) return;
@@ -558,16 +601,11 @@ public class CellManager : MonoBehaviour
 
         Vector2 push = dir * (penetration * 0.8f);
 
-        if (Current.role == CellRole.Core && Other.role == CellRole.Shell)
-        {
-            Other.nextPos += push;
-            Current.nextPos -= push*0.6f;
-        }
-        else
-        {
-            Current.nextPos -= push;
-            Other.nextPos += push;
-        }
+
+      
+        Current.nextPos -= push;
+        Other.nextPos += push;
+       
         
 
         cells[currentIndex] = Current;
@@ -715,9 +753,9 @@ public class CellManager : MonoBehaviour
             float speed;
             if(cells[i].detected==1)
             {
-                speed = Mathf.Lerp(10f, 0.0f, t);
+                speed = Mathf.Lerp(3f, 0.0f, t);
             }
-            else speed = Mathf.Lerp(3f, 0.0f, t);
+            else speed = Mathf.Lerp(1f, 0.0f, t);
 
 
 
