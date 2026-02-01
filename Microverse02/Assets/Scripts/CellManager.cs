@@ -2,13 +2,16 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
 {
 
 
-    public int count=20;
+    public int organismCount = 20;
+    public int WBCCount = 10;
+
     public float SceneGenerateSize = 20;
 
 
@@ -18,14 +21,14 @@ public class CellManager : MonoBehaviour
     private Vector2 mousePos;
     float playerSpeed;
 
-    private float maxSpeed =10f;
-    private float threshold =17f;
+    private float maxSpeed = 10f;
+    private float threshold = 17f;
 
 
     private float playerRadius;
     private float playerInfluenceRadius;
-    int playerCellIndex=-1; //-1 means player not allocated yet. If player is made, int number will be allocated
-    [SerializeField] private float playerPushStrength =1.0f;  
+    int playerCellIndex = -1; //-1 means player not allocated yet. If player is made, int number will be allocated
+    [SerializeField] private float playerPushStrength = 1.0f;
 
 
     public float cellSpeed = 2f;
@@ -38,7 +41,7 @@ public class CellManager : MonoBehaviour
     private List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
 
-    enum CellRole { Player, Core, Shell, WhiteBlood}
+    enum CellRole { Player, Core, Shell, WhiteBlood }
 
     public bool isOrganismDead = false;
     const float maxDeadTime = 20f;
@@ -82,21 +85,34 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        
+
 
         CreatePlayerCell(Vector2.zero);
         playerRadius = GetPlayerRadius();
-        playerInfluenceRadius = playerRadius*7f;
+        playerInfluenceRadius = playerRadius * 7f;
 
-        //CreateOrganism(Vector2.zero); //*****************************************************************************
-        
+
+
 
         float minX = -SceneGenerateSize;
         float maxX = SceneGenerateSize;
         float minY = -SceneGenerateSize;
         float maxY = SceneGenerateSize;
 
-        for (int i = 0; i < count; i++)
+
+        for (int i =0; i<WBCCount; i++)
+        {
+            Vector2 pos = new Vector2(
+                UnityEngine.Random.Range(minX, maxX),
+                UnityEngine.Random.Range(minY, maxY)
+            );
+
+            CreateWBCCell(pos);
+
+        }
+
+
+        for (int i = 0; i < organismCount; i++)
         {
             Vector2 pos = new Vector2(
                 UnityEngine.Random.Range(minX, maxX),
@@ -104,26 +120,27 @@ public class CellManager : MonoBehaviour
             );
 
             CreateOrganism(pos);
+
         }
 
 
     }
-/// <summary>
-/// ////////////////////////////////////////////////////////////////////////////////////////////////
-/// </summary>
+    /// <summary>
+    /// ////////////////////////////////////////////////////////////////////////////////////////////////
+    /// </summary>
     // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.V))
         {
-            Cell player= cells[playerCellIndex];
+            Cell player = cells[playerCellIndex];
             Debug.Log(cells.Count);
             Debug.Log(player.nextVelocity);
         }
 
-        
+
         // 1) Apply Hash
-        
+
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -154,20 +171,20 @@ public class CellManager : MonoBehaviour
         }
         ApplyPlayerInput();
         ApplyPlayerFunctions();
-        
+
 
         //ApplyOrganismTendency();
         ApplyCoreAnchor();
 
-        
 
 
-        for (int iter = 0; iter<3; iter++) // play iter times in one frame
+
+        for (int iter = 0; iter < 3; iter++) // play iter times in one frame
         {
-           
+
             ApplyOrganismJelly();
-            for(int i = 0;i < cells.Count;i++) ResolvePlayerOverlap(i);
-           
+            for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
+
         }
         ApplyPlayerKillsOrganism();
         ApplyCellMovement();
@@ -178,15 +195,15 @@ public class CellManager : MonoBehaviour
             c.currentPos = c.nextPos;
             cells[i] = c;
         }
-        
+
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
-        
+
     }
-/// <summary>
-/// ////////////////////////////////////////////////////////////////////////////////////////////////
-/// </summary>
-/// 
+    /// <summary>
+    /// ////////////////////////////////////////////////////////////////////////////////////////////////
+    /// </summary>
+    /// 
     #region Input, player function
 
     Cell ApplyInput(Cell player)
@@ -204,16 +221,16 @@ public class CellManager : MonoBehaviour
     }
     void ApplyPlayerInput()
     {
-        if(playerCellIndex<0)return;
+        if (playerCellIndex < 0) return;
 
         Cell player = cells[playerCellIndex];
         player = ApplyInput(player);
         player.nextVelocity = Vector2.zero;
-        cells[playerCellIndex]= player;
+        cells[playerCellIndex] = player;
     }
     public Vector2 GetPlayerPosition()
     {
-        if(playerCellIndex<0)
+        if (playerCellIndex < 0)
         {
             return Vector2.zero;
         }
@@ -221,7 +238,7 @@ public class CellManager : MonoBehaviour
     }
     Vector2 GetPlayerNextPosition()
     {
-        if(playerCellIndex<0)
+        if (playerCellIndex < 0)
         {
             return Vector2.zero;
         }
@@ -230,7 +247,7 @@ public class CellManager : MonoBehaviour
 
     float GetPlayerRadius()
     {
-        if(playerCellIndex<0)
+        if (playerCellIndex < 0)
         {
             return 0.4f;
         }
@@ -247,29 +264,50 @@ public class CellManager : MonoBehaviour
         player.currentVelocity = Vector2.zero;
 
         player.cellRadius = 0.4f;
-        player.detectRadius = player.cellRadius*6f;
+        player.detectRadius = player.cellRadius * 6f;
 
-        player.organismId =-1;
-        player.role=CellRole.Player;
+        player.organismId = -1;
+        player.role = CellRole.Player;
 
         playerCellIndex = cells.Count;
         cells.Add(player);
     }
+
+    void CreateWBCCell(Vector2 pos)
+    {
+
+
+
+        Cell w = new Cell();
+        w.currentPos = pos + UnityEngine.Random.insideUnitCircle * 1.2f;
+        w.currentVelocity = Vector2.zero;
+
+        w.cellRadius = 0.25f;
+        w.detectRadius = w.cellRadius * 3f;
+
+        w.organismId = -1;
+        w.role = CellRole.WhiteBlood;
+        w.detected = 0;
+
+        cells.Add(w);
+
+
+    }
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = UnityEngine.Random.Range(20,26);
+        int shellCount = UnityEngine.Random.Range(20, 26);
 
         //float coreDistance = 2f;
-        
-        org.id = organisms.Count;
-        
 
-        
+        org.id = organisms.Count;
+
+
+
         //core 
 
         Cell core = new Cell();
-        core.currentPos = currentPos; 
+        core.currentPos = currentPos;
         core.currentVelocity = Vector2.zero;
 
         core.cellRadius = UnityEngine.Random.Range(0.3f, 0.4f);
@@ -281,7 +319,7 @@ public class CellManager : MonoBehaviour
 
 
 
-        int coreIndex = cells.Count; 
+        int coreIndex = cells.Count;
         cells.Add(core);
 
         org.coreIndex = coreIndex;
@@ -313,11 +351,11 @@ public class CellManager : MonoBehaviour
 
         }
         //org.anchorEnabled=true;
-        
+
         organisms.Add(org);
 
     }
-#endregion
+    #endregion
 
     #region Cell_Constraint
     void ResolveOverlap(int CurrentIndex, int OtherIndex) //basic colliding 
@@ -350,7 +388,7 @@ public class CellManager : MonoBehaviour
     void ResolvePlayerOverlap(int cellIndex) //player - basic cell collision
     {
         var c = cells[cellIndex];
-        if(c.role==CellRole.Player) return;
+        if (c.role == CellRole.Player) return;
         if (c.role == CellRole.Core) return;
 
         Vector2 playerPos = GetPlayerNextPosition();
@@ -358,24 +396,24 @@ public class CellManager : MonoBehaviour
         Vector2 delta = c.nextPos - playerPos;
         float d2 = delta.sqrMagnitude;
         if (d2 < 1e-8f) return;
-        
+
         float dist = Mathf.Sqrt(d2);
         float minDist = c.cellRadius + GetPlayerRadius();
 
-        if(dist >=minDist) return;
+        if (dist >= minDist) return;
 
-        Vector2 dir = delta/ dist;
+        Vector2 dir = delta / dist;
         float penetration = (minDist - dist);
 
         c.nextPos += dir * penetration * playerPushStrength;
 
-        cells[cellIndex] = c;   
+        cells[cellIndex] = c;
     }
     void ApplyCoreAnchor() //apply core cell an anchor
     {
         foreach (var org in organisms)
         {
-            if(!org.anchorEnabled) continue; 
+            if (!org.anchorEnabled) continue;
 
             int coreIdx = org.coreIndex;
             Cell core = cells[coreIdx];
@@ -388,45 +426,45 @@ public class CellManager : MonoBehaviour
 
     void ApplyOrganismDeath() //function when the orgarnism is die
     {
-        for (int i=0; i<organisms.Count; i++)  
+        for (int i = 0; i < organisms.Count; i++)
         {
             var org = organisms[i];
             //if(org.hp>0f) continue; 
 
 
-            if(!isOrganismDead)continue;
+            if (!isOrganismDead) continue;
 
-            if(org.isDead) continue;
+            if (org.isDead) continue;
 
             org.isDead = true;
             org.anchorEnabled = false;
             org.heading = Vector2.zero;
             org.headingPower = 0f;
-            org.deadTimer=0;
+            org.deadTimer = 0;
             organisms[i] = org;
         }
     }
     void UpdateDeadOrganisms()
     {
-        for(int i =0; i<organisms.Count; i++)
+        for (int i = 0; i < organisms.Count; i++)
         {
             var org = organisms[i];
-            if(!org.isDead) continue;
+            if (!org.isDead) continue;
 
-            org.deadTimer+=Time.deltaTime;
-            if(org.deadTimer>=maxDeadTime)
+            org.deadTimer += Time.deltaTime;
+            if (org.deadTimer >= maxDeadTime)
             {
-                org.deadTimer=maxDeadTime;
+                org.deadTimer = maxDeadTime;
             }
-            organisms[i]=org;
+            organisms[i] = org;
         }
     }
     void ApplyOrganismTendency() //Organism movement, more likely tendency
     {
         Vector2 playerPos = GetPlayerNextPosition();
 
-        
-        for (int i=0; i<organisms.Count; i++)
+
+        for (int i = 0; i < organisms.Count; i++)
         {
             var org = organisms[i];
             if (org.isDead) continue;
@@ -435,7 +473,7 @@ public class CellManager : MonoBehaviour
             if (coreIdx < 0) continue;
 
             Vector2 corePos = cells[coreIdx].nextPos;
-            Vector2 toPlayer = playerPos-corePos;
+            Vector2 toPlayer = playerPos - corePos;
 
             float d2 = toPlayer.sqrMagnitude;
             if (d2 < 1e-8f) continue;
@@ -446,7 +484,7 @@ public class CellManager : MonoBehaviour
             Cell core = cells[coreIdx];
             core.nextPos += org.heading * org.headingPower * Time.deltaTime;
             cells[coreIdx] = core;
-            organisms[i]=org;
+            organisms[i] = org;
         }
     }
 
@@ -458,13 +496,13 @@ public class CellManager : MonoBehaviour
         Cell a = cells[CurrentIndex];
         Cell b = cells[OtherIndex];
 
-       
-        
+
+
 
         bool aIsCore = a.role == CellRole.Core;
         bool bIsCore = b.role == CellRole.Core;
         if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
-      
+
 
         int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
         int shellIdx = aIsCore ? OtherIndex : CurrentIndex;
@@ -478,7 +516,7 @@ public class CellManager : MonoBehaviour
         if (orgId < 0 || orgId >= organisms.Count) return;
         if (shell.organismId != orgId) return;
 
-        if (organisms[orgId].isDead) return;    
+        if (organisms[orgId].isDead) return;
 
         float coreDist = organisms[orgId].coreDistance;
 
@@ -497,21 +535,21 @@ public class CellManager : MonoBehaviour
         float k = 300f;
         float c = 6f;
 
-        float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity,direction);
+        float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity, direction);
 
         float springPower = (-k * shellGap) - (c * vectorAngle);
 
         springPower = Mathf.Clamp(springPower, -1000f, 1000f);
 
-        float massCore = Mathf.Max(0.001f, core.cellRadius*core.cellRadius);
-        float massShell = Mathf.Max(0,001f,shell.cellRadius* shell.cellRadius);
+        float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
+        float massShell = Mathf.Max(0, 001f, shell.cellRadius * shell.cellRadius);
 
-        float massRatio = 1f/(massCore+massShell);  
+        float massRatio = 1f / (massCore + massShell);
 
         float coreShare = massShell * massRatio;
         float shellShare = massCore * massRatio;
 
-        core.nextVelocity -= direction*(springPower*coreShare)*Time.deltaTime;
+        core.nextVelocity -= direction * (springPower * coreShare) * Time.deltaTime;
         shell.nextVelocity += direction * (springPower * shellShare) * Time.deltaTime;
 
 
@@ -524,8 +562,8 @@ public class CellManager : MonoBehaviour
         Cell Current = cells[currentIndex];
         Cell Other = cells[otherIndex];
 
-        if(Current.role==CellRole.Player || Other.role==CellRole.Player) return;
- 
+        if (Current.role == CellRole.Player || Other.role == CellRole.Player) return;
+
 
         Vector2 delta = Other.nextPos - Current.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -533,13 +571,13 @@ public class CellManager : MonoBehaviour
 
         float distance = Mathf.Sqrt(d2);
 
-        float minDist = Current.cellRadius+ Other.cellRadius;
-        float maxDist = Current.detectRadius+ Other.detectRadius;
+        float minDist = Current.cellRadius + Other.cellRadius;
+        float maxDist = Current.detectRadius + Other.detectRadius;
 
         if (distance <= minDist) return;
-        if(distance > maxDist) return;
+        if (distance > maxDist) return;
 
-      
+
         Vector2 dir = delta / distance;
 
         float penetration = (maxDist - distance) * 0.3f;
@@ -547,61 +585,61 @@ public class CellManager : MonoBehaviour
         Vector2 push = dir * penetration;
 
 
-      
+
         Current.nextPos -= push;
         Other.nextPos += push;
-       
-        
+
+
 
         cells[currentIndex] = Current;
-        cells[otherIndex] = Other;   
+        cells[otherIndex] = Other;
     }
     void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
     {
 
-        if(playerCellIndex<0) return; //if player is not made yet, return. if player is successfully made using CreatePlayerCell(), playerCellIndex will be integer
+        if (playerCellIndex < 0) return; //if player is not made yet, return. if player is successfully made using CreatePlayerCell(), playerCellIndex will be integer
 
         Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
         float k = 400f; // spring strengh
         float c = 1.3f; // damping (bigger, more tough surface)
-       
 
-        for(int o=0; o<organisms.Count; o++)
+
+        for (int o = 0; o < organisms.Count; o++)
         {
-            
+
             var org = organisms[o];
-            if(org.isDead) continue;
+            if (org.isDead) continue;
 
             Cell core = cells[org.coreIndex];
 
-            float barrier = org.coreDistance+player.cellRadius;
-            Vector2 delta= player.nextPos - core.nextPos;
+            float barrier = org.coreDistance + player.cellRadius;
+            Vector2 delta = player.nextPos - core.nextPos;
             float d2 = delta.sqrMagnitude;
-            if(d2<1e-2f)continue;
+            if (d2 < 1e-2f) continue;
 
             float dist = Mathf.Sqrt(d2);
-            float penetration = barrier- dist; // if player is inside of organism, penetration is integer. deeper = greater value
-            if(penetration <= 0f) continue;
+            float penetration = barrier - dist; // if player is inside of organism, penetration is integer. deeper = greater value
+            if (penetration <= 0f) continue;
 
-            Vector2 n = delta/dist;
+            Vector2 n = delta / dist;
 
 
-            float v_n = Vector2.Dot(player.nextVelocity-core.nextVelocity,n); //player direction vs core direction
+            float v_n = Vector2.Dot(player.nextVelocity - core.nextVelocity, n); //player direction vs core direction
             // v_n > 0  = Moving in the same direction as n
             // v_n < 0  = Moving opposite to n
             // v_n == 0 = 90 degree 
 
-            float accel = (k*penetration)-(c*v_n);
-            if (accel <= 0f)continue;
+            float accel = (k * penetration) - (c * v_n);
+            if (accel <= 0f) continue;
 
 
-            player.nextVelocity += n*accel*Time.deltaTime;
-            
-            
+            player.nextVelocity += n * accel * Time.deltaTime;
+
+
         }
-        cells[playerCellIndex]=player;
+        cells[playerCellIndex] = player;
     }
 
     void ApplyCellPlayerDetection(int a, int b)
@@ -609,19 +647,19 @@ public class CellManager : MonoBehaviour
         Cell A = cells[a];
         Cell B = cells[b];
 
-        if(A.role == CellRole.Player&&B.role!=CellRole.Player)
+        if (A.role == CellRole.Player && B.role != CellRole.Player)
         {
-            float r= A.detectRadius+B.cellRadius;
-            if((A.nextPos-B.nextPos).sqrMagnitude<=r*r)
+            float r = A.detectRadius + B.cellRadius;
+            if ((A.nextPos - B.nextPos).sqrMagnitude <= r * r)
             {
                 B.detected = 1;
                 cells[b] = B;
             }
             else B.detected = -1;
         }
-        else if(B.role==CellRole.Player&&A.role!=CellRole.Player)
+        else if (B.role == CellRole.Player && A.role != CellRole.Player)
         {
-            float r = B.detectRadius+A.cellRadius;
+            float r = B.detectRadius + A.cellRadius;
             if ((B.nextPos - A.nextPos).sqrMagnitude <= r * r)
             {
                 A.detected = 1;
@@ -635,11 +673,11 @@ public class CellManager : MonoBehaviour
 
 
 
-        #endregion
+    #endregion
 
-        #region Cell_Rules
+    #region Cell_Rules
 
-        void ApplyCohesion(int CurrentIndex, int OtherIndex)  //cell gathering method
+    void ApplyCohesion(int CurrentIndex, int OtherIndex)  //cell gathering method
     {
         Cell currentCell = cells[(CurrentIndex)];
         Cell otherCell = cells[(OtherIndex)];
@@ -677,26 +715,26 @@ public class CellManager : MonoBehaviour
         cells[OtherIndex] = otherCell;
     }
 
-    
-    
+
+
     void ApplyCellMovement()// cell tendency
     {
-        
-        for (int i=0; i<cells.Count; i++)
+
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-         
-            if(c.organismId<0||c.organismId>=organisms.Count)continue;
-            Organisms org = organisms[c.organismId];
-           
 
-            float t = Mathf.Clamp01(org.deadTimer/maxDeadTime);
-        
+            if (c.organismId < 0 || c.organismId >= organisms.Count) continue;
+            Organisms org = organisms[c.organismId];
+
+
+            float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
+
             Vector2 ramdomDir = UnityEngine.Random.insideUnitCircle;
-            if(ramdomDir.sqrMagnitude<1e-6f)continue;
+            if (ramdomDir.sqrMagnitude < 1e-6f) continue;
 
             float speed;
-            if(cells[i].detected==1)
+            if (cells[i].detected == 1)
             {
                 speed = Mathf.Lerp(3f, 0.0f, t);
             }
@@ -705,9 +743,9 @@ public class CellManager : MonoBehaviour
 
 
             float drag = 9f;
-            c.nextVelocity *= Mathf.Exp(-drag*Time.deltaTime);
-            c.nextVelocity += ramdomDir*speed;
-        
+            c.nextVelocity *= Mathf.Exp(-drag * Time.deltaTime);
+            c.nextVelocity += ramdomDir * speed;
+
             cells[i] = c;
         }
     }
@@ -719,26 +757,26 @@ public class CellManager : MonoBehaviour
     void ApplyPlayerPush()
     {
         Vector2 playerPos = GetPlayerNextPosition();
-        
 
-        for(int i =0; i<cells.Count;i++)
+
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-           // if(c.role !=CellRole.Shell) continue;
+            // if(c.role !=CellRole.Shell) continue;
 
             Vector2 delta = c.nextPos - playerPos;
             float d2 = delta.sqrMagnitude;
-            if(d2 >playerInfluenceRadius*playerInfluenceRadius) continue;
+            if (d2 > playerInfluenceRadius * playerInfluenceRadius) continue;
 
-            float dist=Mathf.Sqrt(d2);
-            if(dist<1e-5f) continue;
+            float dist = Mathf.Sqrt(d2);
+            if (dist < 1e-5f) continue;
 
 
-            Vector2 dir = delta/dist;
-            float force = (playerInfluenceRadius - dist)/playerInfluenceRadius;
+            Vector2 dir = delta / dist;
+            float force = (playerInfluenceRadius - dist) / playerInfluenceRadius;
 
-            c.nextPos += dir*force*playerPushStrength*Time.deltaTime;
-            cells[i]=c;
+            c.nextPos += dir * force * playerPushStrength * Time.deltaTime;
+            cells[i] = c;
 
         }
     }
@@ -748,21 +786,21 @@ public class CellManager : MonoBehaviour
 
     void ApplyPlayerKillsOrganism()
     {
-        for (int i=0; i<organisms.Count; i++)
+        for (int i = 0; i < organisms.Count; i++)
         {
             var org = organisms[i];
             int CoreIndex = org.coreIndex;
 
             Cell coreCell = cells[CoreIndex];
             Cell player = cells[playerCellIndex];
-            Vector2 delta = coreCell.nextPos-player.nextPos;
+            Vector2 delta = coreCell.nextPos - player.nextPos;
 
             float d2 = delta.sqrMagnitude;
 
-            if(d2<1e-5f) continue;  
+            if (d2 < 1e-5f) continue;
 
-            float minDist = player.cellRadius+org.coreDistance+coreCell.cellRadius;
-            float minDist2 = minDist*minDist;
+            float minDist = player.cellRadius + org.coreDistance + coreCell.cellRadius;
+            float minDist2 = minDist * minDist;
 
             float dist = Mathf.Sqrt(d2);
 
@@ -775,14 +813,14 @@ public class CellManager : MonoBehaviour
             {
                 org.playerInside = 1;
 
-                if(d2-coreCell.cellRadius<0.3f)
+                if (d2 - coreCell.cellRadius < 0.3f)
                 {
                     org.isDead = true;
-                }   
+                }
             }
-            
+
         }
-        
+
     }
 
     #endregion
@@ -790,8 +828,8 @@ public class CellManager : MonoBehaviour
     #region Gizmo
     void OnDrawGizmos()
     {
-        if(!Application.isPlaying) return; 
-        if (cells == null||cells.Count==0)
+        if (!Application.isPlaying) return;
+        if (cells == null || cells.Count == 0)
         {
             Debug.Log("there's no cell list!");
             return;
@@ -802,22 +840,23 @@ public class CellManager : MonoBehaviour
         {
             Gizmos.color = Color.green;
 
-            if(c.role == CellRole.Player)
+            if (c.role == CellRole.Player)
             {
                 Gizmos.color = Color.red;
             }
-            else if (c.organismId>=0 &&c.organismId<organisms.Count)
+            else if (c.role == CellRole.WhiteBlood)
             {
-                if(organisms[c.organismId].isDead)
+                Gizmos.color = Color.blue;
+            }
+            else if (c.organismId >= 0 && c.organismId < organisms.Count)
+            {
+                if (organisms[c.organismId].isDead)
                 {
                     Gizmos.color = Color.white;
                 }
             }
-            else if (organisms[c.organismId].playerInside==1)
-            {
-                Gizmos.color = Color.red;
-            }
-            Gizmos.DrawSphere(c.currentPos,c.cellRadius);
+
+            Gizmos.DrawSphere(c.currentPos, c.cellRadius);
 
         }
     }

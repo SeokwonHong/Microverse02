@@ -10,6 +10,8 @@ float GetPlayerRadius()
 
 void CreatePlayerCell(Vector2 pos)
 
+void CreateWBCCell (Vector2 pos)
+
 void CreateOrganism(Vector2 currentPos)
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
