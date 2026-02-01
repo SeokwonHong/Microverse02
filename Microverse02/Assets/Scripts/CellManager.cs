@@ -302,7 +302,7 @@ public class CellManager : MonoBehaviour
 
             //이부분부터 프로퍼티화해야할듯.
             shell.cellRadius = CellRadius;
-            shell.detectRadius = shell.cellRadius * 5f;
+            shell.detectRadius = shell.cellRadius * 3f;
 
             shell.organismId = org.id;
             shell.role = CellRole.Shell;
@@ -534,7 +534,7 @@ public class CellManager : MonoBehaviour
         float distance = Mathf.Sqrt(d2);
 
         float minDist = Current.cellRadius+ Other.cellRadius;
-        float maxDist = Current.detectRadius;
+        float maxDist = Current.detectRadius+ Other.detectRadius;
 
         if (distance <= minDist) return;
         if(distance > maxDist) return;
@@ -542,9 +542,9 @@ public class CellManager : MonoBehaviour
       
         Vector2 dir = delta / distance;
 
-        float penetration = (maxDist - distance) * 0.1f;
+        float penetration = (maxDist - distance) * 0.3f;
 
-        Vector2 push = dir * (penetration);
+        Vector2 push = dir * penetration;
 
 
       
