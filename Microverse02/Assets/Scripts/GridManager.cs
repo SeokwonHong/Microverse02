@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 
 public class SpatialHash
@@ -40,6 +41,7 @@ public class SpatialHash
 
     public IEnumerable<int> Query(Vector2 pos)
     {
+        
         var c = WorldHash(pos);
 
         for (int dy=-1;dy<=1;dy++)
@@ -49,7 +51,9 @@ public class SpatialHash
 
                 if (!buckets.TryGetValue(key, out var list)) continue;
 
-                for (int i = 0; i < list.Count;i++ )
+
+
+                for (int i = 0; i < list.Count; i++)
                 {
                     yield return list[i];
                 }
