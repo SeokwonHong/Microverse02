@@ -64,6 +64,3 @@ For emergence:
 	small organism -> eat -> bigger -> split
 
 	Bacteria is like a Snake
-
-
-	player is like a demon from mononoke hime

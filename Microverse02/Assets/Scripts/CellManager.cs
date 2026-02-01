@@ -118,6 +118,7 @@ public class CellManager : MonoBehaviour
         {
             Cell player= cells[playerCellIndex];
             Debug.Log(cells.Count);
+            Debug.Log(player.nextVelocity);
         }
 
         
@@ -161,7 +162,7 @@ public class CellManager : MonoBehaviour
         
 
 
-        for (int iter = 0; iter<2; iter++) // play iter times in one frame
+        for (int iter = 0; iter<3; iter++) // play iter times in one frame
         {
            
             ApplyOrganismJelly();
@@ -457,14 +458,13 @@ public class CellManager : MonoBehaviour
         Cell a = cells[CurrentIndex];
         Cell b = cells[OtherIndex];
 
-        
        
+        
+
         bool aIsCore = a.role == CellRole.Core;
         bool bIsCore = b.role == CellRole.Core;
-
-
-        if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
-        //if (aIsCore || bIsCore) return;
+       // if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
+      
 
         int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
         int shellIdx = aIsCore ? OtherIndex : CurrentIndex;
@@ -477,8 +477,8 @@ public class CellManager : MonoBehaviour
         int orgId = core.organismId;
         if (orgId < 0 || orgId >= organisms.Count) return;
         if (shell.organismId != orgId) return;
-        if (organisms[orgId].isDead) return;    
 
+        if (organisms[orgId].isDead) return;    
 
         float coreDist = organisms[orgId].coreDistance;
 
@@ -494,14 +494,14 @@ public class CellManager : MonoBehaviour
         float tolerance = 0.02f;
         if (Mathf.Abs(shellGap) < tolerance) return; //  if  |shellGap| < tolerance 
 
-        float k = 800f;
-        float c = 2f;
+        float k = 100f;
+        float c = 6f;
 
         float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity,direction);
 
         float springPower = (-k * shellGap) - (c * vectorAngle);
 
-        springPower = Mathf.Clamp(springPower, -1000f, 1000f);
+        springPower = Mathf.Clamp(springPower, -100f, 100f);
 
         float massCore = Mathf.Max(0.001f, core.cellRadius*core.cellRadius);
         float massShell = Mathf.Max(0,001f,shell.cellRadius* shell.cellRadius);
@@ -511,7 +511,7 @@ public class CellManager : MonoBehaviour
         float coreShare = massShell * massRatio;
         float shellShare = massCore * massRatio;
 
-        //core.nextVelocity -= direction*(springPower*coreShare)*Time.deltaTime;
+        core.nextVelocity -= direction*(springPower*coreShare)*Time.deltaTime;
         shell.nextVelocity += direction * (springPower * shellShare) * Time.deltaTime;
 
 
@@ -534,7 +534,7 @@ public class CellManager : MonoBehaviour
         float distance = Mathf.Sqrt(d2);
 
         float minDist = Current.cellRadius+ Other.cellRadius;
-        float maxDist = Current.detectRadius+Other.detectRadius;
+        float maxDist = Current.detectRadius;
 
         if (distance <= minDist) return;
         if(distance > maxDist) return;
@@ -542,9 +542,9 @@ public class CellManager : MonoBehaviour
       
         Vector2 dir = delta / distance;
 
-        float penetration = (maxDist - distance) * 0.3f;
+        float penetration = (maxDist - distance) * 0.1f;
 
-        Vector2 push = dir * (penetration);
+        Vector2 push = dir * (penetration * 0.8f);
 
 
       
