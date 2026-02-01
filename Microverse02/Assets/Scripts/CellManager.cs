@@ -494,7 +494,7 @@ public class CellManager : MonoBehaviour
         float tolerance = 0.02f;
         if (Mathf.Abs(shellGap) < tolerance) return; //  if  |shellGap| < tolerance 
 
-        float k = 600f;
+        float k = 300f;
         float c = 6f;
 
         float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity,direction);
@@ -700,7 +700,7 @@ public class CellManager : MonoBehaviour
             {
                 speed = Mathf.Lerp(3f, 0.0f, t);
             }
-            else speed = Mathf.Lerp(1f, 0.0f, t);
+            else speed = Mathf.Lerp(2f, 0.0f, t);
 
 
 
