@@ -463,7 +463,7 @@ public class CellManager : MonoBehaviour
 
         bool aIsCore = a.role == CellRole.Core;
         bool bIsCore = b.role == CellRole.Core;
-       // if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
+        if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
       
 
         int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
@@ -494,14 +494,14 @@ public class CellManager : MonoBehaviour
         float tolerance = 0.02f;
         if (Mathf.Abs(shellGap) < tolerance) return; //  if  |shellGap| < tolerance 
 
-        float k = 100f;
+        float k = 600f;
         float c = 6f;
 
         float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity,direction);
 
         float springPower = (-k * shellGap) - (c * vectorAngle);
 
-        springPower = Mathf.Clamp(springPower, -100f, 100f);
+        springPower = Mathf.Clamp(springPower, -1000f, 1000f);
 
         float massCore = Mathf.Max(0.001f, core.cellRadius*core.cellRadius);
         float massShell = Mathf.Max(0,001f,shell.cellRadius* shell.cellRadius);
@@ -544,7 +544,7 @@ public class CellManager : MonoBehaviour
 
         float penetration = (maxDist - distance) * 0.1f;
 
-        Vector2 push = dir * (penetration * 0.8f);
+        Vector2 push = dir * (penetration);
 
 
       
