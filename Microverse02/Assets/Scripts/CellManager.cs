@@ -178,6 +178,8 @@ public class CellManager : MonoBehaviour
         ApplyPlayerInput();
         ApplyPlayerFunctions();
 
+        //wbc
+        ApplyWBCAttaching();
 
         //ApplyOrganismTendency();
         ApplyCoreAnchor();
@@ -289,7 +291,7 @@ public class CellManager : MonoBehaviour
         w.currentVelocity = Vector2.zero;
 
         w.cellRadius = 0.25f;
-        w.detectRadius = w.cellRadius * 3f;
+        w.detectRadius = w.cellRadius * 13f;
 
         w.organismId = -1;
         w.role = CellRole.WhiteBlood;
@@ -394,30 +396,7 @@ public class CellManager : MonoBehaviour
 
     }
 
-    //void ResolvePlayerOverlap(int cellIndex) //player - basic cell collision
-    //{
-    //    var c = cells[cellIndex];
-    //    if (c.role == CellRole.Player) return;
-    //    if (c.role == CellRole.Core) return;
 
-    //    Vector2 playerPos = GetPlayerNextPosition();
-
-    //    Vector2 delta = c.nextPos - playerPos;
-    //    float d2 = delta.sqrMagnitude;
-    //    if (d2 < 1e-8f) return;
-
-    //    float dist = Mathf.Sqrt(d2);
-    //    float minDist = c.cellRadius + GetPlayerRadius();
-
-    //    if (dist >= minDist) return;
-
-    //    Vector2 dir = delta / dist;
-    //    float penetration = (minDist - dist);
-
-    //    c.nextPos += dir * penetration * playerPushStrength;
-
-    //    cells[cellIndex] = c;
-    //}
     void ApplyCoreAnchor() //apply core cell an anchor
     {
         foreach (var org in organisms)
@@ -488,10 +467,10 @@ public class CellManager : MonoBehaviour
             if (d2 < 1e-8f) continue;
 
             org.heading = toPlayer.normalized;
-            org.headingPower = 0.5f;
+            org.headingPower = 50f;
 
             Cell core = cells[coreIdx];
-            core.nextPos += org.heading * org.headingPower * Time.deltaTime;
+            core.nextVelocity += org.heading * org.headingPower * Time.deltaTime;
             cells[coreIdx] = core;
             organisms[i] = org;
         }
@@ -572,7 +551,7 @@ public class CellManager : MonoBehaviour
         Cell Other = cells[otherIndex];
 
         if (Current.role == CellRole.Player || Other.role == CellRole.Player) return;
-
+        if (Current.role == CellRole.WhiteBlood || Other.role == CellRole.WhiteBlood) return;
 
         Vector2 delta = Other.nextPos - Current.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -612,7 +591,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         dt = Time.deltaTime;
 
-        float k = 200f; // spring strengh
+        float k = 40f; // spring strengh
         float c = 1.3f; // damping (bigger, more tough surface)
 
 
@@ -774,7 +753,8 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-            // if(c.role !=CellRole.Shell) continue;
+
+            if (c.role == CellRole.Player || c.role == CellRole.WhiteBlood) continue;
 
             Vector2 delta = c.nextPos - playerPos;
             float d2 = delta.sqrMagnitude;
@@ -834,11 +814,54 @@ public class CellManager : MonoBehaviour
         }
 
     }
-
     #endregion
 
-    #region Gizmo
-    void OnDrawGizmos()
+
+    #region WBC Constraints
+
+    void ApplyWBCAttaching()
+    {
+        if (playerCellIndex < 0) return;
+        Cell player = cells[playerCellIndex];
+
+        float dt = Time.deltaTime;
+        float attractStrength = 10f;
+
+        for (int i = 0;i < cells.Count; i++)
+        {
+            if (cells[i].role != CellRole.WhiteBlood) continue;
+
+            Cell w = cells[i];
+
+            Vector2 delta = player.nextPos - w.nextPos;
+            float d2 = delta.sqrMagnitude;
+
+            float r = w.detectRadius;
+            if(d2> r * r) continue;
+            float dist = Mathf.Sqrt(d2);
+            if (dist < 1e-5f) continue;
+
+            Vector2 dir = delta/dist;
+            float force = (r - dist)/r;
+
+            
+
+            w.nextPos += dir*(force* attractStrength) * dt;
+            cells[i] = w;
+        }
+
+
+    }
+
+
+        
+#endregion
+
+
+
+
+#region Gizmo
+void OnDrawGizmos()
     {
         if (!Application.isPlaying) return;
         if (cells == null || cells.Count == 0)
@@ -850,21 +873,21 @@ public class CellManager : MonoBehaviour
 
         foreach (Cell c in cells)
         {
-            Gizmos.color = Color.green;
+            Gizmos.color = Color.yellow;
 
             if (c.role == CellRole.Player)
             {
-                Gizmos.color = Color.red;
+                Gizmos.color = Color.green;
             }
             else if (c.role == CellRole.WhiteBlood)
             {
-                Gizmos.color = Color.yellow;
+                Gizmos.color = Color.red;
             }
             else if (c.organismId >= 0 && c.organismId < organisms.Count)
             {
                 if (organisms[c.organismId].isDead)
                 {
-                    Gizmos.color = Color.white;
+                    Gizmos.color = new Color32(255, 255, 170, 255);
                 }
             }
 
@@ -875,6 +898,5 @@ public class CellManager : MonoBehaviour
 
     #endregion
 }
-
 
 
