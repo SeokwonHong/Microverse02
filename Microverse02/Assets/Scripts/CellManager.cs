@@ -170,7 +170,6 @@ public class CellManager : MonoBehaviour
                 
                 ApplyKeepDistance(i, otherIndex);
                 //ApplyCohesion(i, otherIndex);
-                ApplyJelly(i, otherIndex);
 
             }
         }
@@ -187,7 +186,7 @@ public class CellManager : MonoBehaviour
         for (int iter = 0; iter < 3; iter++) // play iter times in one frame
         {
 
-            
+            ApplyOrganismJelly();
            // for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
 
         }
@@ -603,70 +602,52 @@ public class CellManager : MonoBehaviour
         cells[currentIndex] = Current;
         cells[otherIndex] = Other;
     }
-    void ApplyJelly(int currentIdx, int otherIdx) //apply this to organisms instead of ApplyKeepDistance()?? 
+    void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
     {
 
-        Cell a = cells[currentIdx];
-        Cell b = cells[otherIdx];
+        if (playerCellIndex < 0) return; //if player is not made yet, return. if player is successfully made using CreatePlayerCell(), playerCellIndex will be integer
 
-        Vector2 delta = a.nextPos - b.nextPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return;
-
-        float dist = Mathf.Sqrt(d2);
-        Vector2 n = delta / dist; // points from b -> a
-
-        // Keep your values
-        float k = 400f;
-        float c = 1.3f;
+        Cell player = cells[playerCellIndex];
         float dt = Time.deltaTime;
 
-        // Default barrier: just stop them getting too close (soft repulsion)
-        float barrier = a.cellRadius + b.cellRadius;
+        float k = 400f; // spring strengh
+        float c = 1.3f; // damping (bigger, more tough surface)
 
-        // If this is core <-> member of the same organism, use organism boundary instead
-        bool aIsCore = a.role == CellRole.Core;
-        bool bIsCore = b.role == CellRole.Core;
 
-        if (aIsCore ^ bIsCore)
+        for (int o = 0; o < organisms.Count; o++)
         {
-            int coreIdx = aIsCore ? currentIdx : otherIdx;
-            int cellIdx = aIsCore ? otherIdx : currentIdx;
 
-            Cell core = cells[coreIdx];
-            Cell cCell = cells[cellIdx];
+            var org = organisms[o];
+            if (org.isDead) continue;
 
-            int orgId = core.organismId;
-            if (orgId >= 0 && orgId < organisms.Count && cCell.organismId == orgId && !organisms[orgId].isDead)
-            {
-                // Barrier radius around the core = coreDistance (your chosen shell radius) + intruder cell radius
-                barrier = organisms[orgId].coreDistance + cCell.cellRadius;
-            }
+            Cell core = cells[org.coreIndex];
+
+            float barrier = org.coreDistance + player.cellRadius;
+            Vector2 delta = player.nextPos - core.nextPos;
+            float d2 = delta.sqrMagnitude;
+            if (d2 < 1e-2f) continue;
+
+            float dist = Mathf.Sqrt(d2);
+            float penetration = barrier - dist; // if player is inside of organism, penetration is integer. deeper = greater value
+            if (penetration <= 0f) continue;
+
+            Vector2 n = delta / dist;
+
+
+            float v_n = Vector2.Dot(player.nextVelocity - core.nextVelocity, n); //player direction vs core direction
+            // v_n > 0  = Moving in the same direction as n
+            // v_n < 0  = Moving opposite to n
+            // v_n == 0 = 90 degree 
+
+            float accel = (k * penetration) - (c * v_n);
+            if (accel <= 0f) continue;
+
+
+            player.nextVelocity += n * accel * Time.deltaTime;
+
+
         }
-
-        float penetration = barrier - dist;
-        if (penetration <= 0f) return;
-
-        // Normal relative speed (damping term)
-        float v_n = Vector2.Dot(a.nextVelocity - b.nextVelocity, n);
-
-        // Spring-damper along the normal
-        float accel = (k * penetration) - (c * v_n);
-        if (accel <= 0f) return;
-
-        // Mass split (area ~ r^2). Bigger cell moves less.
-        float mA = Mathf.Max(0.001f, a.cellRadius * a.cellRadius);
-        float mB = Mathf.Max(0.001f, b.cellRadius * b.cellRadius);
-        float invSum = 1f / (mA + mB);
-
-        float aShare = mB * invSum;
-        float bShare = mA * invSum;
-
-        a.nextVelocity += n * (accel * aShare) * dt;
-        b.nextVelocity -= n * (accel * bShare) * dt;
-
-        cells[currentIdx] = a;
-        cells[otherIdx] = b;
+        cells[playerCellIndex] = player;
     }
 
     void ApplyCellPlayerDetection(int a, int b)

@@ -18,6 +18,7 @@ void CreateOrganism(Vector2 currentPos)
 
 void ResolveOverlap(int CurrentIndex, int OtherIndex)
 
+void ResolvePlayerOverlap(int cellIndex)
 
 void ApplyCoreAnchor()
 
