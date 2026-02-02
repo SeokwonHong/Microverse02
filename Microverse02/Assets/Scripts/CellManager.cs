@@ -31,11 +31,12 @@ public class CellManager : MonoBehaviour
     public float playerPushStrength;
 
 
-    public float cellSpeed;
+    //public float cellSpeed;
 
     //해쉬 
     SpatialHash spatialHash;
     [SerializeField] float BoxSize = 3f;
+    readonly List<int> neighbourBuffer = new List<int>(128);
 
 
     private List<Cell> cells = new List<Cell>();
@@ -158,8 +159,11 @@ public class CellManager : MonoBehaviour
 
         for (int i = 0; i < cells.Count; i++)
         {
-            foreach (int otherIndex in spatialHash.Query(cells[i].nextPos)) // QQuery will give this the index id. Once it's sent, it will be replaced to next one right after
+            spatialHash.Query(cells[i].nextPos,neighbourBuffer);
+
+            for(int n = 0; n < neighbourBuffer.Count;n++) // QQuery will give this the index id. Once it's sent, it will be replaced to next one right after
             {
+                int otherIndex = neighbourBuffer[n];
                 if (otherIndex <= i) continue;
 
 
@@ -186,7 +190,7 @@ public class CellManager : MonoBehaviour
         for (int iter = 0; iter < 3; iter++) // play iter times in one frame
         {
 
-            ApplyOrganismJelly();
+            ApplyOrganismJelly(Time.fixedDeltaTime);
            // for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
 
         }
@@ -587,7 +591,7 @@ public class CellManager : MonoBehaviour
 
         Vector2 dir = delta / distance;
 
-        float penetration = (maxDist - distance) * 5f;
+        float penetration = (maxDist - distance) * 50f;
 
 
         Vector2 push = dir * penetration;
@@ -602,15 +606,15 @@ public class CellManager : MonoBehaviour
         cells[currentIndex] = Current;
         cells[otherIndex] = Other;
     }
-    void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
+    void ApplyOrganismJelly(float dt) //apply this to organisms instead of ApplyKeepDistance()?? 
     {
 
         if (playerCellIndex < 0) return; //if player is not made yet, return. if player is successfully made using CreatePlayerCell(), playerCellIndex will be integer
 
         Cell player = cells[playerCellIndex];
-        float dt = Time.deltaTime;
+        dt = Time.deltaTime;
 
-        float k = 400f; // spring strengh
+        float k = 40f; // spring strengh
         float c = 1.3f; // damping (bigger, more tough surface)
 
 
@@ -746,9 +750,9 @@ public class CellManager : MonoBehaviour
             float speed;
             if (cells[i].detected == 1)
             {
-                speed = Mathf.Lerp(200f, 0.0f, t);
+                speed = Mathf.Lerp(40f, 0.0f, t);
             }
-            else speed = Mathf.Lerp(100f, 0.0f, t);
+            else speed = Mathf.Lerp(20f, 0.0f, t);
 
 
 

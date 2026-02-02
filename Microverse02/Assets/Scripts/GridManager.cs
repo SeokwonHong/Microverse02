@@ -38,8 +38,10 @@ public class SpatialHash
         list.Add(index);
     }
 
-    public IEnumerable<int> Query(Vector2 pos)
+    public IEnumerable<int> Query(Vector2 pos, List<int> results)
     {
+        results.Clear();
+
         var c = WorldHash(pos);
 
         for (int dy=-1;dy<=1;dy++)
@@ -47,12 +49,16 @@ public class SpatialHash
             {
                 long key = Hash(c.x +dx, c.y + dy);
 
-                if (!buckets.TryGetValue(key, out var list)) continue;
-
-                for (int i = 0; i < list.Count;i++ )
+                if (buckets.TryGetValue(key, out var list))
                 {
-                    yield return list[i];
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        yield return list[i];
+                    }
+
                 }
+
+                
             }
     }
 
