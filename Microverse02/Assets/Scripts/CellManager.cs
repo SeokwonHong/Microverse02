@@ -146,7 +146,7 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
             c.nextVelocity = c.currentVelocity; //First among double buffer
-            c.nextPos = c.currentPos + c.nextVelocity * cellSpeed * Time.deltaTime;
+            c.nextPos = c.currentPos + c.nextVelocity * Time.deltaTime;
             cells[i] = c;
         }
 
@@ -166,9 +166,9 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPlayerDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                
-                
-                ApplyKeepDistance(i, otherIndex);
+
+
+                ApplyKeepShape(i, otherIndex);
                 //ApplyCohesion(i, otherIndex);
 
             }
@@ -497,7 +497,7 @@ public class CellManager : MonoBehaviour
 
 
 
-    void ApplyKeepDistance(int CurrentIndex, int OtherIndex)
+    void ApplyKeepShape(int CurrentIndex, int OtherIndex)
     {
 
         Cell a = cells[CurrentIndex];
@@ -587,15 +587,15 @@ public class CellManager : MonoBehaviour
 
         Vector2 dir = delta / distance;
 
-        float penetration = (maxDist - distance) * 0.3f;
+        float penetration = (maxDist - distance) * 5f;
 
 
         Vector2 push = dir * penetration;
 
 
 
-        Current.nextPos -= push;
-        Other.nextPos += push;
+        Current.nextVelocity -= push * Time.deltaTime;
+        Other.nextVelocity += push * Time.deltaTime;
 
 
 
@@ -663,7 +663,7 @@ public class CellManager : MonoBehaviour
                 B.detected = 1;
                 cells[b] = B;
             }
-            else B.detected = -1;
+            else B.detected = 0;
         }
         else if (B.role == CellRole.Player && A.role != CellRole.Player)
         {
@@ -732,6 +732,8 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
 
+            if (c.role == CellRole.Core||c.role==CellRole.Player) continue;
+
             if (c.organismId < 0 || c.organismId >= organisms.Count) continue;
             Organisms org = organisms[c.organismId];
 
@@ -744,15 +746,15 @@ public class CellManager : MonoBehaviour
             float speed;
             if (cells[i].detected == 1)
             {
-                speed = Mathf.Lerp(3f, 0.0f, t);
+                speed = Mathf.Lerp(200f, 0.0f, t);
             }
-            else speed = Mathf.Lerp(2f, 0.0f, t);
+            else speed = Mathf.Lerp(100f, 0.0f, t);
 
 
 
             float drag = 9f;
             c.nextVelocity *= Mathf.Exp(-drag * Time.deltaTime);
-            c.nextVelocity += ramdomDir * speed;
+            c.nextVelocity += ramdomDir * speed * Time.deltaTime;
 
             cells[i] = c;
         }
