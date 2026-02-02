@@ -136,7 +136,7 @@ public class CellManager : MonoBehaviour
         {
             Cell player = cells[playerCellIndex];
             Debug.Log(cells.Count);
-            Debug.Log(player.nextVelocity);
+ 
         }
 
 
@@ -151,7 +151,7 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
 
-        spatialHash.Clear(); // Delete data inside the dictionary 
+        spatialHash.BeginFrame(); // Delete data inside the dictionary 
         for (int i = 0; i < cells.Count; i++)
         {
             spatialHash.Insert(cells[i].nextPos, i);
@@ -612,7 +612,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         dt = Time.deltaTime;
 
-        float k = 40f; // spring strengh
+        float k = 200f; // spring strengh
         float c = 1.3f; // damping (bigger, more tough surface)
 
 

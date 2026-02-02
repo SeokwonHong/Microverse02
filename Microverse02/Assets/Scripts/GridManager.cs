@@ -7,20 +7,41 @@ public class SpatialHash
     readonly float boxSize;
     readonly float inboxSize;
 
-    readonly Dictionary<long, List<int>> buckets = new Dictionary<long, List<int>>(1024);
+    int frameStamp = 1;
+
+    class Bucket
+    {
+
+        public int stamp;
+        public readonly List<int> items;
+
+        public Bucket(int capacity)
+        {
+            stamp = 0;
+            items = new List<int>(capacity);
+        }
+    }
+
+    readonly Dictionary<long, Bucket> buckets = new Dictionary<long, Bucket>(1024);
 
     public SpatialHash(float hashsize)
     {
         boxSize = Mathf.Max(0.0001f, hashsize);
         inboxSize = 1f / boxSize;
-    
     }
 
-    public void Clear()
+    public void BeginFrame()
     {
-        foreach (var key in buckets)
+        frameStamp++;
+
+        if(frameStamp==int.MaxValue)
         {
-            key.Value.Clear();  // 키값도 제거?
+            frameStamp = 1;
+            foreach(var kv in buckets)
+            {
+                kv.Value.stamp = 0;
+            } 
+                
         }
 
     }
@@ -30,12 +51,19 @@ public class SpatialHash
         var c = WorldHash(pos);
         long key = Hash(c.x, c.y);
 
-        if(!buckets.TryGetValue(key, out var list))
+        if(!buckets.TryGetValue(key, out var bucket))
         {
-            list = new List<int>(16);
-            buckets.Add(key, list);
+            bucket = new Bucket(16);
+            buckets.Add(key, bucket);
         }
-        list.Add(index);
+
+        if(bucket.stamp!=frameStamp)
+        {
+            bucket.stamp = frameStamp;  
+            bucket.items.Clear();
+        }
+
+        bucket.items.Add(index);
     }
 
     public void Query(Vector2 pos, List<int> results)
@@ -49,17 +77,15 @@ public class SpatialHash
             {
                 long key = Hash(c.x +dx, c.y + dy);
 
-                if (buckets.TryGetValue(key, out var list))
+                if (buckets.TryGetValue(key, out var bucket)&&bucket.stamp==frameStamp)
                 {
+                    var list = bucket.items;
                     for (int i = 0; i < list.Count; i++)
                     {
                         results.Add(list[i]);
                             
                     }
-
                 }
-
-                
             }
     }
 
