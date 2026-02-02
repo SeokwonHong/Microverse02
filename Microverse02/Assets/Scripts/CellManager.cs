@@ -28,10 +28,10 @@ public class CellManager : MonoBehaviour
     private float playerRadius;
     private float playerInfluenceRadius;
     int playerCellIndex = -1; //-1 means player not allocated yet. If player is made, int number will be allocated
-    [SerializeField] private float playerPushStrength = 1.0f;
+    public float playerPushStrength;
 
 
-    public float cellSpeed = 2f;
+    public float cellSpeed;
 
     //해쉬 
     SpatialHash spatialHash;
@@ -161,9 +161,13 @@ public class CellManager : MonoBehaviour
             foreach (int otherIndex in spatialHash.Query(cells[i].nextPos)) // QQuery will give this the index id. Once it's sent, it will be replaced to next one right after
             {
                 if (otherIndex <= i) continue;
+
+
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPlayerDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
+                
+                
                 ApplyKeepDistance(i, otherIndex);
                 //ApplyCohesion(i, otherIndex);
 
@@ -183,7 +187,7 @@ public class CellManager : MonoBehaviour
         {
 
             ApplyOrganismJelly();
-            for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
+           // for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
 
         }
         ApplyPlayerKillsOrganism();
@@ -376,7 +380,10 @@ public class CellManager : MonoBehaviour
         Vector2 direction = delta / dist; //get the direction by dividing the vector by its distance     vector/distance = distance
 
         float overlap = minDist - dist;
+
+
         Vector2 push = direction * (overlap * 0.5f); // push(power*direction) * half of the 
+
         currentCell.nextPos -= push;
         otherCell.nextPos += push;
 
@@ -385,30 +392,30 @@ public class CellManager : MonoBehaviour
 
     }
 
-    void ResolvePlayerOverlap(int cellIndex) //player - basic cell collision
-    {
-        var c = cells[cellIndex];
-        if (c.role == CellRole.Player) return;
-        if (c.role == CellRole.Core) return;
+    //void ResolvePlayerOverlap(int cellIndex) //player - basic cell collision
+    //{
+    //    var c = cells[cellIndex];
+    //    if (c.role == CellRole.Player) return;
+    //    if (c.role == CellRole.Core) return;
 
-        Vector2 playerPos = GetPlayerNextPosition();
+    //    Vector2 playerPos = GetPlayerNextPosition();
 
-        Vector2 delta = c.nextPos - playerPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return;
+    //    Vector2 delta = c.nextPos - playerPos;
+    //    float d2 = delta.sqrMagnitude;
+    //    if (d2 < 1e-8f) return;
 
-        float dist = Mathf.Sqrt(d2);
-        float minDist = c.cellRadius + GetPlayerRadius();
+    //    float dist = Mathf.Sqrt(d2);
+    //    float minDist = c.cellRadius + GetPlayerRadius();
 
-        if (dist >= minDist) return;
+    //    if (dist >= minDist) return;
 
-        Vector2 dir = delta / dist;
-        float penetration = (minDist - dist);
+    //    Vector2 dir = delta / dist;
+    //    float penetration = (minDist - dist);
 
-        c.nextPos += dir * penetration * playerPushStrength;
+    //    c.nextPos += dir * penetration * playerPushStrength;
 
-        cells[cellIndex] = c;
-    }
+    //    cells[cellIndex] = c;
+    //}
     void ApplyCoreAnchor() //apply core cell an anchor
     {
         foreach (var org in organisms)
@@ -581,6 +588,7 @@ public class CellManager : MonoBehaviour
         Vector2 dir = delta / distance;
 
         float penetration = (maxDist - distance) * 0.3f;
+
 
         Vector2 push = dir * penetration;
 
@@ -846,7 +854,7 @@ public class CellManager : MonoBehaviour
             }
             else if (c.role == CellRole.WhiteBlood)
             {
-                Gizmos.color = Color.blue;
+                Gizmos.color = Color.yellow;
             }
             else if (c.organismId >= 0 && c.organismId < organisms.Count)
             {
