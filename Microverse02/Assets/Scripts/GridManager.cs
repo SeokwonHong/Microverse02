@@ -38,7 +38,7 @@ public class SpatialHash
         list.Add(index);
     }
 
-    public IEnumerable<int> Query(Vector2 pos, List<int> results)
+    public void Query(Vector2 pos, List<int> results)
     {
         results.Clear();
 
@@ -53,7 +53,8 @@ public class SpatialHash
                 {
                     for (int i = 0; i < list.Count; i++)
                     {
-                        yield return list[i];
+                        results.Add(list[i]);
+                            
                     }
 
                 }

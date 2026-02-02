@@ -170,8 +170,6 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPlayerDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-
-
                 ApplyKeepShape(i, otherIndex);
                 //ApplyCohesion(i, otherIndex);
 
