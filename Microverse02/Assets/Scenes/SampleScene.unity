@@ -5049,9 +5049,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  organismCount: 60
-  WBCCount: 80
-  SceneGenerateSize: 20
+  organismCount: 150
+  WBCCount: 200
+  SceneGenerateSize: 50
   playerPushStrength: 7
   BoxSize: 3
   isOrganismDead: 0

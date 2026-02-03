@@ -74,7 +74,7 @@ public class CellManager : MonoBehaviour
         public Vector2 heading; //normalized direction
         public float headingPower; // Its more tendency likely than speed. must keep value low to inturrupt less
         public bool anchorEnabled; //anchor holds cells: structure is destroied once its dead
-        public float hp;
+       
         public bool isDead;
         public float deadTimer;
         public float playerInside;
@@ -121,7 +121,6 @@ public class CellManager : MonoBehaviour
             );
 
             CreateOrganism(pos);
-
         }
 
 
@@ -175,13 +174,21 @@ public class CellManager : MonoBehaviour
 
             }
         }
+
+        if(Input.GetKey(KeyCode.Space))
+        {
+            Cell player = cells[playerCellIndex];
+            //player.cellRadius += 0.1f;
+
+            CreatePlayerCell(player.nextPos);
+        }
         ApplyPlayerInput();
         ApplyPlayerFunctions();
 
         //wbc
         ApplyWBCAttaching();
 
-        //ApplyOrganismTendency();
+        ApplyOrganismTendency();
         ApplyCoreAnchor();
 
 
@@ -271,7 +278,7 @@ public class CellManager : MonoBehaviour
         player.currentPos = pos;
         player.currentVelocity = Vector2.zero;
 
-        player.cellRadius = 0.4f;
+        player.cellRadius = 0.2f;
         player.detectRadius = player.cellRadius * 6f;
 
         player.organismId = -1;
@@ -291,7 +298,7 @@ public class CellManager : MonoBehaviour
         w.currentVelocity = Vector2.zero;
 
         w.cellRadius = 0.25f;
-        w.detectRadius = w.cellRadius * 13f;
+        w.detectRadius = w.cellRadius * 30f;
 
         w.organismId = -1;
         w.role = CellRole.WhiteBlood;
@@ -454,7 +461,7 @@ public class CellManager : MonoBehaviour
 
         for (int i = 0; i < organisms.Count; i++)
         {
-            var org = organisms[i];
+            Organisms org = organisms[i];
             if (org.isDead) continue;
             //if(org.hp<=0f) continue;
             int coreIdx = org.coreIndex;
@@ -467,7 +474,7 @@ public class CellManager : MonoBehaviour
             if (d2 < 1e-8f) continue;
 
             org.heading = toPlayer.normalized;
-            org.headingPower = 50f;
+            org.headingPower = 500f;
 
             Cell core = cells[coreIdx];
             core.nextVelocity += org.heading * org.headingPower * Time.deltaTime;
@@ -591,7 +598,7 @@ public class CellManager : MonoBehaviour
         Cell player = cells[playerCellIndex];
         dt = Time.deltaTime;
 
-        float k = 40f; // spring strengh
+        float k = 50f; // spring strengh
         float c = 1.3f; // damping (bigger, more tough surface)
 
 
@@ -847,7 +854,7 @@ public class CellManager : MonoBehaviour
                 Vector2 dir = delta / dist;
 
                 float force = (r - dist) / r;
-                w.nextVelocity += dir * (force * attractStrength) * dt;
+                w.nextPos += dir * (force * attractStrength) * dt;
             } 
             else
             {
