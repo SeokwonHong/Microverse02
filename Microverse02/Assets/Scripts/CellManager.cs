@@ -826,6 +826,7 @@ public class CellManager : MonoBehaviour
 
         float dt = Time.deltaTime;
         float attractStrength = 10f;
+        float drag = 30f;
 
         for (int i = 0;i < cells.Count; i++)
         {
@@ -837,16 +838,23 @@ public class CellManager : MonoBehaviour
             float d2 = delta.sqrMagnitude;
 
             float r = w.detectRadius;
-            if(d2> r * r) continue;
-            float dist = Mathf.Sqrt(d2);
-            if (dist < 1e-5f) continue;
 
-            Vector2 dir = delta/dist;
-            float force = (r - dist)/r;
+            bool inSight = (d2 <= r * r) && (d2 > 1e-5f);
 
+            if (inSight)
+            {
+                float dist = Mathf.Sqrt(d2);
+                Vector2 dir = delta / dist;
+
+                float force = (r - dist) / r;
+                w.nextVelocity += dir * (force * attractStrength) * dt;
+            } 
+            else
+            {
+                w.nextVelocity *= Mathf.Exp(-drag * dt);
+            }
             
 
-            w.nextPos += dir*(force* attractStrength) * dt;
             cells[i] = w;
         }
 

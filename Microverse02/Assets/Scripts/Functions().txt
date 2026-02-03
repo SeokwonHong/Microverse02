@@ -29,7 +29,7 @@ void UpdateDeadOrganisms()
 
 void ApplyOrganismTendency()
 
-void ApplyKeepDistance(int CurrentIndex, int OtherIndex)
+void ApplyKeepShape(int CurrentIndex, int OtherIndex)
 
 void ApplyCellPushing(int currentIndex, int otherIndex)
 
@@ -43,5 +43,7 @@ void ApplyCellMovement()
 
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
+
+void ApplyWBCAttaching()
 
 ApplyPlayerKillsOrganism()
