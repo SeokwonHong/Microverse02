@@ -483,71 +483,6 @@ public class CellManager : MonoBehaviour
 
     void ApplyKeepShape(int CurrentIndex, int OtherIndex)
     {
-
-        //Cell a = cells[CurrentIndex];
-        //Cell b = cells[OtherIndex];
-
-
-
-
-        //bool aIsCore = a.role == CellRole.Core;
-        //bool bIsCore = b.role == CellRole.Core;
-        //if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
-
-
-        //int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
-        //int shellIdx = aIsCore ? OtherIndex : CurrentIndex;
-
-        //Cell core = cells[coreIdx];
-        //Cell shell = cells[shellIdx];
-
-
-
-        //int orgId = core.organismId;
-        //if (orgId < 0 || orgId >= organisms.Count) return;
-        //if (shell.organismId != orgId) return;
-
-        //if (organisms[orgId].isDead) return;
-
-        //float coreDist = organisms[orgId].coreDistance;
-
-        //Vector2 delta = shell.nextPos - core.nextPos;
-        //float d2 = delta.sqrMagnitude;
-        //if (d2 < 1e-8f) return;
-
-        //float distance = Mathf.Sqrt(d2);
-        //Vector2 direction = delta / distance;
-
-        //float shellGap = distance - coreDist;
-
-        //float tolerance = 0.02f;
-        //if (Mathf.Abs(shellGap) < tolerance) return; //  if  |shellGap| < tolerance 
-
-        //float k = 300f;
-        //float c = 6f;
-
-        //float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity, direction);
-
-        //float springPower = (-k * shellGap) - (c * vectorAngle);
-
-        //springPower = Mathf.Clamp(springPower, -1000f, 1000f);
-
-        //float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
-        //float massShell = Mathf.Max(0, 001f, shell.cellRadius * shell.cellRadius);
-
-        //float massRatio = 1f / (massCore + massShell);
-
-        //float coreShare = massShell * massRatio;
-        //float shellShare = massCore * massRatio;
-
-        //core.nextVelocity -= direction * (springPower * coreShare) * Time.deltaTime;
-        //shell.nextVelocity += direction * (springPower * shellShare) * Time.deltaTime;
-
-
-        //cells[coreIdx] = core;
-        //cells[shellIdx] = shell;
-
-
         Cell a = cells[CurrentIndex];
         Cell b = cells[OtherIndex];
 
@@ -588,12 +523,12 @@ public class CellManager : MonoBehaviour
         float massShell = Mathf.Max(0.001f, shell.cellRadius * shell.cellRadius);
 
         float invSum = 1f/(massCore + massShell);  
-        //float coreShare = massShell*invSum;
+        float coreShare = massShell*invSum;
         float shellShare = massCore *invSum;
 
         float dt = Time.deltaTime;
 
-        //core.nextVelocity -= p.dir * (springPower * coreShare) * dt;
+        core.nextVelocity -= p.dir * (springPower * coreShare) * dt;
         shell.nextVelocity += p.dir * (springPower * shellShare) * dt;
 
         cells[coreIdx] = core;
@@ -703,22 +638,14 @@ public class CellManager : MonoBehaviour
         if (A.role == CellRole.Player && B.role != CellRole.Player)
         {
             float r = A.detectRadius + B.cellRadius;
-            if ((A.nextPos - B.nextPos).sqrMagnitude <= r * r)
-            {
-                B.detected = 1;
-                cells[b] = B;
-            }
-            else B.detected = 0;
+            B.detected = ((A.nextPos - B.nextPos).sqrMagnitude <= r*r) ? 1f : 0f;
+            cells[b] = B;
         }
         else if (B.role == CellRole.Player && A.role != CellRole.Player)
         {
             float r = B.detectRadius + A.cellRadius;
-            if ((B.nextPos - A.nextPos).sqrMagnitude <= r * r)
-            {
-                A.detected = 1;
-                cells[a] = A;
-            }
-            else A.detected = -1;
+            A.detected = ((B.nextPos - A.nextPos).sqrMagnitude <= r* r ? 1f: 0f); 
+            cells[a] =A;
         }
     }
 
