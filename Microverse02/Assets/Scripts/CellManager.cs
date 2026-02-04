@@ -64,7 +64,7 @@ public class CellManager : MonoBehaviour
         public int organismId; //-1 = indipendent cell, 1 = Organism 1
         public CellRole role; // Core / Shell / WhiteBlood
 
-        public float detected;  // 1=detected  0=not detected
+        public bool infected;  
     }
 
     class Organisms
@@ -106,16 +106,16 @@ public class CellManager : MonoBehaviour
         float maxY = SceneGenerateSize;
 
 
-        //for (int i =0; i<WBCCount; i++)
-        //{
-        //    Vector2 pos = new Vector2(
-        //        UnityEngine.Random.Range(minX, maxX),
-        //        UnityEngine.Random.Range(minY, maxY)
-        //    );
+        for (int i = 0; i < WBCCount; i++)
+        {
+            Vector2 pos = new Vector2(
+                UnityEngine.Random.Range(minX, maxX),
+                UnityEngine.Random.Range(minY, maxY)
+            );
 
-        //    CreateWBCCell(pos);
+            CreateWBCCell(pos);
 
-        //}
+        }
 
 
         for (int i = 0; i < organismCount; i++)
@@ -155,6 +155,8 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
 
+
+
         spatialHash.BeginFrame(); // Delete data inside the dictionary 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -172,7 +174,7 @@ public class CellManager : MonoBehaviour
 
 
                 ResolveOverlap(i, otherIndex);
-                ApplyCellPlayerDetection(i, otherIndex);
+                ApplyCellInfection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
                 
                 //ApplyCohesion(i, otherIndex);
@@ -180,7 +182,7 @@ public class CellManager : MonoBehaviour
             }
         }
 
-        if(Input.GetKey(KeyCode.Space))
+        if(Input.GetMouseButton(0))
         {
             Cell player = cells[playerCellIndex];
             //player.cellRadius += 0.1f;
@@ -282,15 +284,20 @@ public class CellManager : MonoBehaviour
     void CreatePlayerCell(Vector2 pos)
     {
         Cell player = new Cell();
+
         player.currentPos = pos;
         player.currentVelocity = Vector2.zero;
 
-        player.cellRadius = 0.25f;
+        player.nextPos = pos;
+        player.nextVelocity = Vector2.zero;
+
+        player.cellRadius = 0.2f;
         player.detectRadius = player.cellRadius * 6f;
 
         player.organismId = -1;
         player.role = CellRole.Player;
 
+        player.infected = true;
         playerCellIndex = cells.Count;
         cells.Add(player);
     }
@@ -309,7 +316,7 @@ public class CellManager : MonoBehaviour
 
         w.organismId = -1;
         w.role = CellRole.WhiteBlood;
-        w.detected = 0;
+        //w.detected = false;
 
         cells.Add(w);
 
@@ -333,7 +340,7 @@ public class CellManager : MonoBehaviour
         core.currentVelocity = Vector2.zero;
 
         core.cellRadius = UnityEngine.Random.Range(0.3f, 0.4f);
-        core.detectRadius = core.cellRadius * 5f;
+        core.detectRadius = core.cellRadius * 5.5f;
         org.coreDistance = core.detectRadius;
 
         core.organismId = org.id;
@@ -452,6 +459,7 @@ public class CellManager : MonoBehaviour
             var org = organisms[i];
             if (!org.isDead) continue;
 
+
             org.deadTimer += Time.deltaTime;
             if (org.deadTimer >= maxDeadTime)
             {
@@ -462,6 +470,7 @@ public class CellManager : MonoBehaviour
     }
     void ApplyOrganismTendency() //Organism movement, more likely tendency
     {
+        
         Vector2 playerPos = GetPlayerNextPosition();
 
 
@@ -480,7 +489,7 @@ public class CellManager : MonoBehaviour
             if (d2 < 1e-8f) continue;
 
             org.heading = toPlayer.normalized;
-            org.headingPower = 500f;
+            org.headingPower = 70000f;
 
             Cell core = cells[coreIdx];
             core.nextVelocity += org.heading * org.headingPower * Time.deltaTime;
@@ -497,15 +506,16 @@ public class CellManager : MonoBehaviour
 
         float tolerance = 0.02f;
 
-        float k = 20f;   // spring
         float c = 1.1f;     // damping
-        float maxForce = 1000f;
+        float maxForce = 200f;
 
         for (int i = 0; i < organisms.Count; i++)
         {
-            
+
             var org = organisms[i];
             if (org.isDead) continue;
+
+            
 
             int coreIdx = org.coreIndex;
             if (coreIdx < 0 || coreIdx >= cells.Count) continue;
@@ -515,10 +525,11 @@ public class CellManager : MonoBehaviour
 
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
+            //float k = (org.playerInside == 1) ? 150f : 10f; // spring
+            float k = (org.playerInside == 1) ? 3f : 10f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
-                
                 int shellIdx = org.members[m];
                 if (shellIdx == coreIdx) continue;
                 if (shellIdx < 0 || shellIdx >= cells.Count) continue;
@@ -581,7 +592,7 @@ public class CellManager : MonoBehaviour
         Vector2 dir = delta / dist;
 
         float dt = Time.deltaTime;
-        float pushStrength = 60f;
+        float pushStrength = 120f;
 
         Vector2 dv = dir * (overlap * pushStrength);
 
@@ -618,28 +629,33 @@ public class CellManager : MonoBehaviour
         if (playerCellIndex < 0) return; //if player is not made yet, return. if player is successfully made using CreatePlayerCell(), playerCellIndex will be integer
 
         Cell player = cells[playerCellIndex];
-        dt = Time.deltaTime;
 
-        float k = 50f; // spring strengh
-        float c = 1.3f; // damping (bigger, more tough surface)
+        float k = 600f; // spring strengh
+        float c = 1.1f; // damping (bigger, more tough surface)
 
+        float maxPenetration = 0.35f;
+        float maxAccel = 900f;
+
+        Vector2 totalAccel = Vector2.zero;  
 
         for (int o = 0; o < organisms.Count; o++)
         {
-
             var org = organisms[o];
             if (org.isDead) continue;
 
             Cell core = cells[org.coreIndex];
 
             float barrier = org.coreDistance + player.cellRadius;
+
             Vector2 delta = player.nextPos - core.nextPos;
             float d2 = delta.sqrMagnitude;
-            if (d2 < 1e-2f) continue;
+            if (d2 < 1e-6f) continue;
 
             float dist = Mathf.Sqrt(d2);
             float penetration = barrier - dist; // if player is inside of organism, penetration is integer. deeper = greater value
             if (penetration <= 0f) continue;
+
+            if(penetration>maxPenetration) penetration = maxPenetration;
 
             Vector2 n = delta / dist;
 
@@ -649,42 +665,35 @@ public class CellManager : MonoBehaviour
             // v_n < 0  = Moving opposite to n
             // v_n == 0 = 90 degree 
 
-            float accel = (k * penetration) - (c * v_n);
-            if (accel <= 0f) continue;
 
+            float accelMag = (k * penetration) - (c * v_n);
+            if (accelMag <= 0f) continue;
 
-            player.nextVelocity += n * accel * Time.deltaTime;
-
-
+            totalAccel += n * accelMag;
         }
+
+        if(totalAccel.sqrMagnitude>maxAccel*maxAccel)
+        {
+            totalAccel = totalAccel.normalized*maxAccel;
+        }
+        player.nextVelocity = totalAccel * dt ;
+
         cells[playerCellIndex] = player;
     }
 
-    void ApplyCellPlayerDetection(int a, int b)
+    void ApplyCellInfection(int a, int b)
     {
         Cell A = cells[a];
         Cell B = cells[b];
 
-        if (A.role == CellRole.Player && B.role != CellRole.Player)
+        if(A.infected)
         {
-            float r = A.detectRadius + B.cellRadius;
-            if ((A.nextPos - B.nextPos).sqrMagnitude <= r * r)
-            {
-                B.detected = 1;
-                cells[b] = B;
-            }
-            else B.detected = 0;
+            float r = (A.detectRadius + B.cellRadius)*1.7f;
+            bool inRange = ((A.nextPos - B.nextPos).sqrMagnitude <= r * r);
+            B.infected = B.infected || inRange;
+            cells[b] = B;
         }
-        else if (B.role == CellRole.Player && A.role != CellRole.Player)
-        {
-            float r = B.detectRadius + A.cellRadius;
-            if ((B.nextPos - A.nextPos).sqrMagnitude <= r * r)
-            {
-                A.detected = 1;
-                cells[a] = A;
-            }
-            else A.detected = -1;
-        }
+        
     }
 
 
@@ -741,6 +750,7 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
+            
 
             if (c.role==CellRole.Player) continue;
 
@@ -754,11 +764,11 @@ public class CellManager : MonoBehaviour
             if (ramdomDir.sqrMagnitude < 1e-6f) continue;
 
             float speed;
-            if (cells[i].detected == 1)
+            if (cells[i].infected == true)
             {
-                speed = Mathf.Lerp(45f, 0.0f, t);
+                speed = Mathf.Lerp(55f, 0.0f, t);
             }
-            else speed = Mathf.Lerp(25f, 0.0f, t);
+            else speed = Mathf.Lerp(20f, 0.0f, t);
 
 
 
@@ -807,39 +817,48 @@ public class CellManager : MonoBehaviour
 
     void ApplyPlayerKillsOrganism()
     {
+        if(playerCellIndex < 0 ) return;    
+
+        Cell player = cells[playerCellIndex];
+
         for (int i = 0; i < organisms.Count; i++)
         {
             var org = organisms[i];
-            int CoreIndex = org.coreIndex;
+            if(org.isDead) { organisms[i] = org; continue; }
 
-            Cell coreCell = cells[CoreIndex];
-            Cell player = cells[playerCellIndex];
+            org.playerInside = 0;
+
+            int coreIndex = org.coreIndex;
+            if (coreIndex < 0 || coreIndex >= cells.Count)
+            {
+                organisms[i] = org; continue;
+            }
+
+            Cell coreCell = cells[coreIndex];
+          
             Vector2 delta = coreCell.nextPos - player.nextPos;
 
             float d2 = delta.sqrMagnitude;
 
-            if (d2 < 1e-5f) continue;
+            if (d2 < 1e-8f)
+            {
+                organisms[i] = org; continue;
+            }
 
             float minDist = player.cellRadius + org.coreDistance + coreCell.cellRadius;
             float minDist2 = minDist * minDist;
 
-            float dist = Mathf.Sqrt(d2);
-
-            if (dist > minDist)
-            {
-                continue;
-            }
-
-            if (dist <= minDist)
-            {
+           if(d2<=minDist2)
+           {
                 org.playerInside = 1;
 
-                if (d2 - coreCell.cellRadius < 0.3f)
+                if(d2 - coreCell.cellRadius <0.3f)
                 {
                     org.isDead = true;
                 }
-            }
+           }
 
+            organisms[i] = org;
         }
 
     }
@@ -884,6 +903,7 @@ public class CellManager : MonoBehaviour
             }
             
 
+
             cells[i] = w;
         }
 
@@ -912,14 +932,20 @@ void OnDrawGizmos()
         {
             Gizmos.color = Color.yellow;
 
-            if (c.role == CellRole.Player)
-            {
-                Gizmos.color = Color.green;
-            }
-            else if (c.role == CellRole.WhiteBlood)
+            
+            if (c.infected == true)
             {
                 Gizmos.color = Color.red;
             }
+            else if (c.role == CellRole.WhiteBlood)
+            {
+                Gizmos.color = Color.blue;
+            }
+            else if (c.role == CellRole.Player)
+            {
+                Gizmos.color = Color.red;
+            }
+            
             else if (c.organismId >= 0 && c.organismId < organisms.Count)
             {
                 if (organisms[c.organismId].isDead)
@@ -927,6 +953,8 @@ void OnDrawGizmos()
                     Gizmos.color = new Color32(255, 255, 170, 255);
                 }
             }
+            
+
 
             Gizmos.DrawSphere(c.currentPos, c.cellRadius);
 

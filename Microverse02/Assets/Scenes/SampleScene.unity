@@ -5052,9 +5052,8 @@ MonoBehaviour:
   organismCount: 150
   WBCCount: 200
   SceneGenerateSize: 50
-  playerPushStrength: 7
-  BoxSize: 3
-  isOrganismDead: 0
+  playerPushStrength: 3
+  BoxSize: 1.25
 --- !u!1 &1587657921
 GameObject:
   m_ObjectHideFlags: 0
