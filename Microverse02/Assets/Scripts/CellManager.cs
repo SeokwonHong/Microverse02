@@ -68,10 +68,8 @@ public class CellManager : MonoBehaviour
     {
         public int id; // who this organism is 
         public int coreIndex; // what's the core (find with index)
-        public List<int> members = new List<int>(); // // all cell memebers inside the organism
         public float coreDistance; // distance between Core and Shell
 
-        public Vector2 anchorPos;
         public Vector2 heading; //normalized direction
         public float headingPower; // Its more tendency likely than speed. must keep value low to inturrupt less
         public bool anchorEnabled; //anchor holds cells: structure is destroied once its dead
@@ -91,7 +89,7 @@ public class CellManager : MonoBehaviour
 
         CreatePlayerCell(Vector2.zero);
         playerRadius = GetPlayerRadius();
-        playerInfluenceRadius = playerRadius * 7f;
+        playerInfluenceRadius = playerRadius * 10f;
 
 
 
@@ -340,7 +338,7 @@ public class CellManager : MonoBehaviour
         cells.Add(core);
 
         org.coreIndex = coreIndex;
-        org.members.Add(coreIndex);
+       
 
         //Shell
         float CellRadius = UnityEngine.Random.Range(0.1f, 0.13f);
@@ -364,10 +362,9 @@ public class CellManager : MonoBehaviour
 
             int shellIndex = cells.Count;
             cells.Add(shell);
-            org.members.Add(shellIndex);
 
         }
-        //org.anchorEnabled=true;
+
 
         organisms.Add(org);
 
@@ -410,12 +407,11 @@ public class CellManager : MonoBehaviour
     {
         foreach (var org in organisms)
         {
-            if (!org.anchorEnabled) continue;
+            //if (!org.anchorEnabled) continue;
 
             int coreIdx = org.coreIndex;
             Cell core = cells[coreIdx];
 
-            core.nextPos = org.anchorPos;
             core.nextVelocity = Vector2.zero;
             cells[coreIdx] = core;
         }
@@ -556,42 +552,6 @@ public class CellManager : MonoBehaviour
 
     void ApplyCellPushing(int currentIndex, int otherIndex)
     {
-        //Cell Current = cells[currentIndex];
-        //Cell Other = cells[otherIndex];
-
-        //float dt = Time.deltaTime;
-       
-
-        //if (Current.role == CellRole.Player || Other.role == CellRole.Player) return;
-        //if (Current.role == CellRole.WhiteBlood || Other.role == CellRole.WhiteBlood) return;
-
-        //Vector2 delta = Other.nextPos - Current.nextPos;
-        //float d2 = delta.sqrMagnitude;
-        //if (d2 < 1e-5f) return;
-
-        //float distance = Mathf.Sqrt(d2);
-
-        //float minDist = Current.cellRadius + Other.cellRadius;
-        //float maxDist = Current.detectRadius + Other.detectRadius;
-
-        //if (distance <= minDist) return;
-        //if (distance > maxDist) return;
-
-
-        //Vector2 dir = delta / distance;
-
-        //float penetration = (maxDist - distance) * 50f;
-
-
-        //Vector2 push = dir * penetration;
-
-    
-        //Current.nextVelocity -= push * dt;
-        //Other.nextVelocity += push * dt;
-
-        //cells[currentIndex] = Current;
-        //cells[otherIndex] = Other;
-
         Cell a = cells[currentIndex];
         Cell b = cells[otherIndex];
 
@@ -623,8 +583,6 @@ public class CellManager : MonoBehaviour
 
         cells[currentIndex] = a;
         cells[otherIndex] = b;
-
-
     }
 
     void ApplyDragToCells()
@@ -777,7 +735,7 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
 
-            if (c.role == CellRole.Core||c.role==CellRole.Player) continue;
+            if (c.role==CellRole.Player) continue;
 
             if (c.organismId < 0 || c.organismId >= organisms.Count) continue;
             Organisms org = organisms[c.organismId];
@@ -791,9 +749,9 @@ public class CellManager : MonoBehaviour
             float speed;
             if (cells[i].detected == 1)
             {
-                speed = Mathf.Lerp(40f, 0.0f, t);
+                speed = Mathf.Lerp(45f, 0.0f, t);
             }
-            else speed = Mathf.Lerp(20f, 0.0f, t);
+            else speed = Mathf.Lerp(25f, 0.0f, t);
 
 
 
