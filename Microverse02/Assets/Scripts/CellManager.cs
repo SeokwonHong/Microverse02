@@ -697,7 +697,7 @@ public class CellManager : MonoBehaviour
         if (A.role == CellRole.WhiteBlood || B.role == CellRole.WhiteBlood) return;
 
 
-        float r = (A.detectRadius + B.cellRadius) * 1.7f;
+        float r = A.detectRadius + B.cellRadius;
         bool inRange = ((A.nextPos - B.nextPos).sqrMagnitude <= r * r);
         B.detected = B.detected || inRange;
         cells[b] = B;
@@ -755,7 +755,7 @@ public class CellManager : MonoBehaviour
 
     void ApplyCellMovement()// cell tendency
     {
-
+        float dt = Time.deltaTime;  
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
@@ -773,7 +773,7 @@ public class CellManager : MonoBehaviour
             if (ramdomDir.sqrMagnitude < 1e-6f) continue;
 
             float speed;
-            if (cells[i].detected == true)
+            if (c.detected)
             {
                 speed = Mathf.Lerp(55f, 0.0f, t);
             }
@@ -782,8 +782,8 @@ public class CellManager : MonoBehaviour
 
 
             float drag = 9f;
-            c.nextVelocity *= Mathf.Exp(-drag * Time.deltaTime);
-            c.nextVelocity += ramdomDir * speed * Time.deltaTime;
+            c.nextVelocity *= Mathf.Exp(-drag * dt);
+            c.nextVelocity += ramdomDir * speed * dt;
 
             cells[i] = c;
         }

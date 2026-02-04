@@ -37,7 +37,7 @@ void ApplyDragToCells()
 
 void ApplyOrganismJelly()
 
-void ApplyCellPlayerDetection(int currentIndex, int otherIndex)
+void ApplyCellDetection(int currentIndex, int otherIndex)
 
 void ApplyCohesion(int CurrentIndex, int OtherIndex) 
 
