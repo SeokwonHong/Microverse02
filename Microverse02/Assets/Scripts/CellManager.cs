@@ -37,10 +37,10 @@ public class CellManager : MonoBehaviour
     readonly List<int> neighbourBuffer = new List<int>(128);
 
 
-    [Header("cells | organisms Array")]
+    [Header("cells | organisms | neighbourBuffer Array")]
     List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
-
+    readonly List<int> wbcBuffer = new List<int>(128);
 
     [Header("Organism Death")]
     bool isOrganismDead = false;
@@ -64,7 +64,7 @@ public class CellManager : MonoBehaviour
         public int organismId; //-1 = indipendent cell, 1 = Organism 1
         public CellRole role; // Core / Shell / WhiteBlood
 
-        public bool infected;  
+        public bool detected;
     }
 
     class Organisms
@@ -82,7 +82,7 @@ public class CellManager : MonoBehaviour
         public float deadTimer;
         public float playerInside;
 
-            
+
     }
 
     //vector assume that there's two points and in the end of the point they have a invisible arrow
@@ -140,7 +140,7 @@ public class CellManager : MonoBehaviour
         {
             Cell player = cells[playerCellIndex];
             Debug.Log(cells.Count);
- 
+
         }
 
 
@@ -165,24 +165,32 @@ public class CellManager : MonoBehaviour
 
         for (int i = 0; i < cells.Count; i++)
         {
-            spatialHash.Query(cells[i].nextPos,neighbourBuffer);
+            Cell c = cells[i];
+            c.detected = false;
 
-            for(int n = 0; n < neighbourBuffer.Count;n++) // QQuery will give this the index id. Once it's sent, it will be replaced to next one right after
+            cells[i] = c;
+        }
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            spatialHash.Query(cells[i].nextPos, neighbourBuffer);
+
+            for (int n = 0; n < neighbourBuffer.Count; n++) // QQuery will give this the index id. Once it's sent, it will be replaced to next one right after
             {
                 int otherIndex = neighbourBuffer[n];
                 if (otherIndex <= i) continue;
 
 
                 ResolveOverlap(i, otherIndex);
-                ApplyCellInfection(i, otherIndex);
+                ApplyCellDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                
+
                 //ApplyCohesion(i, otherIndex);
 
             }
         }
 
-        if(Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0))
         {
             Cell player = cells[playerCellIndex];
             //player.cellRadius += 0.1f;
@@ -297,7 +305,7 @@ public class CellManager : MonoBehaviour
         player.organismId = -1;
         player.role = CellRole.Player;
 
-        player.infected = true;
+        player.detected = true;
         playerCellIndex = cells.Count;
         cells.Add(player);
     }
@@ -470,7 +478,7 @@ public class CellManager : MonoBehaviour
     }
     void ApplyOrganismTendency() //Organism movement, more likely tendency
     {
-        
+
         Vector2 playerPos = GetPlayerNextPosition();
 
 
@@ -515,7 +523,7 @@ public class CellManager : MonoBehaviour
             var org = organisms[i];
             if (org.isDead) continue;
 
-            
+
 
             int coreIdx = org.coreIndex;
             if (coreIdx < 0 || coreIdx >= cells.Count) continue;
@@ -574,15 +582,15 @@ public class CellManager : MonoBehaviour
         Cell b = cells[otherIndex];
 
         if (a.role == CellRole.Player || b.role == CellRole.Player) return;
-        if(a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
+        if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
 
         Vector2 delta = b.nextPos - a.nextPos;
         float d2 = delta.sqrMagnitude;
         if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
-        float minDist = a.cellRadius+b.cellRadius;
-        float maxDist = a.detectRadius+b.detectRadius;
+        float minDist = a.cellRadius + b.cellRadius;
+        float maxDist = a.detectRadius + b.detectRadius;
 
         if (minDist < 1e-6f) return;
 
@@ -596,7 +604,7 @@ public class CellManager : MonoBehaviour
 
         Vector2 dv = dir * (overlap * pushStrength);
 
-        a.nextVelocity -=dv * dt;
+        a.nextVelocity -= dv * dt;
         b.nextVelocity += dv * dt;
 
         cells[currentIndex] = a;
@@ -610,15 +618,15 @@ public class CellManager : MonoBehaviour
         float baseDrag = 10f;
         float minRadius = 0.05f;
 
-        for(int i =0; i<cells.Count; i++)
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
 
             float r = Mathf.Max(minRadius, c.cellRadius);
 
-            float drag = baseDrag * (r*3);
+            float drag = baseDrag * (r * 3);
 
-            c.nextVelocity *= Mathf.Exp(-drag*dt);
+            c.nextVelocity *= Mathf.Exp(-drag * dt);
 
             cells[i] = c;
         }
@@ -636,7 +644,7 @@ public class CellManager : MonoBehaviour
         float maxPenetration = 0.35f;
         float maxAccel = 900f;
 
-        Vector2 totalAccel = Vector2.zero;  
+        Vector2 totalAccel = Vector2.zero;
 
         for (int o = 0; o < organisms.Count; o++)
         {
@@ -655,7 +663,7 @@ public class CellManager : MonoBehaviour
             float penetration = barrier - dist; // if player is inside of organism, penetration is integer. deeper = greater value
             if (penetration <= 0f) continue;
 
-            if(penetration>maxPenetration) penetration = maxPenetration;
+            if (penetration > maxPenetration) penetration = maxPenetration;
 
             Vector2 n = delta / dist;
 
@@ -672,28 +680,29 @@ public class CellManager : MonoBehaviour
             totalAccel += n * accelMag;
         }
 
-        if(totalAccel.sqrMagnitude>maxAccel*maxAccel)
+        if (totalAccel.sqrMagnitude > maxAccel * maxAccel)
         {
-            totalAccel = totalAccel.normalized*maxAccel;
+            totalAccel = totalAccel.normalized * maxAccel;
         }
-        player.nextVelocity = totalAccel * dt ;
+        player.nextVelocity = totalAccel * dt;
 
         cells[playerCellIndex] = player;
     }
 
-    void ApplyCellInfection(int a, int b)
+    void ApplyCellDetection(int a, int b)
     {
         Cell A = cells[a];
         Cell B = cells[b];
 
-        if(A.infected)
-        {
-            float r = (A.detectRadius + B.cellRadius)*1.7f;
-            bool inRange = ((A.nextPos - B.nextPos).sqrMagnitude <= r * r);
-            B.infected = B.infected || inRange;
-            cells[b] = B;
-        }
-        
+        if (A.role == CellRole.WhiteBlood || B.role == CellRole.WhiteBlood) return;
+
+
+        float r = (A.detectRadius + B.cellRadius) * 1.7f;
+        bool inRange = ((A.nextPos - B.nextPos).sqrMagnitude <= r * r);
+        B.detected = B.detected || inRange;
+        cells[b] = B;
+
+
     }
 
 
@@ -750,9 +759,9 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-            
 
-            if (c.role==CellRole.Player) continue;
+
+            if (c.role == CellRole.Player) continue;
 
             if (c.organismId < 0 || c.organismId >= organisms.Count) continue;
             Organisms org = organisms[c.organismId];
@@ -764,11 +773,11 @@ public class CellManager : MonoBehaviour
             if (ramdomDir.sqrMagnitude < 1e-6f) continue;
 
             float speed;
-            if (cells[i].infected == true)
+            if (cells[i].detected == true)
             {
                 speed = Mathf.Lerp(55f, 0.0f, t);
             }
-            else speed = Mathf.Lerp(20f, 0.0f, t);
+            else speed = Mathf.Lerp(0f, 0.0f, t);
 
 
 
@@ -817,14 +826,14 @@ public class CellManager : MonoBehaviour
 
     void ApplyPlayerKillsOrganism()
     {
-        if(playerCellIndex < 0 ) return;    
+        if (playerCellIndex < 0) return;
 
         Cell player = cells[playerCellIndex];
 
         for (int i = 0; i < organisms.Count; i++)
         {
             var org = organisms[i];
-            if(org.isDead) { organisms[i] = org; continue; }
+            if (org.isDead) { organisms[i] = org; continue; }
 
             org.playerInside = 0;
 
@@ -835,7 +844,7 @@ public class CellManager : MonoBehaviour
             }
 
             Cell coreCell = cells[coreIndex];
-          
+
             Vector2 delta = coreCell.nextPos - player.nextPos;
 
             float d2 = delta.sqrMagnitude;
@@ -848,15 +857,15 @@ public class CellManager : MonoBehaviour
             float minDist = player.cellRadius + org.coreDistance + coreCell.cellRadius;
             float minDist2 = minDist * minDist;
 
-           if(d2<=minDist2)
-           {
+            if (d2 <= minDist2)
+            {
                 org.playerInside = 1;
 
-                if(d2 - coreCell.cellRadius <0.3f)
+                if (d2 - coreCell.cellRadius < 0.3f)
                 {
                     org.isDead = true;
                 }
-           }
+            }
 
             organisms[i] = org;
         }
@@ -867,22 +876,60 @@ public class CellManager : MonoBehaviour
 
     #region WBC Constraints
 
+    int FindNearestPlayerIndex(Vector2 pos, float maxRange)
+    {
+        float bestD2 = maxRange * maxRange;
+        int bestIdx = -1;
+
+        wbcBuffer.Clear();
+        spatialHash.Query(pos, wbcBuffer);
+
+        for (int k = 0; k < wbcBuffer.Count; k++)
+        {
+            int j = wbcBuffer[k];
+            Cell c = cells[j];
+            if (c.role != CellRole.Player) continue;
+
+            Vector2 d = c.nextPos - pos;
+            float d2 = d.sqrMagnitude;
+
+            if (d2 < bestD2)
+            {
+                bestD2 = d2;
+                bestIdx = j;
+            }
+        }
+
+
+        return bestIdx;
+    }
+
+
     void ApplyWBCAttaching()
     {
-        if (playerCellIndex < 0) return;
-        Cell player = cells[playerCellIndex];
-
         float dt = Time.deltaTime;
+
         float attractStrength = 10f;
         float drag = 30f;
 
-        for (int i = 0;i < cells.Count; i++)
+        for (int i = 0; i < cells.Count; i++)
         {
             if (cells[i].role != CellRole.WhiteBlood) continue;
 
             Cell w = cells[i];
 
-            Vector2 delta = player.nextPos - w.nextPos;
+            int targetIdx = FindNearestPlayerIndex(w.nextPos, w.detectRadius);
+
+            if (targetIdx < 0)
+            {
+                w.nextVelocity *= Mathf.Exp(-drag * dt);
+                cells[i] = w;
+                continue;
+            }
+
+            Cell target = cells[targetIdx];
+
+            Vector2 delta = target.nextPos - w.nextPos;
             float d2 = delta.sqrMagnitude;
 
             float r = w.detectRadius;
@@ -896,12 +943,12 @@ public class CellManager : MonoBehaviour
 
                 float force = (r - dist) / r;
                 w.nextPos += dir * (force * attractStrength) * dt;
-            } 
+            }
             else
             {
                 w.nextVelocity *= Mathf.Exp(-drag * dt);
             }
-            
+
 
 
             cells[i] = w;
@@ -911,14 +958,14 @@ public class CellManager : MonoBehaviour
     }
 
 
-        
-#endregion
+
+    #endregion
 
 
 
 
-#region Gizmo
-void OnDrawGizmos()
+    #region Gizmo
+    void OnDrawGizmos()
     {
         if (!Application.isPlaying) return;
         if (cells == null || cells.Count == 0)
@@ -932,12 +979,9 @@ void OnDrawGizmos()
         {
             Gizmos.color = Color.yellow;
 
-            
-            if (c.infected == true)
-            {
-                Gizmos.color = Color.red;
-            }
-            else if (c.role == CellRole.WhiteBlood)
+
+
+            if (c.role == CellRole.WhiteBlood)
             {
                 Gizmos.color = Color.blue;
             }
@@ -945,7 +989,7 @@ void OnDrawGizmos()
             {
                 Gizmos.color = Color.red;
             }
-            
+
             else if (c.organismId >= 0 && c.organismId < organisms.Count)
             {
                 if (organisms[c.organismId].isDead)
@@ -953,7 +997,7 @@ void OnDrawGizmos()
                     Gizmos.color = new Color32(255, 255, 170, 255);
                 }
             }
-            
+
 
 
             Gizmos.DrawSphere(c.currentPos, c.cellRadius);
