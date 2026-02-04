@@ -10,43 +10,46 @@ public class CellManager : MonoBehaviour
 {
 
 
+    [Header("Defalut Settings")]
     public int organismCount = 20;
     public int WBCCount = 10;
-
     public float SceneGenerateSize = 20;
-
 
 
     [Header("Mouse and Player")]
     float mousePlayerDistance;
-    private Vector2 mousePos;
+    Vector2 mousePos;
     float playerSpeed;
 
+
+    [Header("Player")]
     private float maxSpeed = 10f;
     private float threshold = 17f;
-
-
     private float playerRadius;
     private float playerInfluenceRadius;
     int playerCellIndex = -1; //-1 means player not allocated yet. If player is made, int number will be allocated
     public float playerPushStrength;
 
 
-    //public float cellSpeed;
-
-    //해쉬 
+    [Header("Spatial Hash")]
     SpatialHash spatialHash;
     [SerializeField] float BoxSize = 3f;
     readonly List<int> neighbourBuffer = new List<int>(128);
 
 
-    private List<Cell> cells = new List<Cell>();
+    [Header("cells | organisms Array")]
+    List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
+
+
+    [Header("Organism Death")]
+    bool isOrganismDead = false;
+    const float maxDeadTime = 20f;
+
 
     enum CellRole { Player, Core, Shell, WhiteBlood }
 
-    public bool isOrganismDead = false;
-    const float maxDeadTime = 20f;
+
     class Cell
     {
         public Vector2 currentPos;
@@ -70,13 +73,17 @@ public class CellManager : MonoBehaviour
         public int coreIndex; // what's the core (find with index)
         public float coreDistance; // distance between Core and Shell
 
+        public List<int> members = new List<int>(32);
+
         public Vector2 heading; //normalized direction
         public float headingPower; // Its more tendency likely than speed. must keep value low to inturrupt less
         public bool anchorEnabled; //anchor holds cells: structure is destroied once its dead
-       
+
         public bool isDead;
         public float deadTimer;
         public float playerInside;
+
+            
     }
 
     //vector assume that there's two points and in the end of the point they have a invisible arrow
@@ -168,7 +175,7 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPlayerDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                ApplyKeepShape(i, otherIndex);
+                
                 //ApplyCohesion(i, otherIndex);
 
             }
@@ -198,7 +205,8 @@ public class CellManager : MonoBehaviour
         {
 
             ApplyOrganismJelly(Time.fixedDeltaTime);
-           // for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
+            ApplyKeepShape();
+            // for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
 
         }
         ApplyPlayerKillsOrganism();
@@ -483,71 +491,73 @@ public class CellManager : MonoBehaviour
 
 
 
-    void ApplyKeepShape(int CurrentIndex, int OtherIndex)
+    void ApplyKeepShape()
     {
-
-        Cell a = cells[CurrentIndex];
-        Cell b = cells[OtherIndex];
-
-
-
-
-        bool aIsCore = a.role == CellRole.Core;
-        bool bIsCore = b.role == CellRole.Core;
-        if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
-
-
-        int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
-        int shellIdx = aIsCore ? OtherIndex : CurrentIndex;
-
-        Cell core = cells[coreIdx];
-        Cell shell = cells[shellIdx];
-
-
-
-        int orgId = core.organismId;
-        if (orgId < 0 || orgId >= organisms.Count) return;
-        if (shell.organismId != orgId) return;
-
-        if (organisms[orgId].isDead) return;
-
-        float coreDist = organisms[orgId].coreDistance;
-
-        Vector2 delta = shell.nextPos - core.nextPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return;
-
-        float distance = Mathf.Sqrt(d2);
-        Vector2 direction = delta / distance;
-
-        float shellGap = distance - coreDist;
+        float dt = Time.deltaTime;
 
         float tolerance = 0.02f;
-        if (Mathf.Abs(shellGap) < tolerance) return; //  if  |shellGap| < tolerance 
 
-        float k = 300f;
-        float c = 6f;
+        float k = 300f;   // spring
+        float c = 6f;     // damping
+        float maxForce = 1000f;
 
-        float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity, direction);
+        for (int i = 0; i < organisms.Count; i++)
+        {
+            var org = organisms[i];
+            if (org.isDead) continue;
 
-        float springPower = (-k * shellGap) - (c * vectorAngle);
+            int coreIdx = org.coreIndex;
+            if (coreIdx < 0 || coreIdx >= cells.Count) continue;
 
-        springPower = Mathf.Clamp(springPower, -1000f, 1000f);
+            Cell core = cells[coreIdx];
+            float coreDist = org.coreDistance;
 
-        float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
-        float massShell = Mathf.Max(0, 001f, shell.cellRadius * shell.cellRadius);
+            float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
-        float massRatio = 1f / (massCore + massShell);
+            // apply to shells only (members excluding core)
+            for (int m = 0; m < org.members.Count; m++)
+            {
+                int shellIdx = org.members[m];
+                if (shellIdx == coreIdx) continue;
+                if (shellIdx < 0 || shellIdx >= cells.Count) continue;
 
-        float coreShare = massShell * massRatio;
-        float shellShare = massCore * massRatio;
+                Cell shell = cells[shellIdx];
+                if (shell.organismId != core.organismId) continue; // safety
 
-        core.nextVelocity -= direction * (springPower * coreShare) * Time.deltaTime;
-        shell.nextVelocity += direction * (springPower * shellShare) * Time.deltaTime;
+                Vector2 delta = shell.nextPos - core.nextPos;
+                float d2 = delta.sqrMagnitude;
+                if (d2 < 1e-8f) continue;
+
+                float dist = Mathf.Sqrt(d2);
+                Vector2 dir = delta / dist;
+
+                float shellGap = dist - coreDist;
+                if (Mathf.Abs(shellGap) < tolerance) continue;
+
+                float relVelAlongDir = Vector2.Dot(shell.nextVelocity - core.nextVelocity, dir);
+
+                float force = (-k * shellGap) - (c * relVelAlongDir);
+                force = Mathf.Clamp(force, -maxForce, maxForce);
+
+                float massShell = Mathf.Max(0.001f, shell.cellRadius * shell.cellRadius);
+                float invSum = 1f / (massCore + massShell);
+
+                float coreShare = massShell * invSum;
+                float shellShare = massCore * invSum;
+
+                core.nextVelocity -= dir * (force * coreShare) * dt;
+                shell.nextVelocity += dir * (force * shellShare) * dt;
+
+                Debug.Log(org.coreDistance);
 
 
-        cells[coreIdx] = core;
-        cells[shellIdx] = shell;
+                cells[shellIdx] = shell; // write-back (Cell is a struct)
+            }
+
+            
+
+            cells[coreIdx] = core; // write-back
+        }
     }
 
     void ApplyCellPushing(int currentIndex, int otherIndex)
