@@ -71,9 +71,8 @@ public class CellManager : MonoBehaviour
     {
         public int id; // who this organism is 
         public int coreIndex; // what's the core (find with index)
-        public float coreDistance; // distance between Core and Shell
-
         public List<int> members = new List<int>(32);
+        public float coreDistance; // distance between Core and Shell
 
         public Vector2 heading; //normalized direction
         public float headingPower; // Its more tendency likely than speed. must keep value low to inturrupt less
@@ -346,7 +345,7 @@ public class CellManager : MonoBehaviour
         cells.Add(core);
 
         org.coreIndex = coreIndex;
-       
+        org.members.Add(coreIndex);
 
         //Shell
         float CellRadius = UnityEngine.Random.Range(0.1f, 0.13f);
@@ -371,6 +370,7 @@ public class CellManager : MonoBehaviour
             int shellIndex = cells.Count;
             cells.Add(shell);
 
+            org.members.Add(shellIndex);
         }
 
 
@@ -497,12 +497,13 @@ public class CellManager : MonoBehaviour
 
         float tolerance = 0.02f;
 
-        float k = 300f;   // spring
-        float c = 6f;     // damping
+        float k = 20f;   // spring
+        float c = 1.1f;     // damping
         float maxForce = 1000f;
 
         for (int i = 0; i < organisms.Count; i++)
         {
+            
             var org = organisms[i];
             if (org.isDead) continue;
 
@@ -517,6 +518,7 @@ public class CellManager : MonoBehaviour
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
+                
                 int shellIdx = org.members[m];
                 if (shellIdx == coreIdx) continue;
                 if (shellIdx < 0 || shellIdx >= cells.Count) continue;
@@ -548,13 +550,8 @@ public class CellManager : MonoBehaviour
                 core.nextVelocity -= dir * (force * coreShare) * dt;
                 shell.nextVelocity += dir * (force * shellShare) * dt;
 
-                Debug.Log(org.coreDistance);
-
-
                 cells[shellIdx] = shell; // write-back (Cell is a struct)
             }
-
-            
 
             cells[coreIdx] = core; // write-back
         }
