@@ -31,7 +31,9 @@ void ApplyOrganismTendency()
 
 void ApplyKeepShape(int CurrentIndex, int OtherIndex)
 
-void ApplyCellPushing(int currentIndex, int otherIndex)
+void ApplyCellPushing(int currentIndex, int otherIndex)  
+
+void ApplyDragToCells()
 
 void ApplyOrganismJelly()
 
@@ -44,6 +46,6 @@ void ApplyCellMovement()
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
 
-void ApplyWBCAttaching()
+void ApplyWBCAttaching()   --
 
 ApplyPlayerKillsOrganism()

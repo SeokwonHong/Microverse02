@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEditor.PlayerSettings;
 using Vector2 = UnityEngine.Vector2;
@@ -101,16 +102,16 @@ public class CellManager : MonoBehaviour
         float maxY = SceneGenerateSize;
 
 
-        for (int i =0; i<WBCCount; i++)
-        {
-            Vector2 pos = new Vector2(
-                UnityEngine.Random.Range(minX, maxX),
-                UnityEngine.Random.Range(minY, maxY)
-            );
+        //for (int i =0; i<WBCCount; i++)
+        //{
+        //    Vector2 pos = new Vector2(
+        //        UnityEngine.Random.Range(minX, maxX),
+        //        UnityEngine.Random.Range(minY, maxY)
+        //    );
 
-            CreateWBCCell(pos);
+        //    CreateWBCCell(pos);
 
-        }
+        //}
 
 
         for (int i = 0; i < organismCount; i++)
@@ -182,13 +183,14 @@ public class CellManager : MonoBehaviour
 
             CreatePlayerCell(player.nextPos);
         }
+        ApplyDragToCells();
         ApplyPlayerInput();
         ApplyPlayerFunctions();
 
         //wbc
         ApplyWBCAttaching();
 
-        ApplyOrganismTendency();
+        //ApplyOrganismTendency();
         ApplyCoreAnchor();
 
 
@@ -278,7 +280,7 @@ public class CellManager : MonoBehaviour
         player.currentPos = pos;
         player.currentVelocity = Vector2.zero;
 
-        player.cellRadius = 0.2f;
+        player.cellRadius = 0.25f;
         player.detectRadius = player.cellRadius * 6f;
 
         player.organismId = -1;
@@ -554,41 +556,96 @@ public class CellManager : MonoBehaviour
 
     void ApplyCellPushing(int currentIndex, int otherIndex)
     {
-        Cell Current = cells[currentIndex];
-        Cell Other = cells[otherIndex];
+        //Cell Current = cells[currentIndex];
+        //Cell Other = cells[otherIndex];
 
-        if (Current.role == CellRole.Player || Other.role == CellRole.Player) return;
-        if (Current.role == CellRole.WhiteBlood || Other.role == CellRole.WhiteBlood) return;
+        //float dt = Time.deltaTime;
+       
 
-        Vector2 delta = Other.nextPos - Current.nextPos;
+        //if (Current.role == CellRole.Player || Other.role == CellRole.Player) return;
+        //if (Current.role == CellRole.WhiteBlood || Other.role == CellRole.WhiteBlood) return;
+
+        //Vector2 delta = Other.nextPos - Current.nextPos;
+        //float d2 = delta.sqrMagnitude;
+        //if (d2 < 1e-5f) return;
+
+        //float distance = Mathf.Sqrt(d2);
+
+        //float minDist = Current.cellRadius + Other.cellRadius;
+        //float maxDist = Current.detectRadius + Other.detectRadius;
+
+        //if (distance <= minDist) return;
+        //if (distance > maxDist) return;
+
+
+        //Vector2 dir = delta / distance;
+
+        //float penetration = (maxDist - distance) * 50f;
+
+
+        //Vector2 push = dir * penetration;
+
+    
+        //Current.nextVelocity -= push * dt;
+        //Other.nextVelocity += push * dt;
+
+        //cells[currentIndex] = Current;
+        //cells[otherIndex] = Other;
+
+        Cell a = cells[currentIndex];
+        Cell b = cells[otherIndex];
+
+        if (a.role == CellRole.Player || b.role == CellRole.Player) return;
+        if(a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
+
+        Vector2 delta = b.nextPos - a.nextPos;
         float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-5f) return;
+        if (d2 < 1e-8f) return;
 
-        float distance = Mathf.Sqrt(d2);
+        float dist = Mathf.Sqrt(d2);
+        float minDist = a.cellRadius+b.cellRadius;
+        float maxDist = a.detectRadius+b.detectRadius;
 
-        float minDist = Current.cellRadius + Other.cellRadius;
-        float maxDist = Current.detectRadius + Other.detectRadius;
+        if (minDist < 1e-6f) return;
 
-        if (distance <= minDist) return;
-        if (distance > maxDist) return;
+        float overlap = maxDist - dist;
+        if (overlap <= 0f) return;
 
+        Vector2 dir = delta / dist;
 
-        Vector2 dir = delta / distance;
+        float dt = Time.deltaTime;
+        float pushStrength = 60f;
 
-        float penetration = (maxDist - distance) * 50f;
+        Vector2 dv = dir * (overlap * pushStrength);
 
+        a.nextVelocity -=dv * dt;
+        b.nextVelocity += dv * dt;
 
-        Vector2 push = dir * penetration;
-
-
-
-        Current.nextVelocity -= push * Time.deltaTime;
-        Other.nextVelocity += push * Time.deltaTime;
-
+        cells[currentIndex] = a;
+        cells[otherIndex] = b;
 
 
-        cells[currentIndex] = Current;
-        cells[otherIndex] = Other;
+    }
+
+    void ApplyDragToCells()
+    {
+        float dt = Time.deltaTime;
+
+        float baseDrag = 10f;
+        float minRadius = 0.05f;
+
+        for(int i =0; i<cells.Count; i++)
+        {
+            Cell c = cells[i];
+
+            float r = Mathf.Max(minRadius, c.cellRadius);
+
+            float drag = baseDrag * (r*3);
+
+            c.nextVelocity *= Mathf.Exp(-drag*dt);
+
+            cells[i] = c;
+        }
     }
     void ApplyOrganismJelly(float dt) //apply this to organisms instead of ApplyKeepDistance()?? 
     {
