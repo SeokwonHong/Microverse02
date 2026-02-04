@@ -1,52 +1,48 @@
-
-using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
 {
 
-
+    [Header("Defalut Settings")]
     public int organismCount = 20;
     public int WBCCount = 10;
-
     public float SceneGenerateSize = 20;
-
 
 
     [Header("Mouse and Player")]
     float mousePlayerDistance;
-    private Vector2 mousePos;
+    Vector2 mousePos;
     float playerSpeed;
 
+
+    [Header("Player")]
     private float maxSpeed = 10f;
     private float threshold = 17f;
-
-
     private float playerRadius;
     private float playerInfluenceRadius;
     int playerCellIndex = -1; //-1 means player not allocated yet. If player is made, int number will be allocated
     public float playerPushStrength;
 
 
-    //public float cellSpeed;
-
-    //해쉬 
+    [Header("Spatial Hash")]
     SpatialHash spatialHash;
     [SerializeField] float BoxSize = 3f;
     readonly List<int> neighbourBuffer = new List<int>(128);
 
 
-    private List<Cell> cells = new List<Cell>();
+    [Header("cells | organisms Array")]
+    List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
 
-    enum CellRole { Player, Core, Shell, WhiteBlood }
 
-    public bool isOrganismDead = false;
+    [Header("Organism Death")]
+    bool isOrganismDead = false;
     const float maxDeadTime = 20f;
+
+
+    enum CellRole { Player, Core, Shell, WhiteBlood }
     class Cell
     {
         public Vector2 currentPos;
@@ -79,20 +75,40 @@ public class CellManager : MonoBehaviour
         public float playerInside;
     }
 
-    //vector assume that there's two points and in the end of the point they have a invisible arrow
-    //direction * power(magnitude)
+    struct PairInfo
+    {
+        public Vector2 delta;
+        public float d2;
+        public float dist;
+        public Vector2 dir;
+        public float inDist; // 1/dist
+    }
+
+    bool GetPairInfo(in Cell a, in Cell b, out PairInfo p, float eps = 1e-8f)
+    {
+        p = default;
+
+        Vector2 delta = b.nextPos-a.nextPos;
+        float d2 = delta.sqrMagnitude;
+        if (d2 < eps) return false;
+
+        float dist = Mathf.Sqrt(d2);
+        float invDist = 1f / dist;
+
+        p.delta = delta;
+        p.d2 = d2;
+        p.dist = dist;
+        p.inDist = invDist;
+        p.dir = delta * invDist;
+        return true;
+    }
     void Start()
     {
         spatialHash = new SpatialHash(BoxSize);
 
-
-
         CreatePlayerCell(Vector2.zero);
         playerRadius = GetPlayerRadius();
         playerInfluenceRadius = playerRadius * 10f;
-
-
-
 
         float minX = -SceneGenerateSize;
         float maxX = SceneGenerateSize;
@@ -121,8 +137,6 @@ public class CellManager : MonoBehaviour
 
             CreateOrganism(pos);
         }
-
-
     }
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,9 +146,7 @@ public class CellManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.V))
         {
-            Cell player = cells[playerCellIndex];
             Debug.Log(cells.Count);
- 
         }
 
 
@@ -190,9 +202,6 @@ public class CellManager : MonoBehaviour
 
         //ApplyOrganismTendency();
         ApplyCoreAnchor();
-
-
-
 
         for (int iter = 0; iter < 3; iter++) // play iter times in one frame
         {
@@ -290,9 +299,6 @@ public class CellManager : MonoBehaviour
 
     void CreateWBCCell(Vector2 pos)
     {
-
-
-
         Cell w = new Cell();
         w.currentPos = pos + UnityEngine.Random.insideUnitCircle * 1.2f;
         w.currentVelocity = Vector2.zero;
