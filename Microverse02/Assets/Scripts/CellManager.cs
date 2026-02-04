@@ -380,32 +380,22 @@ public class CellManager : MonoBehaviour
     #region Cell_Constraint
     void ResolveOverlap(int CurrentIndex, int OtherIndex) //basic colliding 
     {
-        Cell currentCell = cells[CurrentIndex];
-        Cell otherCell = cells[OtherIndex];
+        Cell a = cells[CurrentIndex];
+        Cell b = cells[OtherIndex];
 
 
-        Vector2 delta = otherCell.nextPos - currentCell.nextPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 <= 0f) return;
+        if (!GetPairInfo(a, b, out var p)) return;
 
-        float minDist = currentCell.cellRadius + otherCell.cellRadius;
-        float minDist2 = minDist * minDist;
-        if (d2 >= minDist2) return;
+        float minDist = a.cellRadius + b.cellRadius;
+        float overlap = minDist - p.dist;
+        if(overlap<=0) return;
 
-        float dist = Mathf.Sqrt(d2); //get distance
-        Vector2 direction = delta / dist; //get the direction by dividing the vector by its distance     vector/distance = distance
+        Vector2 push = p.dir * (overlap * 0.5f);
+        a.nextPos -= push;
+        b.nextPos += push;
 
-        float overlap = minDist - dist;
-
-
-        Vector2 push = direction * (overlap * 0.5f); // push(power*direction) * half of the 
-
-        currentCell.nextPos -= push;
-        otherCell.nextPos += push;
-
-        cells[CurrentIndex] = currentCell;
-        cells[OtherIndex] = otherCell;
-
+        cells[CurrentIndex] = a;
+        cells[OtherIndex] = b;
     }
 
 
@@ -460,28 +450,30 @@ public class CellManager : MonoBehaviour
     }
     void ApplyOrganismTendency() //Organism movement, more likely tendency
     {
-        Vector2 playerPos = GetPlayerNextPosition();
+        if (playerCellIndex < 0) return;
 
+        Cell playerCell = cells[playerCellIndex];
+        playerCell.nextPos = GetPlayerNextPosition();
 
-        for (int i = 0; i < organisms.Count; i++)
+        float dt = Time.deltaTime;
+
+        for(int i = 0; i<organisms.Count;i++)
         {
             Organisms org = organisms[i];
             if (org.isDead) continue;
-            //if(org.hp<=0f) continue;
+
             int coreIdx = org.coreIndex;
             if (coreIdx < 0) continue;
 
-            Vector2 corePos = cells[coreIdx].nextPos;
-            Vector2 toPlayer = playerPos - corePos;
+            Cell core = cells[coreIdx];
 
-            float d2 = toPlayer.sqrMagnitude;
-            if (d2 < 1e-8f) continue;
+            if(!GetPairInfo(core,playerCell,out PairInfo p)) continue;
 
-            org.heading = toPlayer.normalized;
+            org.heading = p.dir;
             org.headingPower = 500f;
 
-            Cell core = cells[coreIdx];
-            core.nextVelocity += org.heading * org.headingPower * Time.deltaTime;
+            core.nextVelocity += p.dir * org.headingPower * dt;
+
             cells[coreIdx] = core;
             organisms[i] = org;
         }
@@ -492,68 +484,120 @@ public class CellManager : MonoBehaviour
     void ApplyKeepShape(int CurrentIndex, int OtherIndex)
     {
 
+        //Cell a = cells[CurrentIndex];
+        //Cell b = cells[OtherIndex];
+
+
+
+
+        //bool aIsCore = a.role == CellRole.Core;
+        //bool bIsCore = b.role == CellRole.Core;
+        //if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
+
+
+        //int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
+        //int shellIdx = aIsCore ? OtherIndex : CurrentIndex;
+
+        //Cell core = cells[coreIdx];
+        //Cell shell = cells[shellIdx];
+
+
+
+        //int orgId = core.organismId;
+        //if (orgId < 0 || orgId >= organisms.Count) return;
+        //if (shell.organismId != orgId) return;
+
+        //if (organisms[orgId].isDead) return;
+
+        //float coreDist = organisms[orgId].coreDistance;
+
+        //Vector2 delta = shell.nextPos - core.nextPos;
+        //float d2 = delta.sqrMagnitude;
+        //if (d2 < 1e-8f) return;
+
+        //float distance = Mathf.Sqrt(d2);
+        //Vector2 direction = delta / distance;
+
+        //float shellGap = distance - coreDist;
+
+        //float tolerance = 0.02f;
+        //if (Mathf.Abs(shellGap) < tolerance) return; //  if  |shellGap| < tolerance 
+
+        //float k = 300f;
+        //float c = 6f;
+
+        //float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity, direction);
+
+        //float springPower = (-k * shellGap) - (c * vectorAngle);
+
+        //springPower = Mathf.Clamp(springPower, -1000f, 1000f);
+
+        //float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
+        //float massShell = Mathf.Max(0, 001f, shell.cellRadius * shell.cellRadius);
+
+        //float massRatio = 1f / (massCore + massShell);
+
+        //float coreShare = massShell * massRatio;
+        //float shellShare = massCore * massRatio;
+
+        //core.nextVelocity -= direction * (springPower * coreShare) * Time.deltaTime;
+        //shell.nextVelocity += direction * (springPower * shellShare) * Time.deltaTime;
+
+
+        //cells[coreIdx] = core;
+        //cells[shellIdx] = shell;
+
+
         Cell a = cells[CurrentIndex];
         Cell b = cells[OtherIndex];
-
-
-
 
         bool aIsCore = a.role == CellRole.Core;
         bool bIsCore = b.role == CellRole.Core;
         if ((aIsCore && bIsCore) || (!aIsCore && !bIsCore)) return;
 
-
-        int coreIdx = aIsCore ? CurrentIndex : OtherIndex;
+        int coreIdx = aIsCore ?CurrentIndex : OtherIndex;
         int shellIdx = aIsCore ? OtherIndex : CurrentIndex;
 
         Cell core = cells[coreIdx];
         Cell shell = cells[shellIdx];
 
-
-
         int orgId = core.organismId;
-        if (orgId < 0 || orgId >= organisms.Count) return;
+        if(orgId <0||orgId>=organismCount) return;
         if (shell.organismId != orgId) return;
-
-        if (organisms[orgId].isDead) return;
+        if (organisms[orgId].isDead)return;
 
         float coreDist = organisms[orgId].coreDistance;
 
-        Vector2 delta = shell.nextPos - core.nextPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return;
+        if (!GetPairInfo(core, shell, out PairInfo p)) return;
 
-        float distance = Mathf.Sqrt(d2);
-        Vector2 direction = delta / distance;
-
-        float shellGap = distance - coreDist;
+        float shellGap = p.dist - coreDist;
 
         float tolerance = 0.02f;
-        if (Mathf.Abs(shellGap) < tolerance) return; //  if  |shellGap| < tolerance 
+        if(Mathf.Abs(shellGap) < tolerance) return;
 
         float k = 300f;
         float c = 6f;
 
-        float vectorAngle = Vector2.Dot(shell.nextVelocity - core.nextVelocity, direction);
+        // Relative velocity
+        float vRelative = Vector2.Dot(shell.nextVelocity - core.nextVelocity, p.dir);
 
-        float springPower = (-k * shellGap) - (c * vectorAngle);
-
+        float springPower = (-k*shellGap) - (c*vRelative);
         springPower = Mathf.Clamp(springPower, -1000f, 1000f);
 
         float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
-        float massShell = Mathf.Max(0, 001f, shell.cellRadius * shell.cellRadius);
+        float massShell = Mathf.Max(0.001f, shell.cellRadius * shell.cellRadius);
 
-        float massRatio = 1f / (massCore + massShell);
+        float invSum = 1f/(massCore + massShell);  
+        //float coreShare = massShell*invSum;
+        float shellShare = massCore *invSum;
 
-        float coreShare = massShell * massRatio;
-        float shellShare = massCore * massRatio;
+        float dt = Time.deltaTime;
 
-        core.nextVelocity -= direction * (springPower * coreShare) * Time.deltaTime;
-        shell.nextVelocity += direction * (springPower * shellShare) * Time.deltaTime;
-
+        //core.nextVelocity -= p.dir * (springPower * coreShare) * dt;
+        shell.nextVelocity += p.dir * (springPower * shellShare) * dt;
 
         cells[coreIdx] = core;
-        cells[shellIdx] = shell;
+        cells[shellIdx] = shell;    
     }
 
     void ApplyCellPushing(int currentIndex, int otherIndex)
@@ -564,25 +608,20 @@ public class CellManager : MonoBehaviour
         if (a.role == CellRole.Player || b.role == CellRole.Player) return;
         if(a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
 
-        Vector2 delta = b.nextPos - a.nextPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return;
+        if(!GetPairInfo(a, b, out PairInfo p)) return;
 
-        float dist = Mathf.Sqrt(d2);
-        float minDist = a.cellRadius+b.cellRadius;
-        float maxDist = a.detectRadius+b.detectRadius;
+        float minDist = a.cellRadius + b.cellRadius;
+        float maxDist = a.detectRadius + b.detectRadius;
 
         if (minDist < 1e-6f) return;
 
-        float overlap = maxDist - dist;
-        if (overlap <= 0f) return;
-
-        Vector2 dir = delta / dist;
+        float overlap = maxDist - p.dist;
+        if(overlap<=0) return;
 
         float dt = Time.deltaTime;
         float pushStrength = 60f;
 
-        Vector2 dv = dir * (overlap * pushStrength);
+        Vector2 dv = p.dir*(overlap*pushStrength);
 
         a.nextVelocity -=dv * dt;
         b.nextVelocity += dv * dt;
@@ -625,37 +664,34 @@ public class CellManager : MonoBehaviour
 
         for (int o = 0; o < organisms.Count; o++)
         {
-
             var org = organisms[o];
             if (org.isDead) continue;
 
-            Cell core = cells[org.coreIndex];
+            int coreIdx = org.coreIndex;
+            if (coreIdx < 0) continue;
+
+            Cell core = cells[coreIdx];
+
+            if(!GetPairInfo(core,player, out PairInfo p)) continue;
 
             float barrier = org.coreDistance + player.cellRadius;
-            Vector2 delta = player.nextPos - core.nextPos;
-            float d2 = delta.sqrMagnitude;
-            if (d2 < 1e-2f) continue;
 
-            float dist = Mathf.Sqrt(d2);
-            float penetration = barrier - dist; // if player is inside of organism, penetration is integer. deeper = greater value
-            if (penetration <= 0f) continue;
+            if (p.d2 < 1e-2f) continue;
 
-            Vector2 n = delta / dist;
+            float penetration = barrier - p.dist;
+            if(penetration<=0f) continue;
 
+            Vector2 n = p.dir;
 
-            float v_n = Vector2.Dot(player.nextVelocity - core.nextVelocity, n); //player direction vs core direction
-            // v_n > 0  = Moving in the same direction as n
-            // v_n < 0  = Moving opposite to n
-            // v_n == 0 = 90 degree 
+            float v_n = Vector2.Dot(player.nextVelocity-core.nextVelocity, n);
 
-            float accel = (k * penetration) - (c * v_n);
-            if (accel <= 0f) continue;
+            float accel = (k*penetration) - (c*v_n);
+            if(accel <=0f) continue;
 
-
-            player.nextVelocity += n * accel * Time.deltaTime;
-
+            player.nextVelocity += n * accel * dt;
 
         }
+
         cells[playerCellIndex] = player;
     }
 
