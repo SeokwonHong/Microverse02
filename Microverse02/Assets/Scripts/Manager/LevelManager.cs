@@ -10,5 +10,10 @@ public class LevelManager : MonoBehaviour
         {
             GameManager.Instance.OnLevelCompleted();
         }
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+
+            GameManager.Instance.OnLevelRestart();
+        }
     }
 }

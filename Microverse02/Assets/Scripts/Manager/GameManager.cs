@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -25,4 +23,10 @@ public class GameManager : MonoBehaviour
     {
         SceneController.Instance.LoadNextLevel();
     }
+
+    public void OnLevelRestart()
+    {
+        SceneController.Instance.LoadLevel(0);
+    }
+
 }
