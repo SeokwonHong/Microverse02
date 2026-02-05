@@ -135,12 +135,7 @@ public class CellManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            Cell player = cells[playerCellIndex];
-            Debug.Log(cells.Count);
-
-        }
+        
 
         float dt = Time.deltaTime;  
         // 1) Apply Hash
@@ -229,6 +224,16 @@ public class CellManager : MonoBehaviour
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
 
+    }
+
+    private void FixedUpdate()
+    {
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            Cell player = cells[playerCellIndex];
+            Debug.Log(cells.Count);
+
+        }
     }
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -767,7 +772,7 @@ public class CellManager : MonoBehaviour
             Cell c = cells[i];
 
 
-            if (c.role == CellRole.Player) continue;
+            //if (c.role == CellRole.Player) continue;
 
             if (c.organismId < 0 || c.organismId >= organisms.Count) continue;
             Organisms org = organisms[c.organismId];
