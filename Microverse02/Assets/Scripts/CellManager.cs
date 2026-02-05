@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
@@ -49,6 +48,10 @@ public class CellManager : MonoBehaviour
     const float maxDeadTime = 20f;
 
 
+    [Header("GPU instancing")]
+    [SerializeField] GameObject cellDebugPrefeb;
+    List<SpriteRenderer> debugRenderers = new();
+
     enum CellRole { Player, Core, Shell, WhiteBlood }
 
 
@@ -94,6 +97,10 @@ public class CellManager : MonoBehaviour
     //direction * power(magnitude)
     void Start()
     {
+        
+
+
+
         spatialHash = new SpatialHash(BoxSize);
 
         refToBg.transform.localScale = new Vector3(mapRadius*2f, mapRadius*2f, 1);
@@ -130,7 +137,14 @@ public class CellManager : MonoBehaviour
             CreateOrganism(pos);
         }
 
+        //GPU
+        debugRenderers.Capacity = cells.Count;
 
+        for (int i = 0; i < cells.Count; i++)
+        {
+            GameObject go = Instantiate(cellDebugPrefeb, transform);
+            debugRenderers.Add(go.GetComponent<SpriteRenderer>());
+        }
     }
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -247,13 +261,52 @@ public class CellManager : MonoBehaviour
             CreatePlayerCell(player.nextPos);
             
         }
+
+
+       
+
     }
+    void EnsureDebugPool()
+    {
+        if (cellDebugPrefeb == null) return;
+
+        while (debugRenderers.Count < cells.Count)
+        {
+            var go = Instantiate(cellDebugPrefeb, transform);
+            debugRenderers.Add(go.GetComponent<SpriteRenderer>());
+        }
+    }
+
+    void LateUpdate()
+    {
+        EnsureDebugPool();
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            Cell c = cells[i];
+            SpriteRenderer r = debugRenderers[i];
+            r.gameObject.SetActive(true);
+
+            r.transform.position = new Vector3(c.currentPos.x, c.currentPos.y, 0f);
+
+            float d = c.cellRadius * 2f;
+            r.transform.localScale = new Vector3(d, d, 1f);
+
+            if (c.role == CellRole.WhiteBlood) r.color = Color.blue;
+            else if (c.role == CellRole.Player) r.color = Color.red;
+            else if (c.organismId >= 0 && c.organismId < organisms.Count && organisms[c.organismId].isDead)
+                r.color = new Color32(255, 255, 170, 255);
+            else r.color = Color.yellow;
+        }
+    }
+
+
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
     /// </summary>
     /// 
 
-    
+
 
     #region Map
     void ApplyCircleBoundary(int i)
@@ -1084,45 +1137,45 @@ public class CellManager : MonoBehaviour
 
 
     #region Gizmo
-    void OnDrawGizmos()
-    {
-        if (!Application.isPlaying) return;
-        if (cells == null || cells.Count == 0)
-        {
-            Debug.Log("there's no cell list!");
-            return;
-        }
+    //void OnDrawGizmos()
+    //{
+    //    if (!Application.isPlaying) return;
+    //    if (cells == null || cells.Count == 0)
+    //    {
+    //        Debug.Log("there's no cell list!");
+    //        return;
+    //    }
 
 
-        foreach (Cell c in cells)
-        {
-            Gizmos.color = Color.yellow;
-
-
-
-            if (c.role == CellRole.WhiteBlood)
-            {
-                Gizmos.color = Color.blue;
-            }
-            else if (c.role == CellRole.Player)
-            {
-                Gizmos.color = Color.red;
-            }
-
-            else if (c.organismId >= 0 && c.organismId < organisms.Count)
-            {
-                if (organisms[c.organismId].isDead)
-                {
-                    Gizmos.color = new Color32(255, 255, 170, 255);
-                }
-            }
+    //    foreach (Cell c in cells)
+    //    {
+    //        Gizmos.color = Color.yellow;
 
 
 
-            Gizmos.DrawSphere(c.currentPos, c.cellRadius);
+    //        if (c.role == CellRole.WhiteBlood)
+    //        {
+    //            Gizmos.color = Color.blue;
+    //        }
+    //        else if (c.role == CellRole.Player)
+    //        {
+    //            Gizmos.color = Color.red;
+    //        }
 
-        }
-    }
+    //        else if (c.organismId >= 0 && c.organismId < organisms.Count)
+    //        {
+    //            if (organisms[c.organismId].isDead)
+    //            {
+    //                Gizmos.color = new Color32(255, 255, 170, 255);
+    //            }
+    //        }
+
+
+
+    //        Gizmos.DrawSphere(c.currentPos, c.cellRadius);
+
+    //    }
+    //}
 
     #endregion
 }
