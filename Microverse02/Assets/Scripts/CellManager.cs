@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
@@ -79,6 +80,8 @@ public class CellManager : MonoBehaviour
         public Vector2 heading; //normalized direction
         public float headingPower; // Its more tendency likely than speed. must keep value low to inturrupt less
         public bool anchorEnabled; //anchor holds cells: structure is destroied once its dead
+
+        public float wanderTimer;
 
         public bool isDead;
         public float deadTimer;
@@ -176,13 +179,7 @@ public class CellManager : MonoBehaviour
             }
         }
 
-        if (Input.GetMouseButton(0))
-        {
-            Cell player = cells[playerCellIndex];
-            //player.cellRadius += 0.1f;
-
-            CreatePlayerCell(player.nextPos);
-        }
+        
         ApplyDragToCells();
         ApplyPlayerInput();
         ApplyPlayerFunctions();
@@ -190,7 +187,7 @@ public class CellManager : MonoBehaviour
         //wbc
         ApplyWBCAttaching();
 
-        //ApplyOrganismTendency();
+        ApplyOrganismTendency();
         ApplyCoreAnchor();
 
 
@@ -234,11 +231,21 @@ public class CellManager : MonoBehaviour
             Debug.Log(cells.Count);
 
         }
+        if (Input.GetMouseButton(0))
+        {
+            Cell player = cells[playerCellIndex];
+            //player.cellRadius += 0.1f;
+
+            CreatePlayerCell(player.nextPos);
+            
+        }
     }
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
     /// </summary>
     /// 
+
+    
 
     #region Map
     void ApplyCircleBoundary(int i)
@@ -322,6 +329,9 @@ public class CellManager : MonoBehaviour
     }
 
     #endregion
+
+    
+
     #region Create
 
     void CreatePlayerCell(Vector2 pos)
@@ -333,6 +343,7 @@ public class CellManager : MonoBehaviour
 
         player.nextPos = pos;
         player.nextVelocity = Vector2.zero;
+
 
         player.cellRadius = 0.2f;
         player.detectRadius = player.cellRadius * 6f;
@@ -463,44 +474,55 @@ public class CellManager : MonoBehaviour
 
     void ApplyCoreAnchor() //apply core cell an anchor
     {
-        foreach (var org in organisms)
+        for(int i =0; i<organisms.Count; i++)
         {
-            //if (!org.anchorEnabled) continue;
+            var org = organisms[i]; 
+            if(!org.anchorEnabled) continue;
 
             int coreIdx = org.coreIndex;
-            Cell core = cells[coreIdx];
+            if (coreIdx < 0) continue;
 
+            Cell core = cells[coreIdx];
             core.nextVelocity = Vector2.zero;
-            cells[coreIdx] = core;
+            cells[coreIdx] = core;  
         }
     }
 
 
     void ApplyOrganismTendency() //Organism movement, more likely tendency
     {
-
-        Vector2 playerPos = GetPlayerNextPosition();
-
+        float dt = Time.deltaTime;
 
         for (int i = 0; i < organisms.Count; i++)
         {
             Organisms org = organisms[i];
             if (org.isDead) continue;
-            //if(org.hp<=0f) continue;
+
             int coreIdx = org.coreIndex;
             if (coreIdx < 0) continue;
 
-            Vector2 corePos = cells[coreIdx].nextPos;
-            Vector2 toPlayer = playerPos - corePos;
-
-            float d2 = toPlayer.sqrMagnitude;
-            if (d2 < 1e-8f) continue;
-
-            org.heading = toPlayer.normalized;
-            org.headingPower = 70000f;
-
             Cell core = cells[coreIdx];
-            core.nextVelocity += org.heading * org.headingPower * Time.deltaTime;
+
+            
+            if(org.heading.sqrMagnitude <1e-6f)
+            {
+                org.heading= Random.insideUnitCircle.normalized;
+                org.wanderTimer = Random.Range(0.5f, 2.0f);
+            }
+
+            org.wanderTimer -= dt;
+            if(org.wanderTimer<=0f)
+            {
+                Vector2 jitter = Random.insideUnitCircle * 0.25f;
+                org.heading =(org.heading+jitter).normalized;
+
+                org.wanderTimer = Random.Range(0.5f, 2.0f);
+            }
+
+            float speed = 5f;
+            
+
+            core.nextVelocity += org.heading * speed * dt;
             cells[coreIdx] = core;
             organisms[i] = org;
         }
@@ -515,7 +537,7 @@ public class CellManager : MonoBehaviour
         float tolerance = 0.02f;
 
         float c = 1.1f;     // damping
-        float maxForce = 200f;
+        float maxForce = 80f;
 
         for (int i = 0; i < organisms.Count; i++)
         {
@@ -534,7 +556,7 @@ public class CellManager : MonoBehaviour
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
             //float k = (org.playerInside == 1) ? 150f : 10f; // spring
-            float k = (org.playerInside == true) ? 3f : 10f; // spring
+            float k = (org.playerInside == true) ? 3f : 40f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {

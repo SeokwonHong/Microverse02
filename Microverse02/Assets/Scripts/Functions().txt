@@ -1,3 +1,5 @@
+void ApplyCircleBoundary(int i)
+
 void ApplyPlayerInput()
 
 public Vector2 GetPlayerPosition()
