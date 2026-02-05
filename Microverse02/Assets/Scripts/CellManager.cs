@@ -187,7 +187,7 @@ public class CellManager : MonoBehaviour
         //wbc
         ApplyWBCAttaching();
 
-        ApplyOrganismTendency();
+        //ApplyOrganismTendency();
         ApplyCoreAnchor();
 
 
@@ -423,7 +423,7 @@ public class CellManager : MonoBehaviour
 
             //이부분부터 프로퍼티화해야할듯.
             shell.cellRadius = CellRadius;
-            shell.detectRadius = shell.cellRadius * 3f;
+            shell.detectRadius = shell.cellRadius * 4f;
 
             shell.organismId = org.id;
             shell.role = CellRole.Shell;
@@ -503,24 +503,24 @@ public class CellManager : MonoBehaviour
 
             Cell core = cells[coreIdx];
 
-            
-            if(org.heading.sqrMagnitude <1e-6f)
+
+            if (org.heading.sqrMagnitude < 1e-6f)
             {
-                org.heading= Random.insideUnitCircle.normalized;
+                org.heading = Random.insideUnitCircle.normalized;
                 org.wanderTimer = Random.Range(0.5f, 2.0f);
             }
 
             org.wanderTimer -= dt;
-            if(org.wanderTimer<=0f)
+            if (org.wanderTimer <= 0f)
             {
                 Vector2 jitter = Random.insideUnitCircle * 0.25f;
-                org.heading =(org.heading+jitter).normalized;
+                org.heading = (org.heading + jitter).normalized;
 
                 org.wanderTimer = Random.Range(0.5f, 2.0f);
             }
 
-            float speed = 5f;
-            
+            float speed = 115f;
+
 
             core.nextVelocity += org.heading * speed * dt;
             cells[coreIdx] = core;
@@ -606,6 +606,7 @@ public class CellManager : MonoBehaviour
         if (a.role == CellRole.Player || b.role == CellRole.Player) return;
         if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
 
+
         Vector2 delta = b.nextPos - a.nextPos;
         float d2 = delta.sqrMagnitude;
         if (d2 < 1e-8f) return;
@@ -622,7 +623,7 @@ public class CellManager : MonoBehaviour
         Vector2 dir = delta / dist;
 
         float dt = Time.deltaTime;
-        float pushStrength = 120f;
+        float pushStrength = 180f;
 
         Vector2 dv = dir * (overlap * pushStrength);
 

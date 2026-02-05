@@ -5502,7 +5502,7 @@ MonoBehaviour:
   mapCentre: {x: 0, y: 0}
   mapRadius: 20
   refToBg: {fileID: 237737088}
-  wallBounciness: 0.5
+  wallBounciness: 12
   playerPushStrength: 0
   BoxSize: 1.25
 --- !u!1 &1587657921
