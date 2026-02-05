@@ -147,6 +147,8 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
+            
+
             c.nextVelocity = c.currentVelocity; //First among double buffer
             c.nextPos = c.currentPos;
             c.detected = false;
@@ -208,11 +210,17 @@ public class CellManager : MonoBehaviour
             Cell c = cells[i];
 
             c.nextPos += c.nextVelocity * dt;
+
             cells[i] = c;
-
             ApplyCircleBoundary(i);
+            c =cells[i];
 
-            c= cells[i];
+            if(!IsFinite(c.nextPos)||!IsFinite(c.nextVelocity))
+            {
+                c.nextPos = c.currentPos;
+                c.nextVelocity = Vector2.zero;
+            }
+
             c.currentVelocity = c.nextVelocity;// second among double buffer
             c.currentPos = c.nextPos;
             cells[i] = c;
@@ -302,13 +310,19 @@ public class CellManager : MonoBehaviour
         player.nextVelocity = Vector2.zero;
         cells[playerCellIndex] = player;
     }
+    static bool IsFinite(Vector2 v)
+    {
+        return !(float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.x) || float.IsInfinity(v.y));
+    }
     public Vector2 GetPlayerPosition()
     {
         if (playerCellIndex < 0)
         {
             return Vector2.zero;
         }
-        return cells[playerCellIndex].currentPos;
+
+        Vector2 p = cells[playerCellIndex].currentPos;
+        return IsFinite(p) ? p : Vector2.zero;
     }
     Vector2 GetPlayerNextPosition()
     {

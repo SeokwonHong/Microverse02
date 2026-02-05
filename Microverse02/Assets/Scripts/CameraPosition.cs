@@ -20,11 +20,14 @@ public class CameraPosition : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-
         if(cellManager==null) return;
 
-        Vector3 pos = cellManager.GetPlayerPosition();
-        pos.z = camZ;
+        Vector2 p2 = cellManager.GetPlayerPosition();
+        if (float.IsNaN(p2.x) || float.IsNaN(p2.y) || float.IsInfinity(p2.x) || float.IsInfinity(p2.y))
+            return;
+
+
+        Vector3 pos = new Vector3(p2.x, p2.y,camZ);
         this.transform.position = pos;
     }
 }

@@ -14,7 +14,12 @@ public class PlayerShadow : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        if(cellManager==null)return;
-        this.transform.position= cellManager.GetPlayerPosition();
+        if (cellManager == null) return;
+
+        Vector2 p2 = cellManager.GetPlayerPosition();
+        if (float.IsNaN(p2.x) || float.IsNaN(p2.y) || float.IsInfinity(p2.x) || float.IsInfinity(p2.y))
+            return;
+
+        transform.position = new Vector3(p2.x, p2.y, transform.position.z);
     }
 }
