@@ -7033,7 +7033,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 389485192195381204, guid: deaa3045a7a1c074ba3604514c1e865b, type: 3}
       propertyPath: currentLevelIndex
-      value: 5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2023254872612660730, guid: deaa3045a7a1c074ba3604514c1e865b, type: 3}
       propertyPath: m_Name
