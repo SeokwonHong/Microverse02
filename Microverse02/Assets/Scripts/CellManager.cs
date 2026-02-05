@@ -1,9 +1,5 @@
-
-using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
@@ -15,6 +11,7 @@ public class CellManager : MonoBehaviour
     public int WBCCount = 10;
     public float SceneGenerateSize = 20;
 
+    //[Header("Defalut Settings")]
 
     [Header("Mouse and Player")]
     float mousePlayerDistance;
@@ -65,6 +62,7 @@ public class CellManager : MonoBehaviour
         public CellRole role; // Core / Shell / WhiteBlood
 
         public bool detected;
+        public bool isDead = false; 
     }
 
     class Organisms
@@ -80,7 +78,7 @@ public class CellManager : MonoBehaviour
 
         public bool isDead;
         public float deadTimer;
-        public float playerInside;
+        public bool playerInside;
 
 
     }
@@ -440,42 +438,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyOrganismDeath() //function when the orgarnism is die
-    {
-        for (int i = 0; i < organisms.Count; i++)
-        {
-            var org = organisms[i];
-            //if(org.hp>0f) continue; 
 
-
-            if (!isOrganismDead) continue;
-
-            if (org.isDead) continue;
-
-            org.isDead = true;
-            org.anchorEnabled = false;
-            org.heading = Vector2.zero;
-            org.headingPower = 0f;
-            org.deadTimer = 0;
-            organisms[i] = org;
-        }
-    }
-    void UpdateDeadOrganisms()
-    {
-        for (int i = 0; i < organisms.Count; i++)
-        {
-            var org = organisms[i];
-            if (!org.isDead) continue;
-
-
-            org.deadTimer += Time.deltaTime;
-            if (org.deadTimer >= maxDeadTime)
-            {
-                org.deadTimer = maxDeadTime;
-            }
-            organisms[i] = org;
-        }
-    }
     void ApplyOrganismTendency() //Organism movement, more likely tendency
     {
 
@@ -534,7 +497,7 @@ public class CellManager : MonoBehaviour
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
             //float k = (org.playerInside == 1) ? 150f : 10f; // spring
-            float k = (org.playerInside == 1) ? 3f : 10f; // spring
+            float k = (org.playerInside == true) ? 3f : 10f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
@@ -694,15 +657,26 @@ public class CellManager : MonoBehaviour
         Cell A = cells[a];
         Cell B = cells[b];
 
-        if (A.role == CellRole.WhiteBlood || B.role == CellRole.WhiteBlood) return;
-
-
-        float r = A.detectRadius + B.cellRadius;
-        bool inRange = ((A.nextPos - B.nextPos).sqrMagnitude <= r * r);
-        B.detected = B.detected || inRange;
-        cells[b] = B;
-
-
+        if (A.role == CellRole.Player && B.role != CellRole.Player)
+        {
+            float r = A.detectRadius + B.cellRadius;
+            if ((A.nextPos - B.nextPos).sqrMagnitude <= r * r)
+            {
+                B.detected = true;
+                cells[b] = B;
+            }
+            else B.detected = false;
+        }
+        else if (B.role == CellRole.Player && A.role != CellRole.Player)
+        {
+            float r = B.detectRadius + A.cellRadius;
+            if ((B.nextPos - A.nextPos).sqrMagnitude <= r * r)
+            {
+                A.detected = true;
+                cells[a] = A;
+            }
+            else A.detected = false;
+        }
     }
 
 
@@ -775,9 +749,9 @@ public class CellManager : MonoBehaviour
             float speed;
             if (c.detected)
             {
-                speed = Mathf.Lerp(55f, 0.0f, t);
+                speed = Mathf.Lerp(100f, 0.0f, t);
             }
-            else speed = Mathf.Lerp(0f, 0.0f, t);
+            else speed = Mathf.Lerp(55f, 0.0f, t);
 
 
 
@@ -822,54 +796,125 @@ public class CellManager : MonoBehaviour
     }
     #endregion
 
-    #region Player VS Shell
-
-    void ApplyPlayerKillsOrganism()
+    #region Organism killing
+    void ApplyOrganismDeath() //function when the orgarnism is die
     {
-        if (playerCellIndex < 0) return;
+        if (!isOrganismDead) return;
 
-        Cell player = cells[playerCellIndex];
+        for(int i=0; i<organismCount; i++)
+        {
+            if (organisms[i].isDead) continue;
+            KillEachCellInsideOrganism(i);
+        }
+    }
+    void UpdateDeadOrganisms()
+    {
+        float dt = Time.deltaTime;
 
         for (int i = 0; i < organisms.Count; i++)
         {
             var org = organisms[i];
-            if (org.isDead) { organisms[i] = org; continue; }
+            if (!org.isDead) continue;
 
-            org.playerInside = 0;
+
+            org.deadTimer = Mathf.Min(maxDeadTime, org.deadTimer+dt);
+            organisms[i] = org;
+        }
+    }
+
+    void ApplyPlayerKillsOrganism()
+    {
+        List<int> playerCells = new List<int>(16);
+        for(int p =0;p<cells.Count;p++)
+        {
+            if (cells[p].role==CellRole.Player && !cells[p].isDead)
+            {
+                playerCells.Add(p);
+            }
+        }
+        if (playerCells.Count == 0) return;
+
+        for (int i = 0; i < organisms.Count; i++)
+        {
+            var org = organisms[i];
+            if (org.isDead) continue;
+
+            org.playerInside = false;
 
             int coreIndex = org.coreIndex;
             if (coreIndex < 0 || coreIndex >= cells.Count)
             {
-                organisms[i] = org; continue;
+                organisms[i] = org;
+                continue;
             }
 
             Cell coreCell = cells[coreIndex];
 
-            Vector2 delta = coreCell.nextPos - player.nextPos;
+            bool killed = false;    
 
-            float d2 = delta.sqrMagnitude;
-
-            if (d2 < 1e-8f)
+            float insideDist = org.coreDistance +coreCell.cellRadius;
+            
+            for(int k =0; k<playerCells.Count;k++)
             {
-                organisms[i] = org; continue;
-            }
+                Cell player = cells[playerCells[k]];
 
-            float minDist = player.cellRadius + org.coreDistance + coreCell.cellRadius;
-            float minDist2 = minDist * minDist;
+                Vector2 delta = coreCell.nextPos - player.nextPos;
+                float d2 = delta.sqrMagnitude;
+                if (d2 < 1e-8f) continue;
 
-            if (d2 <= minDist2)
-            {
-                org.playerInside = 1;
-
-                if (d2 - coreCell.cellRadius < 0.3f)
+                float inside = player.cellRadius + insideDist;
+                if(d2<=inside*inside)
                 {
-                    org.isDead = true;
+                    org.playerInside = true;
+
+                    float killDist = player.cellRadius + coreCell.cellRadius;
+
+                    if (d2 <= killDist * killDist)
+                    {
+                        organisms[i] = org;
+                        KillEachCellInsideOrganism(i);
+                        killed = true;
+                        break;
+                    }
                 }
             }
-
-            organisms[i] = org;
+            if(!killed)
+            {
+                organisms[i] = org;
+            }
         }
 
+    }
+
+    void KillEachCellInsideOrganism(int orgId)
+    {
+        if (orgId < 0 || orgId >= organisms.Count) return;
+
+        var org = organisms[orgId];
+        
+        bool alreadyDead = org.isDead;
+
+        org.isDead = true;
+        org.anchorEnabled = false;
+        org.heading = Vector2.zero;
+        org.headingPower = 0f;
+
+        if(!alreadyDead)
+        {
+            org.deadTimer = 0f;
+        }
+
+        for(int m = 0; m<org.members.Count; m++)
+        {
+            int cellIdx = org.members[m];
+            if(cellIdx <0 ||cellIdx>=cells.Count) continue;
+
+            Cell c = cells[cellIdx];
+            c.isDead = true;
+            cells[cellIdx] = c;
+        }
+
+        organisms[orgId] = org;
     }
     #endregion
 

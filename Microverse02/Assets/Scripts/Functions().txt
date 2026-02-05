@@ -22,11 +22,6 @@ void ResolvePlayerOverlap(int cellIndex)
 
 void ApplyCoreAnchor()
 
-
-void ApplyOrganismDeath() 
-
-void UpdateDeadOrganisms()
-
 void ApplyOrganismTendency()
 
 void ApplyKeepShape(int CurrentIndex, int OtherIndex)
@@ -46,6 +41,12 @@ void ApplyCellMovement()
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
 
-void ApplyWBCAttaching()   --
+void ApplyWBCAttaching()   
+
+void ApplyOrganismDeath() 
+
+void UpdateDeadOrganisms()
 
 ApplyPlayerKillsOrganism()
+
+void KillEachCellInsideOrganism(int orgId)
