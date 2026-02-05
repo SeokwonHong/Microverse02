@@ -9,9 +9,13 @@ public class CellManager : MonoBehaviour
     [Header("Defalut Settings")]
     public int organismCount = 20;
     public int WBCCount = 10;
-    public float SceneGenerateSize = 20;
 
-    //[Header("Defalut Settings")]
+    [Header("Map generation")]
+    [SerializeField] Vector2 mapCentre = Vector2.zero;
+    [SerializeField] float mapRadius;
+    public GameObject refToBg;
+    [SerializeField] float wallBounciness = 0.5f;
+
 
     [Header("Mouse and Player")]
     float mousePlayerDistance;
@@ -89,19 +93,16 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-
+        refToBg.transform.localScale = new Vector3(mapRadius*2f, mapRadius*2f, 1);
 
         CreatePlayerCell(Vector2.zero);
         playerRadius = GetPlayerRadius();
         playerInfluenceRadius = playerRadius * 10f;
 
-
-
-
-        float minX = -SceneGenerateSize;
-        float maxX = SceneGenerateSize;
-        float minY = -SceneGenerateSize;
-        float maxY = SceneGenerateSize;
+        float minX = -mapRadius;
+        float maxX = mapRadius;
+        float minY = -mapRadius;
+        float maxY = mapRadius;
 
 
         for (int i = 0; i < WBCCount; i++)
@@ -141,7 +142,7 @@ public class CellManager : MonoBehaviour
 
         }
 
-
+        float dt = Time.deltaTime;  
         // 1) Apply Hash
 
 
@@ -149,25 +150,19 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
             c.nextVelocity = c.currentVelocity; //First among double buffer
-            c.nextPos = c.currentPos + c.nextVelocity * Time.deltaTime;
+            c.nextPos = c.currentPos;
+            c.detected = false;
             cells[i] = c;
+            
         }
 
-
-
         spatialHash.BeginFrame(); // Delete data inside the dictionary 
+
         for (int i = 0; i < cells.Count; i++)
         {
             spatialHash.Insert(cells[i].nextPos, i);
         }
 
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell c = cells[i];
-            c.detected = false;
-
-            cells[i] = c;
-        }
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -182,9 +177,7 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-
                 //ApplyCohesion(i, otherIndex);
-
             }
         }
 
@@ -221,6 +214,13 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
+
+            c.nextPos += c.nextVelocity * dt;
+            cells[i] = c;
+
+            ApplyCircleBoundary(i);
+
+            c= cells[i];
             c.currentVelocity = c.nextVelocity;// second among double buffer
             c.currentPos = c.nextPos;
             cells[i] = c;
@@ -234,6 +234,38 @@ public class CellManager : MonoBehaviour
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
     /// </summary>
     /// 
+
+    #region Map
+    void ApplyCircleBoundary(int i)
+    {
+        Cell c= cells[i];
+
+        Vector2 p = c.nextPos; 
+        Vector2 v = c.nextVelocity;
+
+        Vector2 to = p-mapCentre;
+        float dist = to.magnitude;
+
+        float allowed = mapRadius - c.cellRadius;
+        if (dist <= allowed || dist < 1e-6f) return;
+
+        Vector2 n = to / dist;
+        c.nextPos = mapCentre + n*allowed;
+
+        float vn = Vector2.Dot(v, n);
+        if(vn>9f)
+        {
+            v = v - 2f * vn * n;
+            v*=wallBounciness;
+            c.nextVelocity = v;
+
+        }
+        cells[i] = c;
+    }
+
+
+    #endregion
+
     #region Input, player function
 
     Cell ApplyInput(Cell player)
