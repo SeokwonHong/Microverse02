@@ -39,10 +39,11 @@ public class CellManager : MonoBehaviour
     readonly List<int> neighbourBuffer = new List<int>(128);
 
 
-    [Header("cells | organisms | neighbourBuffer Array")]
+    [Header("cells | organisms | neighbourBuffer Array | player")]
     List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
     readonly List<int> nearestPlayerBuffer = new List<int>(128);
+    readonly List<int> deadPlayerPool = new List<int>(128);
 
     [Header("Organism Death")]
     bool isOrganismDead = false;
@@ -76,7 +77,7 @@ public class CellManager : MonoBehaviour
 
         //only for players
         public bool isPlayerAttachedToWBC;
-        public float hp = 5f;
+        public float hp;
     }
 
     class Organisms
@@ -254,10 +255,13 @@ public class CellManager : MonoBehaviour
         }
         if (Input.GetMouseButton(0))
         {
+
             Cell player = cells[playerCellIndex];
             //player.cellRadius += 0.1f;
 
-            CreatePlayerCell(player.nextPos);
+
+            //CreatePlayerCell(player.nextPos);
+            SpawnPlayerClone(player.nextPos);
             
         }
 
@@ -283,7 +287,14 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
+
+            
             SpriteRenderer r = debugRenderers[i];
+            if (c.role == CellRole.Player && c.isDead)
+            {
+                r.gameObject.SetActive(false);
+                continue;
+            }
             r.gameObject.SetActive(true);
 
             r.transform.position = new Vector3(c.currentPos.x, c.currentPos.y, 0f);
@@ -417,11 +428,42 @@ public class CellManager : MonoBehaviour
         player.organismId = -1;
         player.role = CellRole.Player;
 
+        player.hp = 5;
         player.detected = true;
         playerCellIndex = cells.Count;
         cells.Add(player);
     }
+    void SpawnPlayerClone(Vector2 pos)
+    {
+        if(deadPlayerPool.Count>0)
+        {
+            int idx = deadPlayerPool[^1];
+            deadPlayerPool.RemoveAt(deadPlayerPool.Count-1);
 
+            Cell c= cells[idx];
+
+            c.isDead = false;
+            c.hp = 5f;
+            c.isPlayerAttachedToWBC = false;
+
+            c.currentPos = pos;
+            c.nextPos = pos;
+
+            c.currentVelocity = Vector2.zero;
+            c.nextVelocity = Vector2.zero;
+
+            c.organismId = -1;
+            c.role = CellRole.Player;
+
+            c.cellRadius = 0.2f;
+            c.detectRadius = c.cellRadius *6f;
+
+            cells[idx] = c;
+            return;
+        }
+
+        CreatePlayerCell(pos);
+    }
     void CreateWBCCell(Vector2 pos)
     {
 
@@ -1090,13 +1132,14 @@ public class CellManager : MonoBehaviour
 
             int targetIdx = FindNearestPlayerIndex(w.nextPos, w.detectRadius);
 
+            
             if (targetIdx < 0)
             {
                 w.nextVelocity *= Mathf.Exp(-drag * dt);
                 cells[i] = w;
                 continue;
             }
-
+            if (cells[targetIdx].isDead) continue;
             Cell player = cells[targetIdx];
 
             Vector2 delta = player.nextPos - w.nextPos;
@@ -1155,8 +1198,9 @@ public class CellManager : MonoBehaviour
 
             if(p.hp<=0)
             {
-                p.hp = 100;
-                Debug.Log("Player dead:" +i);
+                p.hp = 0;
+                p.isDead = true;
+                deadPlayerPool.Add(i);
             }
 
             cells[i] = p;
