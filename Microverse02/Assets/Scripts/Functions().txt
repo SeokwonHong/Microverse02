@@ -20,8 +20,6 @@ void CreateOrganism(Vector2 currentPos)
 
 void ResolveOverlap(int CurrentIndex, int OtherIndex)
 
-void ResolvePlayerOverlap(int cellIndex)
-
 void ApplyCoreAnchor()
 
 void ApplyOrganismTendency()
@@ -43,8 +41,6 @@ void ApplyCellMovement()
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
 
-void ApplyWBCAttaching()   
-
 void ApplyOrganismDeath() 
 
 void UpdateDeadOrganisms()
@@ -52,3 +48,8 @@ void UpdateDeadOrganisms()
 ApplyPlayerKillsOrganism()
 
 void KillEachCellInsideOrganism(int orgId)
+
+void ApplyWBCAttaching()   
+
+void ApplyWBCDamagePlayer()
+

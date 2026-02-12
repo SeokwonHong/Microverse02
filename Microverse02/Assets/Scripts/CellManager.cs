@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
@@ -41,7 +42,7 @@ public class CellManager : MonoBehaviour
     [Header("cells | organisms | neighbourBuffer Array")]
     List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
-    readonly List<int> wbcBuffer = new List<int>(128);
+    readonly List<int> nearestPlayerBuffer = new List<int>(128);
 
     [Header("Organism Death")]
     bool isOrganismDead = false;
@@ -70,7 +71,12 @@ public class CellManager : MonoBehaviour
         public CellRole role; // Core / Shell / WhiteBlood
 
         public bool detected;
-        public bool isDead = false; 
+        public bool isDead = false;
+
+
+        //only for players
+        public bool isPlayerAttachedToWBC;
+        public float hp = 5f;
     }
 
     class Organisms
@@ -93,14 +99,8 @@ public class CellManager : MonoBehaviour
 
     }
 
-    //vector assume that there's two points and in the end of the point they have a invisible arrow
-    //direction * power(magnitude)
     void Start()
     {
-        
-
-
-
         spatialHash = new SpatialHash(BoxSize);
 
         refToBg.transform.localScale = new Vector3(mapRadius*2f, mapRadius*2f, 1);
@@ -152,8 +152,6 @@ public class CellManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-
         float dt = Time.deltaTime;  
         // 1) Apply Hash
 
@@ -202,6 +200,7 @@ public class CellManager : MonoBehaviour
 
         //wbc
         ApplyWBCAttaching();
+        ApplyWBCDamagePlayer();
 
         //ApplyOrganismTendency();
         ApplyCoreAnchor();
@@ -214,7 +213,7 @@ public class CellManager : MonoBehaviour
 
             ApplyOrganismJelly(Time.fixedDeltaTime);
             ApplyKeepShape();
-            // for (int i = 0; i < cells.Count; i++) ResolvePlayerOverlap(i);
+     
 
         }
         ApplyPlayerKillsOrganism();
@@ -1045,20 +1044,17 @@ public class CellManager : MonoBehaviour
     }
     #endregion
 
-
-    #region WBC Constraints
-
     int FindNearestPlayerIndex(Vector2 pos, float maxRange)
     {
         float bestD2 = maxRange * maxRange;
         int bestIdx = -1;
 
-        wbcBuffer.Clear();
-        spatialHash.Query(pos, wbcBuffer);
+        nearestPlayerBuffer.Clear();
+        spatialHash.Query(pos, nearestPlayerBuffer);
 
-        for (int k = 0; k < wbcBuffer.Count; k++)
+        for (int k = 0; k < nearestPlayerBuffer.Count; k++)
         {
-            int j = wbcBuffer[k];
+            int j = nearestPlayerBuffer[k];
             Cell c = cells[j];
             if (c.role != CellRole.Player) continue;
 
@@ -1072,9 +1068,9 @@ public class CellManager : MonoBehaviour
             }
         }
 
-
         return bestIdx;
     }
+    #region WBC Constraints
 
 
     void ApplyWBCAttaching()
@@ -1083,6 +1079,8 @@ public class CellManager : MonoBehaviour
 
         float attractStrength = 10f;
         float drag = 30f;
+
+        
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -1099,14 +1097,16 @@ public class CellManager : MonoBehaviour
                 continue;
             }
 
-            Cell target = cells[targetIdx];
+            Cell player = cells[targetIdx];
 
-            Vector2 delta = target.nextPos - w.nextPos;
+            Vector2 delta = player.nextPos - w.nextPos;
             float d2 = delta.sqrMagnitude;
 
             float r = w.detectRadius;
 
-            bool inSight = (d2 <= r * r) && (d2 > 1e-5f);
+            bool inSight = (d2 <= r * r) && (d2 > player.cellRadius*player.cellRadius);
+            float attachDist = player.cellRadius + w.cellRadius;
+            bool isAttachedToPlayer = (d2<= attachDist * attachDist);
 
             if (inSight)
             {
@@ -1116,68 +1116,56 @@ public class CellManager : MonoBehaviour
                 float force = (r - dist) / r;
                 w.nextPos += dir * (force * attractStrength) * dt;
             }
+            //else
+            //{
+            //    w.nextVelocity *= Mathf.Exp(-drag * dt);
+            //}
+
+            if(isAttachedToPlayer)
+            {
+                player.isPlayerAttachedToWBC = true;
+            }
             else
             {
-                w.nextVelocity *= Mathf.Exp(-drag * dt);
+                player.isPlayerAttachedToWBC = false;
             }
 
-
-
             cells[i] = w;
+            cells[targetIdx] = player;
         }
 
 
     }
 
+    void ApplyWBCDamagePlayer()
+    {
+        float dt = Time.deltaTime;
+        float damagePerSecond = 1f;
+        
+        for(int i = 0; i<cells.Count; i++)
+        {
+            Cell p = cells[i];
 
+            if (p.role != CellRole.Player) continue;
 
-    #endregion
+            if(p.isPlayerAttachedToWBC)
+            {
+                p.hp -= damagePerSecond *Time.deltaTime;
+            }
 
+            if(p.hp<=0)
+            {
+                p.hp = 100;
+                Debug.Log("Player dead:" +i);
+            }
 
-
-
-    #region Gizmo
-    //void OnDrawGizmos()
-    //{
-    //    if (!Application.isPlaying) return;
-    //    if (cells == null || cells.Count == 0)
-    //    {
-    //        Debug.Log("there's no cell list!");
-    //        return;
-    //    }
-
-
-    //    foreach (Cell c in cells)
-    //    {
-    //        Gizmos.color = Color.yellow;
-
-
-
-    //        if (c.role == CellRole.WhiteBlood)
-    //        {
-    //            Gizmos.color = Color.blue;
-    //        }
-    //        else if (c.role == CellRole.Player)
-    //        {
-    //            Gizmos.color = Color.red;
-    //        }
-
-    //        else if (c.organismId >= 0 && c.organismId < organisms.Count)
-    //        {
-    //            if (organisms[c.organismId].isDead)
-    //            {
-    //                Gizmos.color = new Color32(255, 255, 170, 255);
-    //            }
-    //        }
-
-
-
-    //        Gizmos.DrawSphere(c.currentPos, c.cellRadius);
-
-    //    }
-    //}
+            cells[i] = p;
+        }
+    }
 
     #endregion
+
+
 }
 
 
