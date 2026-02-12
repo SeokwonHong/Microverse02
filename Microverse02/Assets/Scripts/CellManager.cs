@@ -24,14 +24,14 @@ public class CellManager : MonoBehaviour
     float playerSpeed;
 
 
-    [Header("Player")]
+    [Header("Player | Boss")]
     private float maxSpeed = 10f;
     private float threshold = 17f;
     private float playerRadius;
     private float playerInfluenceRadius;
     int playerCellIndex = -1; //-1 means player not allocated yet. If player is made, int number will be allocated
     public float playerPushStrength;
-
+    int bossCellInex = -1;
 
     [Header("Spatial Hash")]
     SpatialHash spatialHash;
@@ -78,6 +78,8 @@ public class CellManager : MonoBehaviour
         //only for players
         public bool isPlayerAttachedToWBC;
         public float hp;
+        public bool isBoss;
+        public int bossIndex;
     }
 
     class Organisms
@@ -100,7 +102,7 @@ public class CellManager : MonoBehaviour
 
     }
 
-    void Start()
+    void Awake()
     {
         spatialHash = new SpatialHash(BoxSize);
 
@@ -259,9 +261,7 @@ public class CellManager : MonoBehaviour
             Cell player = cells[playerCellIndex];
             //player.cellRadius += 0.1f;
 
-
-            //CreatePlayerCell(player.nextPos);
-            SpawnPlayerClone(player.nextPos);
+            CreatePlayerCell(player.nextPos);
             
         }
 
@@ -413,41 +413,49 @@ public class CellManager : MonoBehaviour
 
     void CreatePlayerCell(Vector2 pos)
     {
-        Cell player = new Cell();
+        if (bossCellInex < 0) // set first made bacterium as boss
+        {
+            int idx = cells.Count;
 
-        player.currentPos = pos;
-        player.currentVelocity = Vector2.zero;
+            Cell boss = new Cell();
+            boss.currentPos = pos;
+            boss.nextPos = pos; 
+            boss.currentVelocity = Vector2.zero;
+            boss.nextVelocity = Vector2.zero;
 
-        player.nextPos = pos;
-        player.nextVelocity = Vector2.zero;
+            boss.organismId = -1;
+            boss.role = CellRole.Player;
 
+            boss.cellRadius = 0.2f;
+            boss.detectRadius = bossCellInex * 6f;
 
-        player.cellRadius = 0.2f;
-        player.detectRadius = player.cellRadius * 6f;
+            boss.hp = 100f;
+            boss.detected = false;
+            boss.isPlayerAttachedToWBC = false;
 
-        player.organismId = -1;
-        player.role = CellRole.Player;
+            bossCellInex = idx;
+            playerCellIndex = idx;
 
-        player.hp = 5;
-        player.detected = true;
-        playerCellIndex = cells.Count;
-        cells.Add(player);
-    }
-    void SpawnPlayerClone(Vector2 pos)
-    {
-        if(deadPlayerPool.Count>0)
+            boss.isBoss = true;
+            boss.bossIndex = idx;
+
+            cells.Add(boss);
+            return;
+        }
+
+        if(deadPlayerPool.Count > 0)  //if one or more have been killed, then re-use its array space
         {
             int idx = deadPlayerPool[^1];
-            deadPlayerPool.RemoveAt(deadPlayerPool.Count-1);
+            deadPlayerPool.RemoveAt(deadPlayerPool.Count - 1);
 
-            Cell c= cells[idx];
+            Cell c = cells[idx];
 
             c.isDead = false;
             c.hp = 5f;
             c.isPlayerAttachedToWBC = false;
 
             c.currentPos = pos;
-            c.nextPos = pos;
+            c.nextPos = pos;    
 
             c.currentVelocity = Vector2.zero;
             c.nextVelocity = Vector2.zero;
@@ -456,13 +464,34 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.2f;
-            c.detectRadius = c.cellRadius *6f;
+            c.detectRadius = c.cellRadius * 6f;
+
+            c.isBoss = (idx == bossCellInex);
+            c.bossIndex = bossCellInex;
 
             cells[idx] = c;
             return;
-        }
+        } 
 
-        CreatePlayerCell(pos);
+        Cell clone = new Cell(); //make new clone 
+
+        clone.currentPos = pos;
+        clone.nextPos = pos;
+        clone.currentVelocity = Vector2.zero;
+        clone.nextVelocity = Vector2.zero;
+
+        clone.cellRadius = 0.2f;
+        clone.detectRadius = clone.cellRadius * 6f;
+
+        clone.organismId = -1;
+        clone.role = CellRole.Player;
+
+        clone.hp = 5f;
+        clone.detected = false;
+        clone.bossIndex = bossCellInex;
+
+        cells.Add(clone);
+            
     }
     void CreateWBCCell(Vector2 pos)
     {
@@ -860,10 +889,12 @@ public class CellManager : MonoBehaviour
         Cell currentCell = cells[(CurrentIndex)];
         Cell otherCell = cells[(OtherIndex)];
 
-        // cell strainer. aint gonna operate when its not shell
-        if (currentCell.organismId != otherCell.organismId) return; // 같은 생물 아니면 무시
-        if (currentCell.role != CellRole.Shell) return; //쉘들만 모이게
-        if (otherCell.role != CellRole.Shell) return; //비교대상이 쉘이 아니면 무시
+        //// cell strainer. aint gonna operate when its not shell
+        //if (currentCell.organismId != otherCell.organismId) return; // 같은 생물 아니면 무시
+        //if (currentCell.role != CellRole.Shell) return; //쉘들만 모이게
+        //if (otherCell.role != CellRole.Shell) return; //비교대상이 쉘이 아니면 무시
+        if (currentCell.role != CellRole.Player && currentCell.role != CellRole.Player) return;
+
 
 
 
@@ -1119,6 +1150,16 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
+        for(int i = 0; i<cells.Count; i++)
+        {
+            if (cells[i].role != CellRole.Player) continue; 
+            Cell p = cells[i];
+            p.isPlayerAttachedToWBC = false;
+            cells[i] = p;    
+        }
+
+
+
         float attractStrength = 10f;
         float drag = 30f;
 
@@ -1148,8 +1189,7 @@ public class CellManager : MonoBehaviour
             float r = w.detectRadius;
 
             bool inSight = (d2 <= r * r) && (d2 > player.cellRadius*player.cellRadius);
-            float attachDist = player.cellRadius + w.cellRadius;
-            bool isAttachedToPlayer = (d2<= attachDist * attachDist);
+            
 
             if (inSight)
             {
@@ -1159,18 +1199,13 @@ public class CellManager : MonoBehaviour
                 float force = (r - dist) / r;
                 w.nextPos += dir * (force * attractStrength) * dt;
             }
-            //else
-            //{
-            //    w.nextVelocity *= Mathf.Exp(-drag * dt);
-            //}
 
-            if(isAttachedToPlayer)
+            float attachDist = player.cellRadius + w.cellRadius;
+            bool isAttachedToPlayer = (d2 <= attachDist * attachDist);
+
+            if (isAttachedToPlayer)
             {
                 player.isPlayerAttachedToWBC = true;
-            }
-            else
-            {
-                player.isPlayerAttachedToWBC = false;
             }
 
             cells[i] = w;
@@ -1196,7 +1231,7 @@ public class CellManager : MonoBehaviour
                 p.hp -= damagePerSecond *Time.deltaTime;
             }
 
-            if(p.hp<=0)
+            if(p.hp<=0 &&!p.isDead)
             {
                 p.hp = 0;
                 p.isDead = true;
