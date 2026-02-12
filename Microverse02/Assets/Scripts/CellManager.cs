@@ -262,7 +262,7 @@ public class CellManager : MonoBehaviour
             Cell player = cells[playerCellIndex];
             //player.cellRadius += 0.1f;
 
-            CreatePlayerCell(player.nextPos);
+            CreatePlayerCell(player.currentPos);
             
         }
 
@@ -428,7 +428,7 @@ public class CellManager : MonoBehaviour
             boss.role = CellRole.Player;
 
             boss.cellRadius = 0.3f;
-            boss.detectRadius = bossCellInex * 6f;
+            boss.detectRadius = boss.cellRadius * 6f;
 
             boss.hp = 100f;
             boss.detected = false;
