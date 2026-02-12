@@ -28,7 +28,7 @@ void ApplyOrganismTendency()
 
 void ApplyKeepShape(int CurrentIndex, int OtherIndex)
 
-void ApplyCellPushing(int currentIndex, int otherIndex)  
+void ApplyCellPushing(int currentIndex, int otherIndex)   --
 
 void ApplyDragToCells()
 
@@ -36,7 +36,7 @@ void ApplyOrganismJelly()
 
 void ApplyCellDetection(int currentIndex, int otherIndex)
 
-void ApplyCohesion(int CurrentIndex, int OtherIndex) 
+void ApplyCohesionToBoss(int CurrentIndex, int OtherIndex)   --
 
 void ApplyCellMovement()
 

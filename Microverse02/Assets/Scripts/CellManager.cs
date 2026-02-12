@@ -192,15 +192,16 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                //ApplyCohesion(i, otherIndex);
+                
             }
         }
 
         
         ApplyDragToCells();
         ApplyPlayerInput();
+        //ApplyCohesionToBoss();
         ApplyPlayerFunctions();
-
+        
         //wbc
         ApplyWBCAttaching();
         ApplyWBCDamagePlayer();
@@ -426,7 +427,7 @@ public class CellManager : MonoBehaviour
             boss.organismId = -1;
             boss.role = CellRole.Player;
 
-            boss.cellRadius = 0.2f;
+            boss.cellRadius = 0.3f;
             boss.detectRadius = bossCellInex * 6f;
 
             boss.hp = 100f;
@@ -464,7 +465,7 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.2f;
-            c.detectRadius = c.cellRadius * 6f;
+            c.detectRadius = c.cellRadius * 2f;
 
             c.isBoss = (idx == bossCellInex);
             c.bossIndex = bossCellInex;
@@ -481,7 +482,7 @@ public class CellManager : MonoBehaviour
         clone.nextVelocity = Vector2.zero;
 
         clone.cellRadius = 0.2f;
-        clone.detectRadius = clone.cellRadius * 6f;
+        clone.detectRadius = clone.cellRadius * 2f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -740,7 +741,7 @@ public class CellManager : MonoBehaviour
         Cell a = cells[currentIndex];
         Cell b = cells[otherIndex];
 
-        if (a.role == CellRole.Player || b.role == CellRole.Player) return;
+        if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
         if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
 
 
@@ -884,44 +885,63 @@ public class CellManager : MonoBehaviour
 
     #region Cell_Rules
 
-    void ApplyCohesion(int CurrentIndex, int OtherIndex)  //cell gathering method
+    void ApplyCohesionToBoss()  //cell gathering method
     {
-        Cell currentCell = cells[(CurrentIndex)];
-        Cell otherCell = cells[(OtherIndex)];
+        if (bossCellInex < 0 || bossCellInex >= cells.Count)
+        {
+            return;
+        }
 
-        //// cell strainer. aint gonna operate when its not shell
-        //if (currentCell.organismId != otherCell.organismId) return; // 같은 생물 아니면 무시
-        //if (currentCell.role != CellRole.Shell) return; //쉘들만 모이게
-        //if (otherCell.role != CellRole.Shell) return; //비교대상이 쉘이 아니면 무시
-        if (currentCell.role != CellRole.Player && currentCell.role != CellRole.Player) return;
+        float dt = Time.deltaTime;
+
+        Cell boss = cells[bossCellInex];
+        if (boss.isDead) return;
+
+        float r = boss.detectRadius;
+        float r2 = r * r;   
+
+        float minGap = boss.cellRadius+0.22f;
+        float minGap2 = minGap * minGap;
+
+        float pullStrenth = 30f;
+        float maxAccel = 60f;
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            if(i==bossCellInex) continue;
+
+            Cell b = cells[i];  
+
+            if(b.role != CellRole.Player) continue;
+            if(b.isDead) continue;
+
+            if(b.bossIndex !=bossCellInex) continue;
+
+            Vector2 delta = boss.nextPos - b.nextPos;
+            float d2 = delta.sqrMagnitude;
+
+            if (d2 > r2) continue;
+
+            if(d2<minGap2) continue;
+
+            float dist = Mathf.Sqrt(d2);    
+            Vector2 dir = delta/dist;
+
+            float t = 1f - (dist / r);
+            float accel = pullStrenth * t;
+
+            if(accel>maxAccel) accel = maxAccel;
+
+            b.nextVelocity += dir * accel * dt;
+
+            cells[i] = b;
+
+
+        }
 
 
 
-
-        Vector2 delta = otherCell.nextPos - currentCell.nextPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 <= 0f) return;
-
-
-        float detectR = currentCell.detectRadius;
-        float detectR2 = detectR * detectR;
-        if (d2 > detectR2) return;
-
-        float minDist = currentCell.cellRadius + otherCell.cellRadius;
-        float minDist2 = minDist * minDist;
-        if (d2 <= minDist2) return;
-
-        float dist = Mathf.Sqrt(d2);
-        Vector2 dir = delta / dist; //벡터를 순수 거리로 나눔
-
-        float speed = 0.1f;
-        Vector2 move = dir * (speed * Time.deltaTime);
-
-        currentCell.nextPos += move * 0.5f;
-        otherCell.nextPos -= move * 0.5f;
-
-        cells[CurrentIndex] = currentCell;
-        cells[OtherIndex] = otherCell;
+      
     }
 
 
