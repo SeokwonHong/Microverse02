@@ -199,7 +199,7 @@ public class CellManager : MonoBehaviour
         
         ApplyDragToCells();
         ApplyPlayerInput();
-        //ApplyCohesionToBoss();
+        ApplyCohesionToBoss();
         ApplyPlayerFunctions();
         
         //wbc
@@ -248,6 +248,9 @@ public class CellManager : MonoBehaviour
 
     }
 
+
+
+
     private void FixedUpdate()
     {
         if (Input.GetKeyDown(KeyCode.V))
@@ -262,7 +265,7 @@ public class CellManager : MonoBehaviour
             Cell player = cells[playerCellIndex];
             //player.cellRadius += 0.1f;
 
-            CreatePlayerCell(player.currentPos);
+            CreatePlayerCell(player.nextPos);
             
         }
 
@@ -427,7 +430,7 @@ public class CellManager : MonoBehaviour
             boss.organismId = -1;
             boss.role = CellRole.Player;
 
-            boss.cellRadius = 0.3f;
+            boss.cellRadius = 0.5f;
             boss.detectRadius = boss.cellRadius * 6f;
 
             boss.hp = 100f;
@@ -465,7 +468,7 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.2f;
-            c.detectRadius = c.cellRadius * 2f;
+            c.detectRadius = c.cellRadius * 1.5f;
 
             c.isBoss = (idx == bossCellInex);
             c.bossIndex = bossCellInex;
@@ -741,7 +744,7 @@ public class CellManager : MonoBehaviour
         Cell a = cells[currentIndex];
         Cell b = cells[otherIndex];
 
-        if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
+        //if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
         if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
 
 
@@ -897,14 +900,14 @@ public class CellManager : MonoBehaviour
         Cell boss = cells[bossCellInex];
         if (boss.isDead) return;
 
-        float r = boss.detectRadius;
+        float r = boss.detectRadius*6f;
         float r2 = r * r;   
 
         float minGap = boss.cellRadius+0.22f;
         float minGap2 = minGap * minGap;
 
-        float pullStrenth = 30f;
-        float maxAccel = 60f;
+        float pullStrenth = 150f;
+        float maxAccel = 200f;
 
         for (int i = 0; i < cells.Count; i++)
         {

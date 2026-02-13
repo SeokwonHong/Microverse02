@@ -5133,8 +5133,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  organismCount: 50
-  WBCCount: 100
+  organismCount: 100
+  WBCCount: 500
   mapCentre: {x: 0, y: 0}
   mapRadius: 35
   refToBg: {fileID: 237737088}
