@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
-using Vector2 = UnityEngine.Vector2;
+//using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
 {
@@ -220,8 +219,8 @@ public class CellManager : MonoBehaviour
         for (int iter = 0; iter < 3; iter++) // play iter times in one frame
         {
 
-            ApplyOrganismJelly(Time.fixedDeltaTime);
-            ApplyKeepShape();
+            //ApplyOrganismJelly(Time.fixedDeltaTime);
+            ApplyKeepOrganismShape();
      
 
         }
@@ -674,7 +673,7 @@ public class CellManager : MonoBehaviour
 
 
 
-    void ApplyKeepShape()
+    void ApplyKeepOrganismShape()
     {
         float dt = Time.deltaTime;
 
@@ -750,6 +749,8 @@ public class CellManager : MonoBehaviour
         //if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
         if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
 
+        
+
 
         Vector2 delta = b.nextPos - a.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -770,6 +771,26 @@ public class CellManager : MonoBehaviour
         float pushStrength = 180f;
 
         Vector2 dv = dir * (overlap * pushStrength);
+
+        bool sameOrg = (a.organismId >= 0 && a.organismId ==b.organismId);
+
+        if (sameOrg)
+        {
+            if(a.role == CellRole.Core && b.role == CellRole.Shell)
+            {
+                b.nextVelocity += dv * dt;
+                cells[otherIndex] = b;
+                return;
+            }
+            if (b.role == CellRole.Core && a.role == CellRole.Shell)
+            {
+                a.nextVelocity -= dv * dt;
+                cells[currentIndex] = a;
+                return;
+            }
+
+        }
+
 
         a.nextVelocity -= dv * dt;
         b.nextVelocity += dv * dt;
@@ -961,8 +982,10 @@ public class CellManager : MonoBehaviour
 
 
             //if (c.role == CellRole.Player) continue;
+            //if(c.role ==CellRole.Core) continue;
 
             if (c.organismId < 0 || c.organismId >= organisms.Count) continue;
+            
             Organisms org = organisms[c.organismId];
 
 
