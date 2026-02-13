@@ -80,6 +80,11 @@ public class CellManager : MonoBehaviour
         public float hp;
         public bool isBoss;
         public int bossIndex;
+
+        //only for WBC
+        public bool WBCInSight;
+        public float wanderAngle;
+
     }
 
     class Organisms
@@ -205,7 +210,7 @@ public class CellManager : MonoBehaviour
         //wbc
         ApplyWBCAttaching();
         ApplyWBCDamagePlayer();
-
+        //ApplyWBCWandering();
         //ApplyOrganismTendency();
         ApplyCoreAnchor();
 
@@ -245,7 +250,10 @@ public class CellManager : MonoBehaviour
 
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
-
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            Debug.Log(cells.Count);
+        }
     }
 
 
@@ -253,19 +261,14 @@ public class CellManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            Cell player = cells[playerCellIndex];
-            Debug.Log(cells.Count);
 
-        }
         if (Input.GetMouseButton(0))
         {
 
             Cell player = cells[playerCellIndex];
             //player.cellRadius += 0.1f;
 
-            CreatePlayerCell(player.nextPos);
+            CreatePlayerCell(player.currentPos+Random.insideUnitCircle * 0.4f);
             
         }
 
@@ -430,7 +433,7 @@ public class CellManager : MonoBehaviour
             boss.organismId = -1;
             boss.role = CellRole.Player;
 
-            boss.cellRadius = 0.5f;
+            boss.cellRadius = 0.3f;
             boss.detectRadius = boss.cellRadius * 6f;
 
             boss.hp = 100f;
@@ -455,7 +458,7 @@ public class CellManager : MonoBehaviour
             Cell c = cells[idx];
 
             c.isDead = false;
-            c.hp = 5f;
+            c.hp = 0.5f;
             c.isPlayerAttachedToWBC = false;
 
             c.currentPos = pos;
@@ -490,7 +493,7 @@ public class CellManager : MonoBehaviour
         clone.organismId = -1;
         clone.role = CellRole.Player;
 
-        clone.hp = 5f;
+        clone.hp = 0.55f;
         clone.detected = false;
         clone.bossIndex = bossCellInex;
 
@@ -520,7 +523,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = UnityEngine.Random.Range(20, 26);
+        int shellCount = UnityEngine.Random.Range(30, 40);
 
         //float coreDistance = 2f;
 
@@ -535,7 +538,7 @@ public class CellManager : MonoBehaviour
         core.currentVelocity = Vector2.zero;
 
         core.cellRadius = UnityEngine.Random.Range(0.3f, 0.4f);
-        core.detectRadius = core.cellRadius * 5.5f;
+        core.detectRadius = core.cellRadius * 7.5f;
         org.coreDistance = core.detectRadius;
 
         core.organismId = org.id;
@@ -697,7 +700,7 @@ public class CellManager : MonoBehaviour
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
             //float k = (org.playerInside == 1) ? 150f : 10f; // spring
-            float k = (org.playerInside == true) ? 3f : 40f; // spring
+            float k = (org.playerInside == true) ? 35f : 40f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
@@ -1183,7 +1186,7 @@ public class CellManager : MonoBehaviour
 
 
 
-        float attractStrength = 10f;
+        float attractStrength = 100f;
         float drag = 30f;
 
         
@@ -1211,20 +1214,20 @@ public class CellManager : MonoBehaviour
 
             float r = w.detectRadius;
 
-            bool inSight = (d2 <= r * r) && (d2 > player.cellRadius*player.cellRadius);
+            w.WBCInSight = (d2 <= r * r) && (d2 > player.cellRadius*player.cellRadius);
             
 
-            if (inSight)
+            if (w.WBCInSight)
             {
                 float dist = Mathf.Sqrt(d2);
                 Vector2 dir = delta / dist;
 
                 float force = (r - dist) / r;
-                w.nextPos += dir * (force * attractStrength) * dt;
+                w.nextVelocity += dir * (force * attractStrength) * dt;
             }
 
             float attachDist = player.cellRadius + w.cellRadius;
-            bool isAttachedToPlayer = (d2 <= attachDist * attachDist);
+            bool isAttachedToPlayer = (d2 <= (attachDist * attachDist) * 1.5f);
 
             if (isAttachedToPlayer)
             {
@@ -1251,7 +1254,7 @@ public class CellManager : MonoBehaviour
 
             if(p.isPlayerAttachedToWBC)
             {
-                p.hp -= damagePerSecond *Time.deltaTime;
+                p.hp = Mathf.Max(p.hp - damagePerSecond *dt, 0);
             }
 
             if(p.hp<=0 &&!p.isDead)
@@ -1263,6 +1266,53 @@ public class CellManager : MonoBehaviour
 
             cells[i] = p;
         }
+    }
+
+    void ApplyWBCWandering()
+    {
+        float dt = Time.deltaTime;
+
+        float maxSpeed = 30f;
+        float drag = 2.0f;
+
+        float wanderCircleDist = 1.2f;   // how far ahead the circle is
+        float wanderCircleRadius = 0.9f; // how wide it can turn
+        float wanderJitter = 2.5f;       // how quickly angle changes (radians/sec)
+        float steerStrength = 20f;
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            Cell w = cells[i];
+            if (w.role != CellRole.WhiteBlood) continue;
+            if (w.WBCInSight) continue;
+
+            // forward direction from velocity (fallback if almost stopped)
+            Vector2 forward = w.nextVelocity.sqrMagnitude > 0.001f
+                ? w.nextVelocity.normalized
+                : Random.insideUnitCircle.normalized;
+
+            // slowly vary the wander angle
+            w.wanderAngle += Random.Range(-1f, 1f) * wanderJitter * dt;
+
+            // point on a circle in front of the agent
+            Vector2 circleCenter = forward * wanderCircleDist;
+            Vector2 displacement = new Vector2(Mathf.Cos(w.wanderAngle), Mathf.Sin(w.wanderAngle)) * wanderCircleRadius;
+
+            Vector2 desiredDir = (circleCenter + displacement).normalized;
+            Vector2 desiredVel = desiredDir * maxSpeed;
+
+            Vector2 steer = (desiredVel - w.nextVelocity) * steerStrength;
+            w.nextVelocity += steer * dt;
+
+            // drag + clamp
+            w.nextVelocity *= Mathf.Exp(-drag * dt);
+            float speed = w.nextVelocity.magnitude;
+            if (speed > maxSpeed) w.nextVelocity *= (maxSpeed / speed);
+
+            cells[i] = w;
+        }
+
+
     }
 
     #endregion
