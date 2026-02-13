@@ -471,7 +471,7 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.2f;
-            c.detectRadius = c.cellRadius * 1.5f;
+            c.detectRadius = c.cellRadius * 4f;
 
             c.isBoss = (idx == bossCellInex);
             c.bossIndex = bossCellInex;
@@ -488,7 +488,7 @@ public class CellManager : MonoBehaviour
         clone.nextVelocity = Vector2.zero;
 
         clone.cellRadius = 0.2f;
-        clone.detectRadius = clone.cellRadius * 2f;
+        clone.detectRadius = clone.cellRadius * 4f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -903,7 +903,7 @@ public class CellManager : MonoBehaviour
         Cell boss = cells[bossCellInex];
         if (boss.isDead) return;
 
-        float r = boss.detectRadius*6f;
+        float r = boss.detectRadius*10f;
         float r2 = r * r;   
 
         float minGap = boss.cellRadius+0.22f;
