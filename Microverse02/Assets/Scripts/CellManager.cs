@@ -210,7 +210,7 @@ public class CellManager : MonoBehaviour
         ApplyWBCAttaching();
         ApplyWBCDamagePlayer();
         //ApplyWBCWandering();
-        //ApplyOrganismTendency();
+        ApplyOrganismTendency();
         ApplyCoreAnchor();
 
 
@@ -522,7 +522,7 @@ public class CellManager : MonoBehaviour
     void CreateOrganism(Vector2 currentPos)
     {
         Organisms org = new Organisms();
-        int shellCount = UnityEngine.Random.Range(30, 40);
+        int shellCount = UnityEngine.Random.Range(20, 25);
 
         //float coreDistance = 2f;
 
@@ -662,7 +662,7 @@ public class CellManager : MonoBehaviour
                 org.wanderTimer = Random.Range(0.5f, 2.0f);
             }
 
-            float speed = 115f;
+            float speed = 10f;
 
 
             core.nextVelocity += org.heading * speed * dt;
@@ -680,7 +680,7 @@ public class CellManager : MonoBehaviour
         float tolerance = 0.02f;
 
         float c = 1.1f;     // damping
-        float maxForce = 80f;
+        float maxForce = 40f;
 
         for (int i = 0; i < organisms.Count; i++)
         {
@@ -699,7 +699,7 @@ public class CellManager : MonoBehaviour
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
             //float k = (org.playerInside == 1) ? 150f : 10f; // spring
-            float k = (org.playerInside == true) ? 35f : 40f; // spring
+            float k = (org.playerInside == true) ? 15f : 20f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
