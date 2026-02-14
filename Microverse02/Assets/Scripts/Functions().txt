@@ -10,7 +10,7 @@ float GetPlayerRadius()
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void CreatePlayerCell(Vector2 pos)
+void CreatePlayerCell(Vector2 pos) --
 
 void SpawnPlayerClone(Vector2 pos)
 
@@ -26,9 +26,9 @@ void ApplyCoreAnchor()
 
 void ApplyOrganismTendency()
 
-void ApplyKeepShape(int CurrentIndex, int OtherIndex)
+void ApplyKeepOrganismShape(int CurrentIndex, int OtherIndex)
 
-void ApplyCellPushing(int currentIndex, int otherIndex)   --
+void ApplyCellPushing(int currentIndex, int otherIndex)   
 
 void ApplyDragToCells()
 
@@ -39,6 +39,10 @@ void ApplyCellDetection(int currentIndex, int otherIndex)
 void ApplyCohesionToBoss(int CurrentIndex, int OtherIndex)   --
 
 void ApplyCellMovement()
+
+void CleanWanderDictionaries()
+
+void ApplyCellWiggling()
 
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
