@@ -336,29 +336,26 @@ public class CellManager : MonoBehaviour
         Vector2 p = c.nextPos;
         Vector2 v = c.nextVelocity;
 
-        Vector2 to = p - mapCentre;
-        float dist = to.magnitude;
+        Vector2 delta = p - mapCentre;
+        float dist = delta.magnitude;
 
         float allowed = mapRadius - c.cellRadius;
         if (dist <= allowed || dist < 1e-6f) return;
 
-        Vector2 n = to / dist; // outward normal
+        Vector2 direction = delta / dist; // outward normal
 
         // clamp slightly inside (prevents re-hitting every frame)
-        const float skin = 0.001f;
-        c.nextPos = mapCentre + n * (allowed - skin);
+        const float skin = 0.1f;
+        c.nextPos = mapCentre + direction * (allowed - skin);
 
-        float vn = Vector2.Dot(v, n);
+        float vn = Vector2.Dot(v, direction);
 
-        // only bounce if moving outward
-        if (vn > 0f)
+        if(vn >0.0001f)
         {
-            v = v - 2f * vn * n;   // reflect
-            v *= wallBounciness;   // lose energy (NO minus)
+            v = v - 2f * vn * direction;
+            v*=wallBounciness;
             c.nextVelocity = v;
         }
-
-        cells[i] = c;
     }
 
     #endregion
