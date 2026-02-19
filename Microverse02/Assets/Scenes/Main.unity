@@ -5190,12 +5190,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  organismCount: 100
-  WBCCount: 200
+  organismCount: 10
+  WBCCount: 20
   mapCentre: {x: 0, y: 0}
   mapRadius: 70
   refToBg: {fileID: 237737088}
-  wallBounciness: 1
+  wallBounciness: 6.6
   playerPushStrength: 0
   BoxSize: 1.25
   cellDebugPrefeb: {fileID: 647007298097418435, guid: 83f99c3f291f50641b993e54ffcf9b49, type: 3}

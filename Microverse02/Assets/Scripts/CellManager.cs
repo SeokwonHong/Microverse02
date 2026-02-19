@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 //using Vector2 = UnityEngine.Vector2;
 
@@ -87,6 +88,9 @@ public class CellManager : MonoBehaviour
         public bool WBCInSight;
         public float wanderAngle;
 
+        //cell movement
+        public Vector2 heading;
+        public float headingTimer;
     }
 
     class Organisms
@@ -144,8 +148,6 @@ public class CellManager : MonoBehaviour
 
             CreateOrganism(pos);
         }
-
-        StartCoroutine(WanderCleanRoutine());
 
 
         //GPU
@@ -205,7 +207,7 @@ public class CellManager : MonoBehaviour
         }
 
         
-        ApplyDragToCells();
+        
         ApplyPlayerInput();
         ApplyCohesionToBoss();
         ApplyPlayerFunctions();
@@ -222,14 +224,14 @@ public class CellManager : MonoBehaviour
 
         for (int iter = 0; iter < 3; iter++) // play iter times in one frame
         {
-
             //ApplyOrganismJelly(Time.fixedDeltaTime);
             ApplyKeepOrganismShape();
-     
-
         }
+
         ApplyPlayerKillsOrganism();
         ApplyCellWiggling();
+
+        ApplyDragToCells();
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
@@ -253,6 +255,8 @@ public class CellManager : MonoBehaviour
 
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
+
+        
         if (Input.GetKeyDown(KeyCode.V))
         {
             Debug.Log(cells.Count);
@@ -271,7 +275,8 @@ public class CellManager : MonoBehaviour
             Cell player = cells[playerCellIndex];
             //player.cellRadius += 0.1f;
 
-            CreatePlayerCell(player.currentPos+Random.insideUnitCircle * 0.4f);
+            CreatePlayerCell(player.currentPos+Random.insideUnitCircle * (player.cellRadius*1.2f));
+            //CreatePlayerCell(player.currentPos);
             
         }
 
@@ -336,26 +341,24 @@ public class CellManager : MonoBehaviour
         Vector2 p = c.nextPos;
         Vector2 v = c.nextVelocity;
 
-        Vector2 delta = p - mapCentre;
-        float dist = delta.magnitude;
+        Vector2 to = p - mapCentre;
+        float dist = to.magnitude;
 
         float allowed = mapRadius - c.cellRadius;
         if (dist <= allowed || dist < 1e-6f) return;
 
-        Vector2 direction = delta / dist; // outward normal
+        Vector2 n = to / dist;
+        c.nextPos = mapCentre + n * allowed;
 
-        // clamp slightly inside (prevents re-hitting every frame)
-        const float skin = 0.1f;
-        c.nextPos = mapCentre + direction * (allowed - skin);
-
-        float vn = Vector2.Dot(v, direction);
-
-        if(vn >0.0001f)
+        float vn = Vector2.Dot(v, n);
+        if (vn > 0f)
         {
-            v = v - 2f * vn * direction;
-            v*=wallBounciness;
+            v = v - 2f * vn * n;
+            v *= wallBounciness;
             c.nextVelocity = v;
+
         }
+        cells[i] = c;
     }
 
     #endregion
@@ -437,7 +440,7 @@ public class CellManager : MonoBehaviour
             boss.organismId = -1;
             boss.role = CellRole.Player;
 
-            boss.cellRadius = 0.3f;
+            boss.cellRadius = 0.5f;
             boss.detectRadius = boss.cellRadius * 6f;
 
             boss.hp = 100f;
@@ -475,7 +478,7 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.2f;
-            c.detectRadius = c.cellRadius * 2.5f;
+            c.detectRadius = c.cellRadius * 1.5f;
 
             c.isBoss = (idx == bossCellInex);
             c.bossIndex = bossCellInex;
@@ -492,7 +495,7 @@ public class CellManager : MonoBehaviour
         clone.nextVelocity = Vector2.zero;
 
         clone.cellRadius = 0.2f;
-        clone.detectRadius = clone.cellRadius * 2.5f;
+        clone.detectRadius = clone.cellRadius * 1.5f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -751,7 +754,7 @@ public class CellManager : MonoBehaviour
         Cell a = cells[currentIndex];
         Cell b = cells[otherIndex];
 
-        //if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
+        if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
         if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
 
         
@@ -929,7 +932,7 @@ public class CellManager : MonoBehaviour
         Cell boss = cells[bossCellInex];
         if (boss.isDead) return;
 
-        float r = boss.detectRadius*10f;
+        float r = boss.detectRadius;
         float r2 = r * r;   
 
         float minGap = boss.cellRadius+0.22f;
@@ -978,81 +981,36 @@ public class CellManager : MonoBehaviour
     void ApplyCellMovement()
     {
         float dt = Time.deltaTime;
+        float accel = 40f;
 
-        float speed = 500f;          // roaming strength
-        float turnJitter = 0.35f;   // how much direction changes each refresh
-        float minTime = 0.4f;
-        float maxTime = 1.6f;
-
-        float baseDrag = 2.5f;      // extra drag just for roam
-        float maxSpeed = 25f;
-
-        for (int i = 0; i < cells.Count; i++)
+        for(int i = 0;i < cells.Count;i++)
         {
-            Cell c = cells[i];
-            if (c.isDead) continue;
-            if (c.role == CellRole.Player) continue;      // don’t override player
-            //if (c.role == CellRole.Core) continue;
-            if(c.role==CellRole.Shell) continue;
+            Cell c = cells[i];  
+            if(c.role == CellRole.Shell) continue;
 
-            // init state if missing
-            if (!wanderDir.TryGetValue(i, out var dir) || dir.sqrMagnitude < 1e-6f)
+            if(c.heading.sqrMagnitude <1e-6f)
             {
-                dir = Random.insideUnitCircle.normalized;
-                wanderDir[i] = dir;
-                wanderTimer[i] = Random.Range(minTime, maxTime);
+                c.heading = Random.insideUnitCircle.normalized;
+                c.headingTimer = Random.Range(0.6f, 1.4f);
             }
 
-            // countdown + refresh direction occasionally
-            float t = wanderTimer[i] - dt;
-            if (t <= 0f)
+            c.headingTimer -= dt;
+
+            if(c.headingTimer <=0f)
             {
-                Vector2 jitter = Random.insideUnitCircle * turnJitter;
-                dir = (dir + jitter).normalized;
-                if (dir.sqrMagnitude < 1e-6f) dir = Random.insideUnitCircle.normalized;
-
-                t = Random.Range(minTime, maxTime);
-
-                wanderDir[i] = dir;
+                Vector2 jitter = Random.insideUnitCircle * 0.5f;
+                c.heading = (c.heading +jitter).normalized;
+                c.headingTimer = Random.Range(0.6f, 1.4f);
             }
-            wanderTimer[i] = t;
 
-            // “energy-like” push in a consistent direction + damping
-            c.nextVelocity += dir * speed * dt;
-
-            // additional drag so it settles / feels viscous
-            c.nextVelocity *= Mathf.Exp(-baseDrag * dt);
-
-            // clamp speed for stability
-            float sp = c.nextVelocity.magnitude;
-            if (sp > maxSpeed) c.nextVelocity *= (maxSpeed / sp);
+            c.nextVelocity += c.heading * accel * dt;
 
             cells[i] = c;
         }
+        
     }
 
-    void CleanWanderDictionaries()
-    {
-        int count = cells.Count;
 
-        var keys = new List<int>(wanderDir.Keys);
-        for(int k = 0; k< keys.Count; k++)
-        {
-            if(keys[k] >= count)
-            {
-                wanderDir.Remove(keys[k]);
-                wanderTimer.Remove(keys[k]);
-            }
-        }
-    }
-    IEnumerator WanderCleanRoutine()
-    {
-        while(true)
-        {
-            yield return new WaitForSeconds(5f);
-            CleanWanderDictionaries();
-        }
-    }
 
     void ApplyCellWiggling()// cell tendency
     {
