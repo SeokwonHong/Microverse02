@@ -392,7 +392,7 @@ public class CellManager : MonoBehaviour
             Cell c = cells[idx];
 
             c.isDead = false;
-            c.hp = 1f;
+            c.hp = 2f;
             c.isPlayerAttachedToWBC = false;
 
             c.currentPos = pos;
@@ -429,7 +429,7 @@ public class CellManager : MonoBehaviour
         clone.organismId = -1;
         clone.role = CellRole.Player;
 
-        clone.hp = 1f;
+        clone.hp = 2f;
         clone.detected = true;
         clone.isDead = false;
         clone.isPlayerAttachedToWBC = false;
@@ -446,7 +446,7 @@ public class CellManager : MonoBehaviour
         w.currentVelocity = Vector2.zero;
         w.nextVelocity = Vector2.zero;
 
-        w.cellRadius = 0.4f;
+        w.cellRadius = 0.25f;
         w.detectRadius = w.cellRadius * 30f;
 
         w.organismId = -1;
@@ -669,7 +669,7 @@ public class CellManager : MonoBehaviour
 
         if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
         if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
-        if(a.role == CellRole.Core || b.role == CellRole.Core) return;
+       // if(a.role == CellRole.Core || b.role == CellRole.Core) return;
 
         Vector2 delta = b.nextPos - a.nextPos;
         float d2 = delta.sqrMagnitude;
