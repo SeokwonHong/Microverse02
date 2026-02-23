@@ -470,7 +470,7 @@ public class CellManager : MonoBehaviour
         w.nextVelocity = Vector2.zero;
 
         w.cellRadius = 0.25f;
-        w.detectRadius = w.cellRadius * 30f;
+        w.detectRadius = w.cellRadius * 10f;
 
         w.organismId = -1;
         w.role = CellRole.WhiteBlood;
@@ -692,7 +692,7 @@ public class CellManager : MonoBehaviour
 
         if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
         if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
-       // if(a.role == CellRole.Core || b.role == CellRole.Core) return;
+        if(a.role == CellRole.Core || b.role == CellRole.Core) return;
 
         Vector2 delta = b.nextPos - a.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -814,61 +814,79 @@ public class CellManager : MonoBehaviour
     void ApplyOrganismJelly(float dt) //apply this to organisms instead of ApplyKeepDistance()?? 
     {
 
-        if (playerCellIndex < 0) return; //if player is not made yet, return. if player is successfully made using CreatePlayerCell(), playerCellIndex will be integer
-
-        Cell player = cells[playerCellIndex];
-
-        float k = 600f; // spring strengh
-        float c = 1.1f; // damping (bigger, more tough surface)
-
+        float k = 0f;     // spring strength
+        float c = 1.1f;     // damping
         float maxPenetration = 0.35f;
         float maxAccel = 900f;
 
-        Vector2 totalAccel = Vector2.zero;
-
-
-
-        for (int o = 0; o < organisms.Count; o++)
+        // Loop through all cells and apply jelly only to the roles you want
+        for (int i = 0; i < cells.Count; i++)
         {
-            var org = organisms[o];
-            if (org.isDead) continue;
+            Cell target = cells[i];
+            Cell player = cells[playerCellIndex];
 
-            Cell core = cells[org.coreIndex];
+            if (target == player)
+            {
+                k = 140f;
+            }
+            else k = 6f;
+            if (target.isDead) continue;
 
-            float barrier = org.coreDistance + player.cellRadius;
-
-            Vector2 delta = player.nextPos - core.nextPos;
-            float d2 = delta.sqrMagnitude;
-            if (d2 < 1e-6f) continue;
-
-            float dist = Mathf.Sqrt(d2);
-            float penetration = barrier - dist; // if player is inside of organism, penetration is integer. deeper = greater value
-            if (penetration <= 0f) continue;
-
-            if (penetration > maxPenetration) penetration = maxPenetration;
-
-            Vector2 n = delta / dist;
+            // Only push these roles
+            if (target.role != CellRole.Player && target.role != CellRole.WhiteBlood && target.role != CellRole.Core) continue;
 
 
-            float v_n = Vector2.Dot(player.nextVelocity - core.nextVelocity, n); //player direction vs core direction
-            // v_n > 0  = Moving in the same direction as n
-            // v_n < 0  = Moving opposite to n
-            // v_n == 0 = 90 degree 
+            Vector2 totalAccel = Vector2.zero;
+
+            for (int o = 0; o < organisms.Count; o++)
+            {
+                var org = organisms[o];
+                if (org.isDead) continue;
+
+                // Optional: don’t push cells that are part of this organism
+                if (target.organismId == o) continue;
+
+                Cell core = cells[org.coreIndex];
 
 
-            float accelMag = (k * penetration) - (c * v_n);
-            if (accelMag <= 0f) continue;
+                float barrier=1f;
+                if(target.role==CellRole.WhiteBlood)
+                {
+                    barrier = org.coreDistance + target.cellRadius;
+                }
+                else barrier= org.coreDistance + target.detectRadius;
 
-            totalAccel += n * accelMag;
+                Vector2 delta = target.nextPos - core.nextPos;
+                float d2 = delta.sqrMagnitude;
+                if (d2 < 1e-6f) continue;
+
+                float dist = Mathf.Sqrt(d2);
+                float penetration = barrier - dist;
+                if (penetration <= 0f) continue;
+
+                if (penetration > maxPenetration) penetration = maxPenetration;
+
+                Vector2 n = delta / dist;
+
+                float v_n = Vector2.Dot(target.nextVelocity - core.nextVelocity, n);
+
+                float accelMag = (k * penetration) - (c * v_n);
+                if (accelMag <= 0f) continue;
+
+                totalAccel += n * accelMag;
+            }
+
+            // Clamp accel
+            float a2 = totalAccel.sqrMagnitude;
+            float maxA2 = maxAccel * maxAccel;
+            if (a2 > maxA2)
+                totalAccel = totalAccel * (maxAccel / Mathf.Sqrt(a2));
+
+            // IMPORTANT: add, don’t overwrite
+            target.nextVelocity += totalAccel * dt;
+
+            cells[i] = target;
         }
-
-        if (totalAccel.sqrMagnitude > maxAccel * maxAccel)
-        {
-            totalAccel = totalAccel.normalized * maxAccel;
-        }
-        player.nextVelocity = totalAccel * dt;
-
-        cells[playerCellIndex] = player;
     }
 
     void ApplyCellDetection(int a, int b)
