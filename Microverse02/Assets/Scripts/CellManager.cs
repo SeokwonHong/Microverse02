@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Threading;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 
@@ -18,6 +19,10 @@ public class CellManager : MonoBehaviour
     [Header("Mouse and Player")]
     float mousePlayerDistance;
     float playerSpeed;
+
+    [Header("Bacteria Reproduce Timer")]
+    float reproduceTimer = 0;
+    float reproduceInterval = 0.01f;
 
     [Header("Player")]
     [SerializeField] float maxSpeed = 10f;
@@ -247,12 +252,19 @@ public class CellManager : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (playerCellIndex < 0) return;
+
         if (Input.GetMouseButton(0))
         {
-
             Cell player = cells[playerCellIndex];
 
-            CreatePlayerCell(player.currentPos); 
+            reproduceTimer += Time.fixedDeltaTime;
+
+            if(reproduceTimer>=reproduceInterval)
+            {
+                reproduceTimer = 0f;
+                CreatePlayerCell(player.currentPos);
+            }
         }
     }
     void EnsureDebugPool()
@@ -404,7 +416,7 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.2f;
-            c.detectRadius = c.cellRadius * 6f;
+            c.detectRadius = c.cellRadius * 1.1f;
 
             c.detected = true;
 
@@ -424,7 +436,7 @@ public class CellManager : MonoBehaviour
         clone.nextVelocity = Vector2.zero;
 
         clone.cellRadius = 0.2f;
-        clone.detectRadius = clone.cellRadius * 6f;
+        clone.detectRadius = clone.cellRadius * 1.1f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -1078,7 +1090,7 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        float attractStrength = 100f;
+        float attractStrength = 10f;
         float drag = 30f;
 
         for (int i = 0; i<cells.Count; i++)
@@ -1121,7 +1133,7 @@ public class CellManager : MonoBehaviour
                 Vector2 dir = delta / dist;
 
                 float force = (r - dist) / r;
-                w.nextVelocity += dir * (force * attractStrength) * dt;
+                w.nextPos += dir * (force * attractStrength) * dt;
             }
 
             float attachDist = player.cellRadius + w.cellRadius;
