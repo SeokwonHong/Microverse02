@@ -28,6 +28,8 @@ void ApplyKeepOrganismShape(int CurrentIndex, int OtherIndex)
 
 void ApplyCellPushing(int currentIndex, int otherIndex)   
 
+void ApplyCohesion(int CurrentIndex, int OtherIndex)
+
 void ApplyDragToCells()
 
 void ApplyOrganismJelly()

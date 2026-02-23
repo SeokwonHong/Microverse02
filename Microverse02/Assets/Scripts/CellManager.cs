@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
@@ -83,6 +84,8 @@ public class CellManager : MonoBehaviour
         public Vector2 heading;
         public float headingTimer;
         public float wanderAngle;
+
+        public Vector2 cohesionDV;
     }
 
     class Organisms
@@ -160,6 +163,9 @@ public class CellManager : MonoBehaviour
             c.nextPos = c.currentPos;
             c.detected = false;
             c.isPlayerAttachedToWBC = false;
+
+            c.cohesionDV = Vector2.zero;
+
             cells[i] = c;
         }
 
@@ -187,7 +193,8 @@ public class CellManager : MonoBehaviour
 
                 ResolveOverlap(i, otherIndex);
                 ApplyCellDetection(i, otherIndex);
-                ApplyCellPushing(i, otherIndex);  
+                ApplyCellPushing(i, otherIndex);
+                ApplyCohesion(i, otherIndex);   
             }
         }
 
@@ -416,9 +423,11 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.2f;
-            c.detectRadius = c.cellRadius * 1.1f;
+            c.detectRadius = c.cellRadius * 4f;
 
             c.detected = true;
+
+            c.cohesionDV = Vector2.zero;
 
             cells[idx] = c;
 
@@ -436,7 +445,7 @@ public class CellManager : MonoBehaviour
         clone.nextVelocity = Vector2.zero;
 
         clone.cellRadius = 0.2f;
-        clone.detectRadius = clone.cellRadius * 1.1f;
+        clone.detectRadius = clone.cellRadius * 4f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -445,7 +454,9 @@ public class CellManager : MonoBehaviour
         clone.detected = true;
         clone.isDead = false;
         clone.isPlayerAttachedToWBC = false;
-        
+
+        clone.cohesionDV = Vector2.zero;
+
         cells.Add(clone);
 
         playerCellIndex = newIdx;   
@@ -726,6 +737,62 @@ public class CellManager : MonoBehaviour
         cells[otherIndex] = b;
     }
 
+    void ApplyCohesion(int aIndex, int bIndex)  //cell gathering method
+    {
+        float dt = Time.deltaTime;
+
+        // only if player involved (optional)
+        Cell A = cells[aIndex];
+        Cell B = cells[bIndex];
+        if (A.role != CellRole.Player && B.role != CellRole.Player) return;
+
+        Vector2 delta = B.nextPos - A.nextPos;
+        float d2 = delta.sqrMagnitude;
+        if (d2 < 1e-8f) return;
+
+        float cohesionRadius = 2.0f;
+        if (d2 > cohesionRadius * cohesionRadius) return;
+
+        float dist = Mathf.Sqrt(d2);
+        Vector2 dir = delta / dist;
+
+        float minDist = A.cellRadius + B.cellRadius;
+
+        // IMPORTANT: don't apply cohesion near contact
+        float start = minDist * 10f;       // tune
+        if (dist <= start) return;
+
+        // spring accel
+        float k = 1.2f;
+        float accel = k * (dist - start);
+
+        float maxAccel = 2f;
+        accel = Mathf.Min(accel, maxAccel);
+
+        Vector2 dv = dir * (accel * dt);
+
+        // per-cell cohesion dv cap (this is the key)
+        float maxCohesionDV = 0.3f; // tune (units/sec change per frame)
+        Vector2 aNew = A.cohesionDV + dv;
+        Vector2 bNew = B.cohesionDV - dv;
+
+        if (aNew.sqrMagnitude > maxCohesionDV * maxCohesionDV)
+            dv = Vector2.ClampMagnitude(dv, Mathf.Max(0f, maxCohesionDV - A.cohesionDV.magnitude));
+
+        if ((B.cohesionDV - dv).sqrMagnitude > maxCohesionDV * maxCohesionDV)
+            dv = Vector2.ClampMagnitude(dv, Mathf.Max(0f, maxCohesionDV - B.cohesionDV.magnitude));
+
+        // apply
+        A.nextVelocity += dv;
+        B.nextVelocity -= dv;
+
+        A.cohesionDV += dv;
+        B.cohesionDV -= dv;
+
+        cells[aIndex] = A;
+        cells[bIndex] = B;
+    }
+
     void ApplyDragToCells()
     {
         float dt = Time.deltaTime;
@@ -873,34 +940,39 @@ public class CellManager : MonoBehaviour
 
     void ApplyCellWiggling()// cell tendency
     {
-        float dt = Time.deltaTime;  
+        float dt = Time.deltaTime;
 
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
-            if(c.isDead) continue;
+            if (c.isDead) continue;
 
-            //if (c.role == CellRole.Player) continue;
-            //if(c.role ==CellRole.Core) continue;
-
-            if (c.organismId < 0 || c.organismId >= organisms.Count) continue;
-            
-            Organisms org = organisms[c.organismId];
-            float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
-
-            Vector2 ramdomDir = UnityEngine.Random.insideUnitCircle;
-            if (ramdomDir.sqrMagnitude < 1e-6f) continue;
+            Vector2 randomDir = Random.insideUnitCircle;
+            if (randomDir.sqrMagnitude < 1e-6f) continue;
 
             float speed;
-            if (c.detected)
+            
+            if (c.role == CellRole.Player)
             {
-                speed = Mathf.Lerp(100f, 0.0f, t);
+                speed = 140f;  
             }
-            else speed = Mathf.Lerp(55f, 0.0f, t);
 
-            float drag = 9f;
-            c.nextVelocity *= Mathf.Exp(-drag * dt);
-            c.nextVelocity += ramdomDir * speed * dt;
+            // ORGANISM WIGGLE
+            else if (c.organismId >= 0 && c.organismId < organisms.Count)
+            {
+                Organisms org = organisms[c.organismId];
+                float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
+
+                if (c.detected)
+                    speed = Mathf.Lerp(100f, 0f, t);
+                else
+                    speed = Mathf.Lerp(55f, 0f, t);
+            }
+            else
+            {
+                continue;
+            }
+            c.nextVelocity += randomDir * speed * dt;
 
             cells[i] = c;
         }

@@ -5190,12 +5190,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  organismCount: 10
-  WBCCount: 600
+  organismCount: 0
+  WBCCount: 498
   mapCentre: {x: 0, y: 0}
-  mapRadius: 35
+  mapRadius: 15
   refToBg: {fileID: 237737088}
-  wallBounciness: 6.6
+  wallBounciness: 2
   maxSpeed: 10
   threshold: 17
   playerPushStrength: 0
