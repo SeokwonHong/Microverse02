@@ -194,7 +194,7 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                ApplyCohesion(i, otherIndex);   
+                //ApplyCohesion(i, otherIndex);   
             }
         }
 
@@ -826,6 +826,8 @@ public class CellManager : MonoBehaviour
 
         Vector2 totalAccel = Vector2.zero;
 
+
+
         for (int o = 0; o < organisms.Count; o++)
         {
             var org = organisms[o];
@@ -952,13 +954,17 @@ public class CellManager : MonoBehaviour
 
             float speed;
             
-            if (c.role == CellRole.Player)
-            {
-                speed = 140f;  
-            }
+            //if (c.role == CellRole.Player)
+            //{
+            //    speed = 100f;  
+            //}
+            //else if(c.role == CellRole.WhiteBlood)
+            //{
+            //    speed = 140f;
+            //}
 
             // ORGANISM WIGGLE
-            else if (c.organismId >= 0 && c.organismId < organisms.Count)
+            if (c.organismId >= 0 && c.organismId < organisms.Count)
             {
                 Organisms org = organisms[c.organismId];
                 float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
@@ -1296,6 +1302,18 @@ public class CellManager : MonoBehaviour
 
 
     }
+
+    public bool IsLevelWin()
+    {
+        if(organisms.Count ==0) return false;   
+
+        for(int i = 0; i<organismCount; i++)
+        {
+            if (!organisms[i].isDead) return false;
+        }
+        return true;
+    }
+
 
     #endregion
 

@@ -4,8 +4,10 @@ public class GameManager : MonoBehaviour
 {
 
     public static GameManager Instance;
-
     public int currentLevelIndex;
+
+    [SerializeField] CellManager cellManager;
+    bool win;
 
     void Awake()
     {
@@ -29,4 +31,21 @@ public class GameManager : MonoBehaviour
         SceneController.Instance.LoadLevel(0);
     }
 
+
+    private void Start()
+    {
+        
+    }
+
+    private void Update()
+    {
+        if (win) return;
+        if (cellManager == null) return;
+
+        if (cellManager.IsLevelWin())
+        {
+            win = true;
+            Debug.Log("WIN!");
+        }
+    }
 }
