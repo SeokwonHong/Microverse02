@@ -54,6 +54,11 @@ public class CellManager : MonoBehaviour
     List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
 
+    [Header("Game Values")]
+    public float ReproductionEnergy = 0;
+    public float OrganismLeftCount = 0;
+    public float SystemStability = 0;
+
     enum CellRole { Player, Core, Shell, WhiteBlood }
 
     class Cell
@@ -121,14 +126,14 @@ public class CellManager : MonoBehaviour
         float minY = -mapRadius;
         float maxY = mapRadius;
 
-        for (int i = 0; i < WBCCount; i++)
-        {
-            Vector2 pos = new Vector2(
-                UnityEngine.Random.Range(minX, maxX),
-                UnityEngine.Random.Range(minY, maxY)
-            );
-            CreateWBCCell(pos);
-        }
+        //for (int i = 0; i < WBCCount; i++)
+        //{
+        //    Vector2 pos = new Vector2(
+        //        UnityEngine.Random.Range(minX, maxX),
+        //        UnityEngine.Random.Range(minY, maxY)
+        //    );
+        //    CreateWBCCell(pos);
+        //}
 
         for (int i = 0; i < organismCount; i++)
         {
@@ -139,6 +144,8 @@ public class CellManager : MonoBehaviour
             CreateOrganism(pos);
         }
 
+        OrganismLeftCount = organismCount;
+        SystemStability = 100f;
 
         //GPU
         debugRenderers.Capacity = cells.Count;
@@ -246,6 +253,8 @@ public class CellManager : MonoBehaviour
             c.currentVelocity = c.nextVelocity;
             c.currentPos = c.nextPos;
             cells[i] = c;
+
+
         }
 
         ApplyOrganismDeath();
@@ -263,6 +272,8 @@ public class CellManager : MonoBehaviour
 
         if (Input.GetMouseButton(0))
         {
+            if (ReproductionEnergy <= 0) return;
+
             Cell player = cells[playerCellIndex];
 
             reproduceTimer += Time.fixedDeltaTime;
@@ -270,6 +281,7 @@ public class CellManager : MonoBehaviour
             if(reproduceTimer>=reproduceInterval)
             {
                 reproduceTimer = 0f;
+                ReproductionEnergy -= 1;
                 CreatePlayerCell(player.currentPos);
             }
         }
@@ -460,6 +472,10 @@ public class CellManager : MonoBehaviour
         cells.Add(clone);
 
         playerCellIndex = newIdx;   
+    }
+    void CreateWBCCellRandomPosition()
+    {
+
     }
     void CreateWBCCell(Vector2 pos)
     {
@@ -827,9 +843,9 @@ public class CellManager : MonoBehaviour
 
             if (target == player)
             {
-                k = 140f;
+                k = 170f;
             }
-            else k = 6f;
+            else k = 10f;
             if (target.isDead) continue;
 
             // Only push these roles
@@ -915,11 +931,6 @@ public class CellManager : MonoBehaviour
             else A.detected = false;
         }
     }
-
-
-
-
-
     #endregion
 
     #region Cell_Rules
@@ -1133,7 +1144,11 @@ public class CellManager : MonoBehaviour
         org.heading = Vector2.zero;
         org.headingPower = 0f;
 
-        if(!alreadyDead)
+        OrganismLeftCount--;
+
+       
+
+        if (!alreadyDead)
         {
             org.deadTimer = 0f;
         }
@@ -1145,6 +1160,9 @@ public class CellManager : MonoBehaviour
 
             Cell c = cells[cellIdx];
             c.isDead = true;
+
+            ReproductionEnergy++;
+
             cells[cellIdx] = c;
         }
 
