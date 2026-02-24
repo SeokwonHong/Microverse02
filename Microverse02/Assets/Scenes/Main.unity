@@ -5376,7 +5376,7 @@ MonoBehaviour:
   playerPushStrength: 0
   BoxSize: 1.25
   cellDebugPrefeb: {fileID: 647007298097418435, guid: 83f99c3f291f50641b993e54ffcf9b49, type: 3}
-  ReproductionEnergy: 0
+  ReproductionEnergy: 500
   OrganismLeftCount: 0
   SystemStability: 0
 --- !u!1 &1587657921

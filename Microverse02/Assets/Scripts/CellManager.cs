@@ -140,7 +140,6 @@ public class CellManager : MonoBehaviour
             CreateOrganism(pos);
         }
 
-        ReproductionEnergy = 1000000000000000;
         OrganismLeftCount = organismCount;
         SystemStability = 100f;
 
@@ -666,6 +665,8 @@ public class CellManager : MonoBehaviour
                 Cell shell = cells[shellIdx];
                 if (shell.organismId != core.organismId) continue; // safety
 
+           
+
                 Vector2 delta = shell.nextPos - core.nextPos;
                 float d2 = delta.sqrMagnitude;
                 if (d2 < 1e-8f) continue;
@@ -674,7 +675,8 @@ public class CellManager : MonoBehaviour
                 Vector2 dir = delta / dist;
 
                 float shellGap = dist - coreDist;
-                if (Mathf.Abs(shellGap) < tolerance) continue;
+                if (Mathf.Abs(shellGap) < tolerance) continue;          ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                //if (shellGap <= tolerance) continue;
 
                 float relVelAlongDir = Vector2.Dot(shell.nextVelocity - core.nextVelocity, dir);
 
