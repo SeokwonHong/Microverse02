@@ -130,14 +130,6 @@ public class CellManager : MonoBehaviour
         float minY = -mapRadius;
         float maxY = mapRadius;
 
-        //for (int i = 0; i < WBCCount; i++)
-        //{
-        //    Vector2 pos = new Vector2(
-        //        UnityEngine.Random.Range(minX, maxX),
-        //        UnityEngine.Random.Range(minY, maxY)
-        //    );
-        //    CreateWBCCell(pos);
-        //}
 
         for (int i = 0; i < organismCount; i++)
         {
@@ -148,7 +140,7 @@ public class CellManager : MonoBehaviour
             CreateOrganism(pos);
         }
 
-        ReproductionEnergy = 10;
+        ReproductionEnergy = 1000000000000000;
         OrganismLeftCount = organismCount;
         SystemStability = 100f;
 
@@ -229,10 +221,11 @@ public class CellManager : MonoBehaviour
         // 6) Cell rules
         ApplyPlayerKillsOrganism();
         ApplyCellWiggling();
+        ApplyPlayerHeadToOrganism(dt);
 
         ApplyDragToCells();
 
-        emitWBCFromOrganism(dt);
+        ApplyEmitWBCFromOrganism(dt);
         //ApplyCellMovement();
         //ApplyOrganismTendency();
 
@@ -479,22 +472,7 @@ public class CellManager : MonoBehaviour
 
         playerCellIndex = newIdx;   
     }
-    void CreateWBCCellRandomPosition()
-    {
-        float minX = -mapRadius;
-        float maxX = mapRadius;
-        float minY = -mapRadius;
-        float maxY = mapRadius;
 
-        for (int i = 0; i < 10; i++)
-        {
-            Vector2 pos = new Vector2(
-                UnityEngine.Random.Range(minX, maxX),
-                UnityEngine.Random.Range(minY, maxY)
-            );
-            CreateWBCCell(pos);
-        }
-    }
     void CreateWBCCell(Vector2 pos)
     {
         Cell w = new Cell();
@@ -503,7 +481,7 @@ public class CellManager : MonoBehaviour
         w.currentVelocity = Vector2.zero;
         w.nextVelocity = Vector2.zero;
 
-        w.cellRadius = 0.25f;
+        w.cellRadius = 0.2f;
         w.detectRadius = w.cellRadius * 10f;
 
         w.organismId = -1;
@@ -719,7 +697,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void emitWBCFromOrganism(float dt)
+    void ApplyEmitWBCFromOrganism(float dt)
     {
         WBCSpawnTimer += dt;
         if (WBCSpawnTimer < 1f) return;
@@ -735,7 +713,6 @@ public class CellManager : MonoBehaviour
             Cell core = cells[o.coreIndex];
             CreateWBCCell(core.currentPos+(Random.insideUnitCircle*(core.cellRadius*0.8f)));
             return;
-           
         }
     }
 
@@ -1117,6 +1094,41 @@ public class CellManager : MonoBehaviour
         }
     }
 
+    void ApplyPlayerHeadToOrganism(float dt)
+    {
+        
+
+        for( int i =0; i<organismCount; i++)
+        {
+            Organisms o = organisms[i];
+            if (o.isDead) continue;
+
+            Cell core = cells[o.coreIndex];
+            
+            for(int j= 0; j<cells.Count; j++) 
+            {
+                if (j == playerCellIndex) continue;
+
+                Cell p = cells[j];       
+                if(p.role != CellRole.Player) continue;
+                if(p.isDead) continue;
+                
+                Vector2 d = core.nextPos - p.currentPos;
+                float d2 = d.magnitude;
+
+                if(d2>o.coreDistance) continue;
+
+                p.nextVelocity += d.normalized * 20f * dt;
+
+                cells[j] = p;
+                
+            }
+            
+
+        }
+    }
+
+
     void ApplyPlayerKillsOrganism()
     {
         List<int> playerCells = new List<int>(16);
@@ -1195,8 +1207,6 @@ public class CellManager : MonoBehaviour
 
         OrganismLeftCount--;
 
-        CreateWBCCellRandomPosition();
-
         if (!alreadyDead)
         {
             org.deadTimer = 0f;
@@ -1253,7 +1263,7 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        float attractStrength = 5f;
+        float attractStrength = 8f;
         float drag = 30f;
 
         for (int i = 0; i<cells.Count; i++)
