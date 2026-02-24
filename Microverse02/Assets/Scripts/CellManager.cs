@@ -25,7 +25,6 @@ public class CellManager : MonoBehaviour
     [Header("Bacteria - WBC Reproduce Timer")]
     float reproduceTimer = 0;
     float reproduceInterval = 0.01f;
-
     float WBCSpawnTimer;
 
     [Header("Player")]
@@ -140,7 +139,7 @@ public class CellManager : MonoBehaviour
             CreateOrganism(pos);
         }
 
-        ReproductionEnergy = 1000000000000000;
+        ReproductionEnergy = 1000;
         OrganismLeftCount = organismCount;
         SystemStability = 100f;
 
@@ -225,7 +224,7 @@ public class CellManager : MonoBehaviour
 
         ApplyDragToCells();
 
-        ApplyEmitWBCFromOrganism(dt);
+        ApplyEmitWBCFromOrganism();
         //ApplyCellMovement();
         //ApplyOrganismTendency();
 
@@ -697,18 +696,22 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyEmitWBCFromOrganism(float dt)
+    void ApplyEmitWBCFromOrganism()
     {
+        float dt = Time.deltaTime;
         WBCSpawnTimer += dt;
-        if (WBCSpawnTimer < 1f) return;
 
-        WBCSpawnTimer = 0;
+        const float interval = 0.5f;
+        if (WBCSpawnTimer < interval) return;
+
+        WBCSpawnTimer -=interval;
 
         for (int i = 0; i < organisms.Count; i++)
         {
             Organisms o = organisms[i];
             if(o.isDead) continue;
             if(!o.playerInside) continue;
+            if(o.coreIndex < 0 || o.coreIndex >= cells.Count) continue;
 
             Cell core = cells[o.coreIndex];
             CreateWBCCell(core.currentPos+(Random.insideUnitCircle*(core.cellRadius*0.8f)));
@@ -942,7 +945,7 @@ public class CellManager : MonoBehaviour
                 A.detected = true;
                 cells[a] = A;
             }
-            else A.detected = false;
+            
         }
     }
     #endregion
