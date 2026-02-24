@@ -12,8 +12,6 @@ float GetPlayerRadius()
 
 void CreatePlayerCell(Vector2 pos) --
 
-void CreateWBCCellRandomPosition()
-
 void CreateWBCCell (Vector2 pos)
 
 void CreateOrganism(Vector2 currentPos)
@@ -27,6 +25,8 @@ void ApplyCoreAnchor()
 void ApplyOrganismTendency()
 
 void ApplyKeepOrganismShape(int CurrentIndex, int OtherIndex)
+
+void emitWBCFromOrganism()
 
 void ApplyCellPushing(int currentIndex, int otherIndex)   
 

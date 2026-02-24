@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEditor.PlayerSettings;
 using Vector2 = UnityEngine.Vector2;
 
 public class CellManager : MonoBehaviour
@@ -21,9 +22,11 @@ public class CellManager : MonoBehaviour
     float mousePlayerDistance;
     float playerSpeed;
 
-    [Header("Bacteria Reproduce Timer")]
+    [Header("Bacteria - WBC Reproduce Timer")]
     float reproduceTimer = 0;
     float reproduceInterval = 0.01f;
+
+    float WBCSpawnTimer;
 
     [Header("Player")]
     [SerializeField] float maxSpeed = 10f;
@@ -145,6 +148,7 @@ public class CellManager : MonoBehaviour
             CreateOrganism(pos);
         }
 
+        ReproductionEnergy = 10;
         OrganismLeftCount = organismCount;
         SystemStability = 100f;
 
@@ -228,6 +232,7 @@ public class CellManager : MonoBehaviour
 
         ApplyDragToCells();
 
+        emitWBCFromOrganism(dt);
         //ApplyCellMovement();
         //ApplyOrganismTendency();
 
@@ -714,6 +719,26 @@ public class CellManager : MonoBehaviour
         }
     }
 
+    void emitWBCFromOrganism(float dt)
+    {
+        WBCSpawnTimer += dt;
+        if (WBCSpawnTimer < 1f) return;
+
+        WBCSpawnTimer = 0;
+
+        for (int i = 0; i < organisms.Count; i++)
+        {
+            Organisms o = organisms[i];
+            if(o.isDead) continue;
+            if(!o.playerInside) continue;
+
+            Cell core = cells[o.coreIndex];
+            CreateWBCCell(core.currentPos+(Random.insideUnitCircle*(core.cellRadius*0.8f)));
+            return;
+           
+        }
+    }
+
     void ApplyCellPushing(int currentIndex, int otherIndex)
     {
         Cell a = cells[currentIndex];
@@ -852,13 +877,12 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < cells.Count; i++)
         {
             Cell target = cells[i];
-            Cell player = cells[playerCellIndex];
 
-            if (target == player)
-            {
-                k = 170f;
-            }
-            else k = 10f;
+            bool isPlayer = (i==playerCellIndex);
+
+
+            k = isPlayer ? 600f: 10f;
+
             if (target.isDead) continue;
 
             // Only push these roles
