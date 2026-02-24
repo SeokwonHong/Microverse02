@@ -208,7 +208,7 @@ public class CellManager : MonoBehaviour
 
         // 5) Organism constraints
         ApplyCoreAnchor();
-        for (int iter = 0; iter < 3; iter++) // play iter times in one frame
+        for (int iter = 0; iter < 2; iter++) // play iter times in one frame
         {
             ApplyOrganismJelly(Time.fixedDeltaTime);
             ApplyKeepOrganismShape();
@@ -971,18 +971,18 @@ public class CellManager : MonoBehaviour
             if (randomDir.sqrMagnitude < 1e-6f) continue;
 
             float speed;
-            
-            //if (c.role == CellRole.Player)
-            //{
-            //    speed = 100f;  
-            //}
-            //else if(c.role == CellRole.WhiteBlood)
-            //{
-            //    speed = 140f;
-            //}
+
+            if (c.role == CellRole.Player)
+            {
+                speed = 130f;
+            }
+            else if (c.role == CellRole.WhiteBlood)
+            {
+                speed = 30f;
+            }
 
             // ORGANISM WIGGLE
-            if (c.organismId >= 0 && c.organismId < organisms.Count)
+            else if (c.organismId >= 0 && c.organismId < organisms.Count)
             {
                 Organisms org = organisms[c.organismId];
                 float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
@@ -1186,7 +1186,7 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        float attractStrength = 10f;
+        float attractStrength = 5f;
         float drag = 30f;
 
         for (int i = 0; i<cells.Count; i++)
