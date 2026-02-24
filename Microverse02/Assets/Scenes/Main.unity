@@ -1056,7 +1056,6 @@ GameObject:
   m_Component:
   - component: {fileID: 237737090}
   - component: {fileID: 237737089}
-  - component: {fileID: 237737091}
   m_Layer: 0
   m_Name: circleBg
   m_TagString: Untagged
@@ -1106,7 +1105,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0.2830189, g: 0.2830189, b: 0.2830189, a: 0.99215686}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.08627451}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1131,18 +1130,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!210 &237737091
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 237737088}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 1
-  m_SortAtRoot: 0
 --- !u!1 &249595530
 GameObject:
   m_ObjectHideFlags: 0
@@ -2049,7 +2036,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BackGroundColor: {r: 0.8666667, g: 0.972549, b: 1, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -2141,7 +2128,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -5024,7 +5011,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1485105057}
-  - component: {fileID: 1485105058}
   m_Layer: 0
   m_Name: bg
   m_TagString: Untagged
@@ -5128,18 +5114,6 @@ Transform:
   - {fileID: 1650090160}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!210 &1485105058
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1485105056}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_SortAtRoot: 0
 --- !u!1 &1527036371
 GameObject:
   m_ObjectHideFlags: 0
@@ -5402,7 +5376,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1569142223}
   - component: {fileID: 1569142224}
-  - component: {fileID: 1569142225}
   m_Layer: 0
   m_Name: CellManager
   m_TagString: Untagged
@@ -5437,10 +5410,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  organismCount: 3
+  organismCount: 60
   WBCCount: 0
   mapCentre: {x: 0, y: 0}
-  mapRadius: 10
+  mapRadius: 30
   refToBg: {fileID: 237737088}
   wallBounciness: 2
   maxSpeed: 10
@@ -5448,21 +5421,9 @@ MonoBehaviour:
   playerPushStrength: 0
   BoxSize: 1.25
   cellDebugPrefeb: {fileID: 647007298097418435, guid: 83f99c3f291f50641b993e54ffcf9b49, type: 3}
-  ReproductionEnergy: 1000
+  ReproductionEnergy: 0
   OrganismLeftCount: 0
   SystemStability: 0
---- !u!210 &1569142225
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1569142221}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 2
-  m_SortAtRoot: 0
 --- !u!1 &1587657921
 GameObject:
   m_ObjectHideFlags: 0
@@ -6067,7 +6028,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1694084130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7958,7 +7919,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2114655482}
   - component: {fileID: 2114655483}
-  - component: {fileID: 2114655484}
   m_Layer: 0
   m_Name: Circle
   m_TagString: Untagged
@@ -8023,7 +7983,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.30588236}
+  m_Color: {r: 0.745283, g: 0.745283, b: 0.745283, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -8033,18 +7993,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!210 &2114655484
-SortingGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2114655481}
-  m_Enabled: 1
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 3
-  m_SortAtRoot: 0
 --- !u!1 &2144098135
 GameObject:
   m_ObjectHideFlags: 0
@@ -8137,8 +8085,8 @@ SceneRoots:
   - {fileID: 1569142223}
   - {fileID: 1453033166}
   - {fileID: 1268927147}
-  - {fileID: 2102113133}
   - {fileID: 237737090}
+  - {fileID: 2102113133}
   - {fileID: 1485105057}
   - {fileID: 673330696}
   - {fileID: 249595535}

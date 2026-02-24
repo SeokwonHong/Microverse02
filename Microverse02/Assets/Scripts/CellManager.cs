@@ -320,7 +320,7 @@ public class CellManager : MonoBehaviour
             else if (c.role == CellRole.Player) r.color = Color.red;
             else if (c.organismId >= 0 && c.organismId < organisms.Count && organisms[c.organismId].isDead)
                 r.color = new Color32(255, 255, 170, 255);
-            else r.color = Color.yellow;
+            else r.color = Color.black;
         }
     }
 
