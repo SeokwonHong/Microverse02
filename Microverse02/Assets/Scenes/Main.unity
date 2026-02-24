@@ -5365,10 +5365,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  organismCount: 60
+  organismCount: 20
   WBCCount: 0
   mapCentre: {x: 0, y: 0}
-  mapRadius: 30
+  mapRadius: 20
   refToBg: {fileID: 237737088}
   wallBounciness: 2
   maxSpeed: 10
