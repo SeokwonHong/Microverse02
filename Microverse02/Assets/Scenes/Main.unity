@@ -2060,7 +2060,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 25.98
+  orthographic size: 16.4
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -5366,9 +5366,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   organismCount: 20
-  WBCCount: 400
+  WBCCount: 0
   mapCentre: {x: 0, y: 0}
-  mapRadius: 30
+  mapRadius: 20
   refToBg: {fileID: 237737088}
   wallBounciness: 2
   maxSpeed: 10

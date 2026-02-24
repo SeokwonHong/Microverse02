@@ -99,6 +99,7 @@ public class CellManager : MonoBehaviour
         public int coreIndex;
         public List<int> members = new List<int>(32);
         public float coreDistance; // distance between Core and Shell
+        public float defaultCoreDistance;
 
         public Vector2 heading; 
         public float headingPower; 
@@ -475,7 +476,19 @@ public class CellManager : MonoBehaviour
     }
     void CreateWBCCellRandomPosition()
     {
+        float minX = -mapRadius;
+        float maxX = mapRadius;
+        float minY = -mapRadius;
+        float maxY = mapRadius;
 
+        for (int i = 0; i < 10; i++)
+        {
+            Vector2 pos = new Vector2(
+                UnityEngine.Random.Range(minX, maxX),
+                UnityEngine.Random.Range(minY, maxY)
+            );
+            CreateWBCCell(pos);
+        }
     }
     void CreateWBCCell(Vector2 pos)
     {
@@ -508,6 +521,7 @@ public class CellManager : MonoBehaviour
         core.cellRadius = Random.Range(0.3f, 0.4f);
         core.detectRadius = core.cellRadius * 7.5f;
         org.coreDistance = core.detectRadius;
+        org.defaultCoreDistance = org.coreDistance;
 
         core.organismId = org.id;
         core.role = CellRole.Core;
@@ -609,7 +623,6 @@ public class CellManager : MonoBehaviour
 
             Cell core = cells[coreIdx];
 
-
             if (org.heading.sqrMagnitude < 1e-6f)
             {
                 org.heading = Random.insideUnitCircle.normalized;
@@ -659,7 +672,7 @@ public class CellManager : MonoBehaviour
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
             //float k = (org.playerInside == 1) ? 150f : 10f; // spring
-            float k = (org.playerInside == true) ? 35f : 40f; // spring
+            float k = (org.playerInside == true) ? 250f : 100f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
@@ -998,10 +1011,22 @@ public class CellManager : MonoBehaviour
                 Organisms org = organisms[c.organismId];
                 float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
 
-                if (c.detected)
+                //if (c.detected)
+                //    speed = Mathf.Lerp(600f, 0f, t);
+                //else 
+                //    speed = Mathf.Lerp(100f, 0f, t);
+
+                if (org.playerInside)
+                {
                     speed = Mathf.Lerp(100f, 0f, t);
+                    org.coreDistance = org.defaultCoreDistance * 1.4f;
+                }
                 else
-                    speed = Mathf.Lerp(55f, 0f, t);
+                {
+                    speed = Mathf.Lerp(50f, 0f, t);
+                    org.coreDistance = org.defaultCoreDistance;
+                }
+                
             }
             else
             {
@@ -1146,7 +1171,7 @@ public class CellManager : MonoBehaviour
 
         OrganismLeftCount--;
 
-       
+        CreateWBCCellRandomPosition();
 
         if (!alreadyDead)
         {
