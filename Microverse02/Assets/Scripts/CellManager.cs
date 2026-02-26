@@ -1,11 +1,8 @@
+using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Threading;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEditor.PlayerSettings;
 using Vector2 = UnityEngine.Vector2;
-
+using Random = UnityEngine.Random;
 public class CellManager : MonoBehaviour
 {
     [Header("Defalut Settings")]
@@ -493,8 +490,6 @@ public class CellManager : MonoBehaviour
     }
     void CreateOrganism(Vector2 currentPos)
     {
-        Organisms org = new Organisms();
-        int shellCount = UnityEngine.Random.Range(20, 25);
         org.id = organisms.Count;
 
         //core 
@@ -503,8 +498,14 @@ public class CellManager : MonoBehaviour
         core.currentVelocity = Vector2.zero;
         core.nextVelocity = Vector2.zero;
 
-        core.cellRadius = Random.Range(0.3f, 0.4f);
+        org.lifespan = UnityEngine.Random.Range(1f, 5f);
+        float life = Mathf.InverseLerp(1f, 5f, org.lifespan);
+        core.cellRadius = Mathf.Lerp(0.2f, 0.7f, life);
+        int shellCount = Mathf.RoundToInt(Mathf.Lerp(10f, 30f, life));
+
         core.detectRadius = core.cellRadius * 7.5f;
+
+
         org.coreDistance = core.detectRadius;
         org.defaultCoreDistance = org.coreDistance;
 
@@ -516,9 +517,9 @@ public class CellManager : MonoBehaviour
 
         org.coreIndex = coreIndex;
         org.members.Add(coreIndex);
-
+        
         //Shell
-        float shellRadius = Random.Range(0.1f, 0.13f);
+        float shellRadius = UnityEngine.Random.Range(0.1f, 0.13f);
         for (int i = 0; i < shellCount; i++)
         {
             float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) 는 각도로 이해 * 그걸 비율로 슬라이스
@@ -865,7 +866,7 @@ public class CellManager : MonoBehaviour
 
 
 
-            k = isPlayer ? 600f: 10f;
+            k = isPlayer ? 300f: 5f;
 
             if (target.isDead) continue;
 
@@ -919,7 +920,7 @@ public class CellManager : MonoBehaviour
             if (a2 > maxA2)
                 totalAccel = totalAccel * (maxAccel / Mathf.Sqrt(a2));
 
-            // IMPORTANT: add, don’t overwrite
+            
             target.nextVelocity += totalAccel * dt;
 
             cells[i] = target;
@@ -1027,12 +1028,12 @@ public class CellManager : MonoBehaviour
                 if (org.playerInside)
                 {
                     speed = Mathf.Lerp(100f, 0f, t);
-                    org.coreDistance = org.defaultCoreDistance * 1.2f;
+                    org.coreDistance = org.defaultCoreDistance ;
                 }
                 else
                 {
                     speed = Mathf.Lerp(50f, 0f, t);
-                    org.coreDistance = org.defaultCoreDistance;
+                    org.coreDistance = org.defaultCoreDistance * 1.1f;
                 }
                 
             }
@@ -1087,6 +1088,8 @@ public class CellManager : MonoBehaviour
             Organisms org = organisms[i];
 
             if(org.coreIndex <0||org.coreIndex >= cells.Count) continue;
+            if(org.isDead) continue;
+
 
             Cell centre = cells[org.coreIndex];
 
