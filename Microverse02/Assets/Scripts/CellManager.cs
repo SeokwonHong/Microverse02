@@ -490,6 +490,8 @@ public class CellManager : MonoBehaviour
     }
     void CreateOrganism(Vector2 currentPos)
     {
+        Organisms org = new Organisms();
+
         org.id = organisms.Count;
 
         //core 
@@ -500,8 +502,8 @@ public class CellManager : MonoBehaviour
 
         org.lifespan = UnityEngine.Random.Range(1f, 5f);
         float life = Mathf.InverseLerp(1f, 5f, org.lifespan);
-        core.cellRadius = Mathf.Lerp(0.2f, 0.7f, life);
-        int shellCount = Mathf.RoundToInt(Mathf.Lerp(10f, 30f, life));
+        core.cellRadius = Mathf.Lerp(0.25f, 0.3f, life);
+        int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 25f, life));
 
         core.detectRadius = core.cellRadius * 7.5f;
 
@@ -519,7 +521,7 @@ public class CellManager : MonoBehaviour
         org.members.Add(coreIndex);
         
         //Shell
-        float shellRadius = UnityEngine.Random.Range(0.1f, 0.13f);
+        float shellRadius = Mathf.Lerp(0.1f, 0.12f, life);
         for (int i = 0; i < shellCount; i++)
         {
             float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) 는 각도로 이해 * 그걸 비율로 슬라이스
@@ -864,9 +866,20 @@ public class CellManager : MonoBehaviour
 
             bool isPlayer = (i==playerCellIndex);
 
+            if(isPlayer)
+            {
+                k = 300f;
+            }
+            else if (target.role==CellRole.Core)
+            {
+                k = 50;
+            }
+            else
+            {
+                k = 5f;
+            }
 
-
-            k = isPlayer ? 300f: 5f;
+               // k = isPlayer ? 300f : 5f;
 
             if (target.isDead) continue;
 
@@ -1089,11 +1102,15 @@ public class CellManager : MonoBehaviour
 
             if(org.coreIndex <0||org.coreIndex >= cells.Count) continue;
             if(org.isDead) continue;
+            if(org.lifespan==0) continue;
+            
+            //if(org.lifespan>4)
+            {
+                Cell centre = cells[org.coreIndex];
+                CreateOrganism(centre.currentPos);
+            }
 
-
-            Cell centre = cells[org.coreIndex];
-
-            CreateOrganism(centre.currentPos);
+            
         }
     }
     void ApplyOrganismDeath() //function when the orgarnism is die
