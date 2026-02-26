@@ -109,6 +109,8 @@ public class CellManager : MonoBehaviour
 
         public float wanderTimer;
 
+        public float lifespan;
+
         public bool isDead;
         public float deadTimer;
         public bool playerInside;
@@ -862,6 +864,7 @@ public class CellManager : MonoBehaviour
             bool isPlayer = (i==playerCellIndex);
 
 
+
             k = isPlayer ? 600f: 10f;
 
             if (target.isDead) continue;
@@ -1024,7 +1027,7 @@ public class CellManager : MonoBehaviour
                 if (org.playerInside)
                 {
                     speed = Mathf.Lerp(100f, 0f, t);
-                    org.coreDistance = org.defaultCoreDistance * 1.4f;
+                    org.coreDistance = org.defaultCoreDistance * 1.2f;
                 }
                 else
                 {
@@ -1077,9 +1080,14 @@ public class CellManager : MonoBehaviour
 
     void ApplyOrganismReproduction()
     {
-        for(int i = 0; i<organisms.Count; i++)
+        int initialCount = organisms.Count;
+
+        for(int i = 0; i< initialCount; i++)
         {
             Organisms org = organisms[i];
+
+            if(org.coreIndex <0||org.coreIndex >= cells.Count) continue;
+
             Cell centre = cells[org.coreIndex];
 
             CreateOrganism(centre.currentPos);
