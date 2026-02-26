@@ -45,6 +45,8 @@ void ApplyCellWiggling()
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
 
+void ApplyOrganismReproduction()
+
 void ApplyOrganismDeath() 
 
 void UpdateDeadOrganisms()

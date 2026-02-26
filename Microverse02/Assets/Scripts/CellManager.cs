@@ -261,6 +261,7 @@ public class CellManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.V))
         {
             Debug.Log($" {cells.Count}, playerCellIndex = {playerCellIndex}");
+            ApplyOrganismReproduction();
         }
     }
 
@@ -1072,7 +1073,18 @@ public class CellManager : MonoBehaviour
     }
     #endregion
 
-    #region Organism killing
+    #region Organism 
+
+    void ApplyOrganismReproduction()
+    {
+        for(int i = 0; i<organisms.Count; i++)
+        {
+            Organisms org = organisms[i];
+            Cell centre = cells[org.coreIndex];
+
+            CreateOrganism(centre.currentPos);
+        }
+    }
     void ApplyOrganismDeath() //function when the orgarnism is die
     {
         if (!isOrganismDead) return;
@@ -1083,6 +1095,7 @@ public class CellManager : MonoBehaviour
             KillEachCellInsideOrganism(i);
         }
     }
+
     void UpdateDeadOrganisms()
     {
         float dt = Time.deltaTime;
