@@ -197,7 +197,7 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                //ApplyCohesion(i, otherIndex);   
+                ApplyCohesion(i, otherIndex);   
             }
         }
 
@@ -746,7 +746,7 @@ public class CellManager : MonoBehaviour
         // only if player involved (optional)
         Cell A = cells[aIndex];
         Cell B = cells[bIndex];
-        if (A.role != CellRole.Player && B.role != CellRole.Player) return;
+        if (A.role != CellRole.Core && B.role != CellRole.Core) return;
 
         Vector2 delta = B.nextPos - A.nextPos;
         float d2 = delta.sqrMagnitude;
@@ -834,7 +834,7 @@ public class CellManager : MonoBehaviour
             }
             else if (target.role==CellRole.Core)
             {
-                k = 50;
+                k = 5;
             }
             else
             {
@@ -976,6 +976,7 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
             if (c.isDead) continue;
+            if (c == cells[playerCellIndex]) continue;
 
             Vector2 randomDir = Random.insideUnitCircle;
             if (randomDir.sqrMagnitude < 1e-6f) continue;

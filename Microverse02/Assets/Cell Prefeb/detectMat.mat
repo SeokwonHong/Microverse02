@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: detectMat
-  m_Shader: {fileID: 4800000, guid: 05bef7d00e71e2a42b34349328349485, type: 3}
+  m_Shader: {fileID: 4800000, guid: 5526474f338ff7b4eac5c231a2567d2c, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -45,15 +45,47 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CircleSoftness: 0.2
-    - _EdgeAlpha: 0.091
+    - _Ambient: 1
+    - _CircleSoftness: 0.001
+    - _DentMinOuter: 0.7
+    - _DentOscMix: 0.6
+    - _DentPulseFreq: 2
+    - _DentSharpness: 8
+    - _DentStrength: 1
+    - _EdgeAlpha: 0.26
+    - _EdgeDarken: 0.25
     - _EnableExternalAlpha: 0
-    - _Inner: 0
-    - _Outer: 1
-    - _Power: 6.28
+    - _GlowStrength: 0.35
+    - _HighlightSize: 1
+    - _HighlightStrength: 2
+    - _Inner: 1
+    - _LightStrength: 0
+    - _NucleusRatio: 0.42
+    - _OrganelleDensity: 12
+    - _OrganelleSize: 0.03
+    - _OrganelleSoft: 0.5
+    - _Outer: 0.15
+    - _Power: 4.96
+    - _PulseAmp: 0.04
+    - _PulseFreq: 1
+    - _RimNoiseAmp: 0.05
+    - _RimNoiseFreq: 6
+    - _RimPower: 8
+    - _RimStrength: 2
+    - _RimThickness: 0.14
+    - _ShadowStrength: 1
+    - _WobbleAmp: 0.035
+    - _WobbleFreq: 2.4
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 0.4339623, g: 0.4339623, b: 0.4339623, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _CytoplasmInner: {r: 0.95, g: 0.85, b: 0.75, a: 1}
+    - _CytoplasmOuter: {r: 0.9, g: 0.7, b: 0.6, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _GlowColor: {r: 1, g: 0, b: 0, a: 1}
+    - _LightDir: {r: -0.35, g: -0.99, b: 0, a: 0}
+    - _NucleusColor: {r: 0.85, g: 0.39999998, b: 0.6, a: 1}
+    - _OrganelleColor: {r: 0.95, g: 0.9, b: 0.85, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RimColor: {r: 1, g: 0.95, b: 0.85, a: 1}
   m_BuildTextureStacks: []
