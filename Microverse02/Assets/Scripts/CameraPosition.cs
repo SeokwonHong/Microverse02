@@ -7,6 +7,8 @@ public class CameraPosition : MonoBehaviour
     [SerializeField] CellManager cellManager;
     float camZ = -10;
     Camera cam;
+    float minZoom = 3.5f;
+    float maxZoom = 34f;
     private void Awake()
     {
         cam = GetComponent<Camera>();
@@ -39,5 +41,14 @@ public class CameraPosition : MonoBehaviour
         float scroll = Input.mouseScrollDelta.y;
         if (scroll == 0) return;
         cam.orthographicSize -= scroll * 0.5f;
+
+        if(cam.orthographicSize<minZoom)
+        {
+            cam.orthographicSize = minZoom;
+        }
+        else if(cam.orthographicSize>maxZoom)
+        {
+            cam.orthographicSize = maxZoom;
+        }
     }
 }
