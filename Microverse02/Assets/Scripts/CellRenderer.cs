@@ -6,15 +6,15 @@ public class CellRenderer : MonoBehaviour
     [SerializeField] private CellManager cellManager;
 
     [Header("Prefabs")]
-    [SerializeField] private GameObject bodyPrefab;
-    [SerializeField] private GameObject detectPrefab;
+    [SerializeField] private GameObject organismBodyPrefab;
+    [SerializeField] private GameObject organismDetectPrefab;
 
     [Header("Detect Visuals")]
     [Range(0f, 1f)]
-    [SerializeField] private float detectAlpha = 0.1f;
+    [SerializeField] private float organismDetectAlpha = 0.1f;
 
-    private readonly List<SpriteRenderer> body = new();
-    private readonly List<SpriteRenderer> detect = new();
+    private readonly List<SpriteRenderer> organismBody = new();
+    private readonly List<SpriteRenderer> organismDetect = new();
 
 
     [Header("Colours")]
@@ -43,7 +43,7 @@ public class CellRenderer : MonoBehaviour
             bool isDead = cellManager.IsDead(i);
             Vector2 pos = cellManager.GetPos(i);
 
-            var rBody = body[i];
+            var rBody = organismBody[i];
 
    
 
@@ -60,9 +60,9 @@ public class CellRenderer : MonoBehaviour
             }
 
             // Detect radius
-            if (detectPrefab == null) continue;
+            if (organismDetect == null) continue;
 
-            var rDet = detect[i];
+            var rDet = organismDetect[i];
             rDet.gameObject.SetActive(!isDead);
 
             if (!isDead)
@@ -73,7 +73,7 @@ public class CellRenderer : MonoBehaviour
                 rDet.transform.localScale = new Vector3(dd, dd, 1f);
 
                 Color dc = ComputeColour(i);
-                dc.a = detectAlpha;
+                dc.a = organismDetectAlpha;
                 rDet.color = dc;
             }
         }
@@ -92,24 +92,43 @@ public class CellRenderer : MonoBehaviour
         if (cellManager.IsOrganismDead(i))
             return deadColour;
 
-        return organismColour;
+        int organismId = cellManager.GetOrganismId(i);
+        return GetLifespanColour(organismId);
     }
 
     private void EnsurePool(int count)
     {
-        while (body.Count < count)
+        while (organismBody.Count < count)
         {
-            var go = Instantiate(bodyPrefab, transform);
-            body.Add(go.GetComponent<SpriteRenderer>());
+            var go = Instantiate(organismBodyPrefab, transform);
+            organismBody.Add(go.GetComponent<SpriteRenderer>());
         }
 
-        if (detectPrefab == null) return;
+        if (organismDetectPrefab == null) return;
 
-        while (detect.Count < count)
+        while (organismDetect.Count < count)
         {
-            var go = Instantiate(detectPrefab, transform);
-            detect.Add(go.GetComponent<SpriteRenderer>());
+            var go = Instantiate(organismDetectPrefab, transform);
+            organismDetect.Add(go.GetComponent<SpriteRenderer>());
         }
 
     }
+
+    private Color GetLifespanColour(int organismId)
+    {
+        float life = cellManager.GetOrganismLifespan(organismId);
+
+        float t = Mathf.InverseLerp(1f, 5f, life);
+
+        Color baseCol = organismColour;
+
+        Color.RGBToHSV(baseCol, out float h, out float s, out float v);
+
+        // reduce saturation over lifespan
+        s = Mathf.Lerp(1f, 0.5f, t);
+
+        return Color.HSVToRGB(h, s, v);
+    }
+
+
 }

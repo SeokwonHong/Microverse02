@@ -394,7 +394,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 20.9
+  orthographic size: 12.13
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -802,9 +802,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cellManager: {fileID: 1569142224}
-  bodyPrefab: {fileID: 647007298097418435, guid: 83f99c3f291f50641b993e54ffcf9b49, type: 3}
-  detectPrefab: {fileID: 647007298097418435, guid: 5892f57fdae7bde40833ec4fd10641fe, type: 3}
-  detectAlpha: 0.492
+  organismBodyPrefab: {fileID: 647007298097418435, guid: 83f99c3f291f50641b993e54ffcf9b49, type: 3}
+  organismDetectPrefab: {fileID: 647007298097418435, guid: 5892f57fdae7bde40833ec4fd10641fe, type: 3}
+  organismDetectAlpha: 0.1
   playerColour: {r: 1, g: 0, b: 0, a: 1}
   wbcColour: {r: 0, g: 0.10835738, b: 0.754717, a: 1}
   organismColour: {r: 0.580282, g: 1, b: 0, a: 1}

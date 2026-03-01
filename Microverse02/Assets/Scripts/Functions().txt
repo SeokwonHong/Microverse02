@@ -63,3 +63,7 @@ void ApplyWBCDamagePlayer()
 
 void ApplyWBCWandering()
 
+public bool IsOrganismDead(int i)
+
+public bool IsLevelWin()
+

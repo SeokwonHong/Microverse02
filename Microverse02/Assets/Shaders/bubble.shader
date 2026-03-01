@@ -1,4 +1,4 @@
-Shader "Custom/URP_Sprite_CellRadial_2022"
+Shader "Custom/URP_Sprite_DetectRadial_2022"
 {
     Properties
     {

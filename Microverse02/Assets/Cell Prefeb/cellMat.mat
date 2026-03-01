@@ -46,7 +46,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _Ambient: 0
-    - _CircleSoftness: 0.082
+    - _CircleSoftness: 0.001
     - _DentMinOuter: 0.7
     - _DentOscMix: 0.6
     - _DentPulseFreq: 2
@@ -58,7 +58,7 @@ Material:
     - _GlowStrength: 0.35
     - _HighlightSize: 1
     - _HighlightStrength: 1.02
-    - _Inner: 0.42
+    - _Inner: 0.25
     - _LightStrength: 0
     - _NucleusRatio: 0.42
     - _OrganelleDensity: 12

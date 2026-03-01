@@ -603,7 +603,7 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        float tolerance = 0.02f;
+        float tolerance = 0.2f;
         float c = 1.1f;     // damping
         float maxForce = 80f;
 
@@ -622,7 +622,7 @@ public class CellManager : MonoBehaviour
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
             //float k = (org.playerInside == 1) ? 150f : 10f; // spring
-            float k = (org.playerInside == true) ? 250f : 100f; // spring
+            float k = (org.playerInside == true) ? 500f : 100f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
@@ -1010,7 +1010,7 @@ public class CellManager : MonoBehaviour
                 }
                 else
                 {
-                    speed = Mathf.Lerp(50f, 0f, t);
+                    speed = Mathf.Lerp(30f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance * 1.1f;
                 }
                 
@@ -1414,6 +1414,10 @@ public class CellManager : MonoBehaviour
     {
         int oid = cells[i].organismId;
         return (oid >= 0 && oid < organisms.Count && organisms[oid].isDead);
+    }
+    public float GetOrganismLifespan(int organismId)
+    {
+        return organisms[organismId].lifespan;
     }
 
     public bool IsLevelWin()
