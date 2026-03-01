@@ -16,9 +16,19 @@ public class CellRenderer : MonoBehaviour
     private readonly List<SpriteRenderer> body = new();
     private readonly List<SpriteRenderer> detect = new();
 
+
+    [Header("Colours")]
+    [SerializeField] Color playerColour;
+    [SerializeField] Color wbcColour;
+    [SerializeField] Color organismColour;
+    [SerializeField] Color deadColour;
+
     private void Awake()
     {
         if(cellManager == null) cellManager = FindAnyObjectByType<CellManager>();
+
+
+
     }
 
     private void LateUpdate()
@@ -28,58 +38,78 @@ public class CellRenderer : MonoBehaviour
         int count = cellManager.CellCount;
         EnsurePool(count);
 
-        for(int i =0; i<count; i++)
+        for (int i = 0; i < count; i++)
         {
             bool isDead = cellManager.IsDead(i);
             Vector2 pos = cellManager.GetPos(i);
 
             var rBody = body[i];
-            rBody.gameObject.SetActive(!isDead);    
+
+   
+
+            rBody.gameObject.SetActive(!isDead);
+
             if (!isDead)
             {
                 float d = cellManager.GetRadius(i) * 2f;
+
                 rBody.transform.position = new Vector3(pos.x, pos.y, 0f);
                 rBody.transform.localScale = new Vector3(d, d, 1f);
-                 
-                Color bodyCol = cellManager.GetColor(i);
-                rBody.color = bodyCol;
+
+                rBody.color = ComputeColour(i);
             }
 
-
-            //detect radius
+            // Detect radius
             if (detectPrefab == null) continue;
 
             var rDet = detect[i];
             rDet.gameObject.SetActive(!isDead);
-            if(!isDead)
+
+            if (!isDead)
             {
                 float dd = cellManager.GetDetectRadius(i) * 2f;
+
                 rDet.transform.position = rBody.transform.position;
                 rDet.transform.localScale = new Vector3(dd, dd, 1f);
 
-                Color dc = cellManager.GetColor(i);
+                Color dc = ComputeColour(i);
                 dc.a = detectAlpha;
                 rDet.color = dc;
             }
-
         }
-        
+    }
+
+    private Color ComputeColour(int i)
+    {
+        var role = cellManager.GetRole(i);
+
+        if (role == CellManager.CellRole.Player)
+            return playerColour;
+
+        if (role == CellManager.CellRole.WhiteBlood)
+            return wbcColour;
+
+        if (cellManager.IsOrganismDead(i))
+            return deadColour;
+
+        return organismColour;
     }
 
     private void EnsurePool(int count)
     {
-        while(body.Count<count)
+        while (body.Count < count)
         {
-            var go = Instantiate(bodyPrefab,transform);
-            body.Add(go.GetComponent<SpriteRenderer>());    
+            var go = Instantiate(bodyPrefab, transform);
+            body.Add(go.GetComponent<SpriteRenderer>());
         }
 
-        if(detectPrefab == null) return;
+        if (detectPrefab == null) return;
 
         while (detect.Count < count)
         {
             var go = Instantiate(detectPrefab, transform);
             detect.Add(go.GetComponent<SpriteRenderer>());
         }
+
     }
 }

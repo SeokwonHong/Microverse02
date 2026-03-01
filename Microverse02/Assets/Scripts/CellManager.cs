@@ -46,11 +46,15 @@ public class CellManager : MonoBehaviour
     const float maxDeadTime = 20f;
 
     //GPU instancing
-    public int CellCount => cells.Count;
+    public enum CellRole { Player, Core, Shell, WhiteBlood}
+
+    public int CellCount =>cells.Count;
     public bool IsDead(int i) => cells[i].isDead;
     public Vector2 GetPos(int i) => cells[i].currentPos;
     public float GetRadius(int i) => cells[i].cellRadius;
     public float GetDetectRadius(int i) => cells[i].detectRadius;
+    public CellRole GetRole(int i) => cells[i].role;
+    public int GetOrganismId(int i) => cells[i].organismId;
 
 
     [Header ("cells  |  organisms")]
@@ -63,8 +67,6 @@ public class CellManager : MonoBehaviour
     public float OrganismLeftCount = 0;
     public float SystemStability = 0;
 
-
-    enum CellRole { Player, Core, Shell, WhiteBlood }
 
     class Cell
     {
@@ -289,18 +291,7 @@ public class CellManager : MonoBehaviour
     /// </summary>
     /// 
 
-    public Color GetColor(int i)
-    {
-        Cell c = cells[i];
 
-        if (c.role == CellRole.WhiteBlood) return Color.blue;
-        if (c.role == CellRole.Player) return Color.red;
-
-        if(c.organismId>=0 && c.organismId < organisms.Count && organisms[c.organismId].isDead)
-            return new Color32(255,255,177, 255);
-
-        return Color.yellow;
-    }
 
 
     #region Map
@@ -1413,6 +1404,15 @@ public class CellManager : MonoBehaviour
         }
 
 
+    }
+
+
+    //gpu instancing
+
+    public bool IsOrganismDead(int i)
+    {
+        int oid = cells[i].organismId;
+        return (oid >= 0 && oid < organisms.Count && organisms[oid].isDead);
     }
 
     public bool IsLevelWin()
