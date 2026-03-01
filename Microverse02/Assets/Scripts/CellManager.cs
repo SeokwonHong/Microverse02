@@ -476,7 +476,7 @@ public class CellManager : MonoBehaviour
         core.cellRadius = Mathf.Lerp(0.25f, 0.3f, life);
         int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 25f, life));
 
-        core.detectRadius = core.cellRadius * 7.5f;
+        core.detectRadius = core.cellRadius * 3.5f;
 
 
         org.coreDistance = core.detectRadius;
@@ -508,7 +508,7 @@ public class CellManager : MonoBehaviour
 
             //이부분부터 프로퍼티화해야할듯.
             shell.cellRadius = shellRadius;
-            shell.detectRadius = shell.cellRadius * 4f;
+            shell.detectRadius = shell.cellRadius * 4.5f;
 
             shell.organismId = org.id;
             shell.role = CellRole.Shell;
@@ -843,7 +843,7 @@ public class CellManager : MonoBehaviour
             }
             else if (target.role==CellRole.Core)
             {
-                k = 100;
+                k = 50;
             }
             else
             {
@@ -883,8 +883,10 @@ public class CellManager : MonoBehaviour
                 if (d2 < 1e-6f) continue;
 
                 float dist = Mathf.Sqrt(d2);
+
                 float penetration = barrier - dist;
-                if (penetration <= 0f) continue;
+                //if (penetration > 0f) continue; // add this line if I don't want to apply shell cells jelly force when they're inside of core radisu
+                if (penetration <= 0f) continue;  // remove this line if I don't want to apply shell cells jelly force when they're inside of core radisu
 
                 if (penetration > maxPenetration) penetration = maxPenetration;
 

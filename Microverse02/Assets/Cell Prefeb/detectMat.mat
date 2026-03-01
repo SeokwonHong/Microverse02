@@ -45,15 +45,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CircleSoftness: 0.001
-    - _EdgeAlpha: 0.234
+    - _CircleSoftness: 0.2
+    - _EdgeAlpha: 0.091
     - _EnableExternalAlpha: 0
     - _Inner: 0
     - _Outer: 1
-    - _Power: 0.74
+    - _Power: 6.28
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.4339623, g: 0.4339623, b: 0.4339623, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
