@@ -45,18 +45,24 @@ public class CellManager : MonoBehaviour
     bool isOrganismDead = false;
     const float maxDeadTime = 20f;
 
-    [Header("GPU instancing")]
-    [SerializeField] GameObject cellDebugPrefeb;
-    readonly List<SpriteRenderer> debugRenderers = new();
+    //GPU instancing
+    public int CellCount => cells.Count;
+    public bool IsDead(int i) => cells[i].isDead;
+    public Vector2 GetPos(int i) => cells[i].currentPos;
+    public float GetRadius(int i) => cells[i].cellRadius;
+    public float GetDetectRadius(int i) => cells[i].detectRadius;
+
 
     [Header ("cells  |  organisms")]
     List<Cell> cells = new List<Cell>();
     List<Organisms> organisms = new List<Organisms>();
 
+
     [Header("Game Values")]
     public float ReproductionEnergy = 0;
     public float OrganismLeftCount = 0;
     public float SystemStability = 0;
+
 
     enum CellRole { Player, Core, Shell, WhiteBlood }
 
@@ -142,13 +148,6 @@ public class CellManager : MonoBehaviour
         OrganismLeftCount = organismCount;
         SystemStability = 100f;
 
-        //GPU
-        debugRenderers.Capacity = cells.Count;
-        for (int i = 0; i < cells.Count; i++)
-        {
-            GameObject go = Instantiate(cellDebugPrefeb, transform);
-            debugRenderers.Add(go.GetComponent<SpriteRenderer>());
-        }
     }
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -284,52 +283,24 @@ public class CellManager : MonoBehaviour
             }
         }
     }
-    void EnsureDebugPool()
-    {
-        if (cellDebugPrefeb == null) return;
-        while (debugRenderers.Count < cells.Count)
-        {
-            var go = Instantiate(cellDebugPrefeb, transform);
-            debugRenderers.Add(go.GetComponent<SpriteRenderer>());
-        }
-    }
-
-
-    void LateUpdate() // Cell Colouring
-    {
-        EnsureDebugPool();
-
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell c = cells[i];
-            SpriteRenderer r = debugRenderers[i];
-
-            if (c.role == CellRole.Player && c.isDead)
-            {
-                r.gameObject.SetActive(false);
-                continue;
-            }
-            r.gameObject.SetActive(true);
-
-            r.transform.position = new Vector3(c.currentPos.x, c.currentPos.y, 0f);
-
-            float d = c.cellRadius * 2f;
-            r.transform.localScale = new Vector3(d, d, 1f);
-
-            if (c.role == CellRole.WhiteBlood) r.color = Color.blue;
-            else if (c.role == CellRole.Player) r.color = Color.red;
-            else if (c.organismId >= 0 && c.organismId < organisms.Count && organisms[c.organismId].isDead)
-                r.color = new Color32(255, 255, 170, 255);
-            else r.color = Color.yellow;
-        }
-    }
-
 
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
     /// </summary>
     /// 
 
+    public Color GetColor(int i)
+    {
+        Cell c = cells[i];
+
+        if (c.role == CellRole.WhiteBlood) return Color.blue;
+        if (c.role == CellRole.Player) return Color.red;
+
+        if(c.organismId>=0 && c.organismId < organisms.Count && organisms[c.organismId].isDead)
+            return new Color32(255,255,177, 255);
+
+        return Color.yellow;
+    }
 
 
     #region Map
@@ -872,7 +843,7 @@ public class CellManager : MonoBehaviour
             }
             else if (target.role==CellRole.Core)
             {
-                k = 50;
+                k = 100;
             }
             else
             {
