@@ -861,9 +861,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firstOrganismCount: 3
-  maxOrganismCount: 10
+  maxOrganismCount: 30
   mapCentre: {x: 0, y: 0}
-  mapRadius: 7
+  mapRadius: 20
   refToBg: {fileID: 237737088}
   wallBounciness: 1
   maxSpeed: 10

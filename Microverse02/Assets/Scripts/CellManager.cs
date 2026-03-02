@@ -394,7 +394,7 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.15f;
-            c.detectRadius = c.cellRadius * 3f;
+            c.detectRadius = c.cellRadius * 6f;
 
             c.detected = true;
 
@@ -416,7 +416,7 @@ public class CellManager : MonoBehaviour
         clone.nextVelocity = Vector2.zero;
 
         clone.cellRadius = 0.15f;
-        clone.detectRadius = clone.cellRadius * 3f;
+        clone.detectRadius = clone.cellRadius * 6f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -983,7 +983,7 @@ public class CellManager : MonoBehaviour
 
             if (c.role == CellRole.Player)
             {
-                speed = 2f;
+                speed = 30f;
             }
             else if (c.role == CellRole.WhiteBlood)
             {
@@ -994,12 +994,12 @@ public class CellManager : MonoBehaviour
             else if (c.organismId >= 0 && c.organismId < organisms.Count)
             {
                 Organisms org = organisms[c.organismId];
-                float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
+                float energy01 = Mathf.InverseLerp(0f, 10f, org.energy);
+                float baseSpeed = Mathf.Lerp(1f, 30f, energy01);
 
-                //if (c.detected)
-                //    speed = Mathf.Lerp(600f, 0f, t);
-                //else 
-                //    speed = Mathf.Lerp(100f, 0f, t);
+                float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
+                speed = Mathf.Lerp(baseSpeed,0f,t);
+                
 
                 if (org.playerInside)
                 {
@@ -1011,7 +1011,7 @@ public class CellManager : MonoBehaviour
                     speed = Mathf.Lerp(30f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance * 1.1f;
                 }
-                
+                organisms[c.organismId] = org;
             }
             else
             {

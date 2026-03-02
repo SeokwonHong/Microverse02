@@ -40,7 +40,7 @@ void ApplyCellDetection(int currentIndex, int otherIndex)
 
 void ApplyCellMovement()
 
-void ApplyCellWiggling()
+void ApplyCellWiggling() - based on energy?
 
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
