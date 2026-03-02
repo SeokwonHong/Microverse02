@@ -46,7 +46,10 @@ Material:
     m_Ints: []
     m_Floats:
     - _Ambient: 1
+    - _ChromAber: 0.01
     - _CircleSoftness: 0.001
+    - _ClumpScale: 40
+    - _ClumpStrength: 2
     - _DentMinOuter: 0.7
     - _DentOscMix: 0.6
     - _DentPulseFreq: 2
@@ -54,42 +57,52 @@ Material:
     - _DentStrength: 1
     - _EdgeAlpha: 1
     - _EdgeDarken: 0.25
+    - _EdgeGlow: 2
     - _EnableExternalAlpha: 0
+    - _FluidAlpha: 0.618
     - _GlowStrength: 0.35
-    - _HighlightSize: 1
+    - _GrainScale: 200
+    - _GrainStrength: 1.955
+    - _HighlightSize: 0.829
     - _HighlightStrength: 2
     - _Inner: 0.773
-    - _LightStrength: 2
+    - _LightStrength: 0
     - _NucleusRatio: 0.42
     - _OrganelleDensity: 12
     - _OrganelleSize: 0.03
     - _OrganelleSoft: 0.5
     - _Outer: 0
-    - _Power: 3.92
+    - _Power: 1.52
     - _PulseAmp: 0.04
     - _PulseFreq: 1
     - _RimNoiseAmp: 0.05
     - _RimNoiseFreq: 6
-    - _RimPower: 2.27
-    - _RimStrength: 0
+    - _RimPower: 0.5
+    - _RimStrength: 2
     - _RimThickness: 0.14
+    - _RimWidth: 0.25
     - _ShadowStrength: 1
-    - _WiggleAmp: 0.139
-    - _WiggleFreq: 24
-    - _WiggleRadial: 0.81
+    - _SpecSharpness: 128
+    - _SpecStrength: 8
+    - _WiggleAmp: 0.126
+    - _WiggleFreq: 40
+    - _WiggleRadial: 0.98
     - _WiggleSpeed: 10
     - _WobbleAmp: 0.035
     - _WobbleFreq: 2.4
     m_Colors:
+    - _BaseCol: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _CytoplasmInner: {r: 0.95, g: 0.85, b: 0.75, a: 1}
     - _CytoplasmOuter: {r: 0.9, g: 0.7, b: 0.6, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _GlowColor: {r: 1, g: 0, b: 0, a: 1}
+    - _InnerCol: {r: 1, g: 1, b: 1, a: 1}
     - _LightDir: {r: -0.35, g: -0.99, b: 0, a: 0}
     - _NucleusColor: {r: 0.85, g: 0.39999998, b: 0.6, a: 1}
     - _OrganelleColor: {r: 0.95, g: 0.9, b: 0.85, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RimCol: {r: 1, g: 1, b: 1, a: 1}
     - _RimColor: {r: 1, g: 0.95, b: 0.85, a: 1}
   m_BuildTextureStacks: []

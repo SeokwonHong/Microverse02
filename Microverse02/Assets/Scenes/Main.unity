@@ -182,7 +182,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.80784315}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -779,7 +779,7 @@ MonoBehaviour:
   organismCount: 1
   WBCCount: 0
   mapCentre: {x: 0, y: 0}
-  mapRadius: 15
+  mapRadius: 14
   refToBg: {fileID: 237737088}
   wallBounciness: 1
   maxSpeed: 10
@@ -806,7 +806,7 @@ MonoBehaviour:
   organismDetectPrefab: {fileID: 647007298097418435, guid: 5892f57fdae7bde40833ec4fd10641fe, type: 3}
   organismDetectAlpha: 0.1
   playerColour: {r: 1, g: 0, b: 0, a: 1}
-  wbcColour: {r: 0, g: 0.10835738, b: 0.754717, a: 1}
+  wbcColour: {r: 1, g: 1, b: 1, a: 1}
   organismColour: {r: 0.580282, g: 1, b: 0, a: 1}
   deadColour: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &1694084129

@@ -96,7 +96,6 @@ public class CellManager : MonoBehaviour
         public Vector2 heading;
         public float headingTimer;
         public float wanderAngle;
-
         public Vector2 cohesionDV;
     }
 
@@ -129,7 +128,7 @@ public class CellManager : MonoBehaviour
 
         CreatePlayerCell(Vector2.zero);
         playerRadius = GetPlayerRadius();
-        playerInfluenceRadius = playerRadius * 10f;
+        playerInfluenceRadius = playerRadius * 6f;
 
         float minX = -mapRadius;
         float maxX = mapRadius;
@@ -197,7 +196,8 @@ public class CellManager : MonoBehaviour
                 ResolveOverlap(i, otherIndex);
                 ApplyCellDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                ApplyCohesion(i, otherIndex);   
+                ApplyCohesion(i, otherIndex);
+                ApplyPlayerAttaching(i, otherIndex);
             }
         }
 
@@ -220,7 +220,6 @@ public class CellManager : MonoBehaviour
         // 6) Cell rules
         ApplyPlayerKillsOrganism();
         ApplyCellWiggling();
-        ApplyPlayerHeadToOrganism(dt);
 
         ApplyDragToCells();
 
@@ -394,8 +393,8 @@ public class CellManager : MonoBehaviour
             c.organismId = -1;
             c.role = CellRole.Player;
 
-            c.cellRadius = 0.2f;
-            c.detectRadius = c.cellRadius * 4f;
+            c.cellRadius = 0.15f;
+            c.detectRadius = c.cellRadius * 3f;
 
             c.detected = true;
 
@@ -416,8 +415,8 @@ public class CellManager : MonoBehaviour
         clone.currentVelocity = Vector2.zero;
         clone.nextVelocity = Vector2.zero;
 
-        clone.cellRadius = 0.2f;
-        clone.detectRadius = clone.cellRadius * 4f;
+        clone.cellRadius = 0.15f;
+        clone.detectRadius = clone.cellRadius * 3f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -443,7 +442,7 @@ public class CellManager : MonoBehaviour
         w.nextVelocity = Vector2.zero;
 
         w.cellRadius = 0.2f;
-        w.detectRadius = w.cellRadius * 10f;
+        w.detectRadius = w.cellRadius * 4f;
 
         w.organismId = -1;
         w.role = CellRole.WhiteBlood;
@@ -461,11 +460,12 @@ public class CellManager : MonoBehaviour
         core.currentPos = currentPos;
         core.currentVelocity = Vector2.zero;
         core.nextVelocity = Vector2.zero;
+        core.hp = 8f;
 
         org.lifespan = UnityEngine.Random.Range(1f, 5f);
         float life = Mathf.InverseLerp(1f, 5f, org.lifespan);
         core.cellRadius = Mathf.Lerp(0.25f, 0.3f, life);
-        int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 25f, life));
+        int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 33f, life));
 
         core.detectRadius = core.cellRadius * 3.5f;
 
@@ -496,6 +496,7 @@ public class CellManager : MonoBehaviour
             shell.nextPos = pos;
             shell.currentVelocity = Vector2.zero;
             shell.nextVelocity = Vector2.zero;
+            shell.hp = 4f;
 
             //이부분부터 프로퍼티화해야할듯.
             shell.cellRadius = shellRadius;
@@ -838,7 +839,7 @@ public class CellManager : MonoBehaviour
             }
             else
             {
-                k = 5f;
+                k = 50f;
             }
 
                // k = isPlayer ? 300f : 5f;
@@ -985,7 +986,7 @@ public class CellManager : MonoBehaviour
 
             if (c.role == CellRole.Player)
             {
-                speed = 130f;
+                speed = 100f;
             }
             else if (c.role == CellRole.WhiteBlood)
             {
@@ -1005,7 +1006,7 @@ public class CellManager : MonoBehaviour
 
                 if (org.playerInside)
                 {
-                    speed = Mathf.Lerp(100f, 0f, t);
+                    speed = Mathf.Lerp(3f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance ;
                 }
                 else
@@ -1103,38 +1104,43 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyPlayerHeadToOrganism(float dt)
+    void ApplyPlayerAttaching(int a, int b)
     {
-        
+        Cell A = cells[a];
+        Cell B = cells[b];
 
-        for( int i =0; i<organismCount; i++)
-        {
-            Organisms o = organisms[i];
-            if (o.isDead) continue;
+        if (A.isDead || B.isDead) return;
 
-            Cell core = cells[o.coreIndex];
-            
-            for(int j= 0; j<cells.Count; j++) 
-            {
-                if (j == playerCellIndex) continue;
+        bool AisBacteria = (A.role == CellRole.Player && A.organismId == -1);
+        bool BisBacteria = (B.role == CellRole.Player && B.organismId == -1);
 
-                Cell p = cells[j];       
-                if(p.role != CellRole.Player) continue;
-                if(p.isDead) continue;
-                
-                Vector2 d = core.nextPos - p.currentPos;
-                float d2 = d.magnitude;
+        if(!AisBacteria && !BisBacteria) return;
 
-                if(d2>o.coreDistance) continue;
+        int bacteriaIndex = AisBacteria ? a:b;
+        int targetIndex = AisBacteria ? b : a;
 
-                p.nextVelocity += d.normalized * 20f * dt;
+        Cell bacteria = cells[bacteriaIndex];
+        Cell target = cells[targetIndex];
 
-                cells[j] = p;
-                
-            }
-            
+        if (target.role != CellRole.Shell && target.role != CellRole.Core) return;
+        if (bacteria == cells[playerCellIndex]) return;
 
-        }
+        Vector2 delta = target.nextPos - bacteria.nextPos;
+        float sqrDist = delta.sqrMagnitude;
+
+        float detect = bacteria.detectRadius;
+        if(sqrDist>detect*detect) return;   
+
+        float dist = Mathf.Sqrt(sqrDist);
+        if (dist < 0.0001f) return;
+
+        Vector2 dir = delta / dist;
+
+        float chaseForce = 40f;
+
+        bacteria.nextVelocity += dir * chaseForce * Time.deltaTime;
+
+        cells[bacteriaIndex] = bacteria;
     }
 
 

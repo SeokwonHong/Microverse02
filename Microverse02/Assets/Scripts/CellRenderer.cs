@@ -125,7 +125,7 @@ public class CellRenderer : MonoBehaviour
         Color.RGBToHSV(baseCol, out float h, out float s, out float v);
 
         // reduce saturation over lifespan
-        s = Mathf.Lerp(1f, 0.5f, t);
+        s = Mathf.Lerp(1f, 0.3f, t);
 
         return Color.HSVToRGB(h, s, v);
     }

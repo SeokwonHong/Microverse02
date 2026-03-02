@@ -51,7 +51,7 @@ void ApplyOrganismDeath()
 
 void UpdateDeadOrganisms()
 
- void ApplyPlayerHeadToOrganism(float dt)
+ void ApplyPlayerAttaching(float dt)
 
 void ApplyPlayerKillsOrganism()
 
