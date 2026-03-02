@@ -113,7 +113,7 @@ public class CellManager : MonoBehaviour
 
         public float wanderTimer;
 
-        public float lifespan;
+        public float energy;
 
         public bool isDead;
         public float deadTimer;
@@ -253,14 +253,13 @@ public class CellManager : MonoBehaviour
 
 
         }
-
+        ApplyOrganismEnergy();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
 
         if (Input.GetKeyDown(KeyCode.V))
         {
             Debug.Log($" {cells.Count}, playerCellIndex = {playerCellIndex}");
-            ApplyOrganismReproduction();
         }
     }
 
@@ -462,8 +461,8 @@ public class CellManager : MonoBehaviour
         core.nextVelocity = Vector2.zero;
         core.hp = 8f;
 
-        org.lifespan = UnityEngine.Random.Range(1f, 5f);
-        float life = Mathf.InverseLerp(1f, 5f, org.lifespan);
+        org.energy = UnityEngine.Random.Range(1f, 3f);
+        float life = Mathf.InverseLerp(1f, 10f, org.energy);
         core.cellRadius = Mathf.Lerp(0.25f, 0.3f, life);
         int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 33f, life));
 
@@ -472,6 +471,7 @@ public class CellManager : MonoBehaviour
 
         org.coreDistance = core.detectRadius;
         org.defaultCoreDistance = org.coreDistance;
+
 
         core.organismId = org.id;
         core.role = CellRole.Core;
@@ -589,7 +589,7 @@ public class CellManager : MonoBehaviour
                 org.wanderTimer = Random.Range(0.5f, 2.0f);
             }
 
-            float speed = 10f;
+            float speed = 30f;
 
 
             core.nextVelocity += org.heading * speed * dt;
@@ -1058,27 +1058,31 @@ public class CellManager : MonoBehaviour
 
     #region Organism 
 
-    void ApplyOrganismReproduction()
-    {
-        int initialCount = organisms.Count;
 
-        for(int i = 0; i< initialCount; i++)
+    void ApplyOrganismEnergy()
+    {
+        float dt = Time.deltaTime;
+        for (int i = 0; i < organisms.Count; i++)
         {
             Organisms org = organisms[i];
+            if (org.isDead) continue;
 
-            if(org.coreIndex <0||org.coreIndex >= cells.Count) continue;
-            if(org.isDead) continue;
-            if(org.lifespan==0) continue;
-            
-            //if(org.lifespan>4)
+            org.energy += dt;
+
+            if (org.energy >= 10)
             {
-                Cell centre = cells[org.coreIndex];
-                CreateOrganism(centre.currentPos);
-            }
+                org.energy -=10f;
 
-            
+                if (org.coreIndex >= 0 && org.coreIndex < cells.Count)
+                {
+                    Vector2 pos = cells[org.coreIndex].currentPos;
+                    CreateOrganism(pos);
+                }
+            }
+            organisms[i] = org;
         }
     }
+
     void ApplyOrganismDeath() //function when the orgarnism is die
     {
         if (!isOrganismDead) return;
@@ -1421,9 +1425,9 @@ public class CellManager : MonoBehaviour
         int oid = cells[i].organismId;
         return (oid >= 0 && oid < organisms.Count && organisms[oid].isDead);
     }
-    public float GetOrganismLifespan(int organismId)
+    public float GetOrganismEnergy(int organismId)
     {
-        return organisms[organismId].lifespan;
+        return organisms[organismId].energy;
     }
 
     public bool IsLevelWin()

@@ -116,7 +116,7 @@ public class CellRenderer : MonoBehaviour
 
     private Color GetLifespanColour(int organismId)
     {
-        float life = cellManager.GetOrganismLifespan(organismId);
+        float life = cellManager.GetOrganismEnergy(organismId);
 
         float t = Mathf.InverseLerp(1f, 5f, life);
 
