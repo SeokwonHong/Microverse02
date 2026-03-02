@@ -6,8 +6,8 @@ using Random = UnityEngine.Random;
 public class CellManager : MonoBehaviour
 {
     [Header("Defalut Settings")]
-    public int organismCount = 20;
-    public int WBCCount = 10;
+    [SerializeField] int firstOrganismCount;
+    public int maxOrganismCount = 100;
 
     [Header("Map generation")]
     [SerializeField] Vector2 mapCentre = Vector2.zero;
@@ -64,7 +64,6 @@ public class CellManager : MonoBehaviour
 
     [Header("Game Values")]
     public float ReproductionEnergy = 0;
-    public float OrganismLeftCount = 0;
     public float SystemStability = 0;
 
 
@@ -136,7 +135,7 @@ public class CellManager : MonoBehaviour
         float maxY = mapRadius;
 
 
-        for (int i = 0; i < organismCount; i++)
+        for (int i = 0; i < firstOrganismCount; i++)
         {
             Vector2 pos = new Vector2(
                 UnityEngine.Random.Range(minX, maxX),
@@ -146,7 +145,6 @@ public class CellManager : MonoBehaviour
         }
 
         ReproductionEnergy = 1000;
-        OrganismLeftCount = organismCount;
         SystemStability = 100f;
 
     }
@@ -254,7 +252,7 @@ public class CellManager : MonoBehaviour
 
 
         }
-        ApplyOrganismEnergyAndReproduction();
+        ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         CountOrganismNum();
@@ -670,28 +668,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyEmitWBCFromOrganism()
-    {
-        float dt = Time.deltaTime;
-        WBCSpawnTimer += dt;
 
-        const float interval = 0.5f;
-        if (WBCSpawnTimer < interval) return;
-
-        WBCSpawnTimer -=interval;
-
-        for (int i = 0; i < organisms.Count; i++)
-        {
-            Organisms o = organisms[i];
-            if(o.isDead) continue;
-            if(!o.playerInside) continue;
-            if(o.coreIndex < 0 || o.coreIndex >= cells.Count) continue;
-
-            Cell core = cells[o.coreIndex];
-            CreateWBCCell(core.currentPos+(Random.insideUnitCircle*(core.cellRadius*0.8f)));
-            return;
-        }
-    }
 
     void ApplyCellPushing(int currentIndex, int otherIndex)
     {
@@ -1006,7 +983,7 @@ public class CellManager : MonoBehaviour
 
             if (c.role == CellRole.Player)
             {
-                speed = 100f;
+                speed = 2f;
             }
             else if (c.role == CellRole.WhiteBlood)
             {
@@ -1078,16 +1055,42 @@ public class CellManager : MonoBehaviour
 
     #region Organism 
 
+    void ApplyEmitWBCFromOrganism()
+    {
+        float dt = Time.deltaTime;
+        WBCSpawnTimer += dt;
 
-    void ApplyOrganismEnergyAndReproduction()
+        const float interval = 0.5f;
+        if (WBCSpawnTimer < interval) return;
+
+        WBCSpawnTimer -= interval;
+
+        for (int i = 0; i < organisms.Count; i++)
+        {
+            Organisms o = organisms[i];
+            if (o.isDead) continue;
+            if (!o.playerInside) continue;
+            if (o.coreIndex < 0 || o.coreIndex >= cells.Count) continue;
+
+            Cell core = cells[o.coreIndex];
+            CreateWBCCell(core.currentPos);
+
+            o.energy -= 1f;
+            return;
+        }
+    }
+
+    void ApplyOrganismReproduction()
     {
         float dt = Time.deltaTime;
 
         int organismCount = CountOrganismNum();
-        if (organismCount > 100) return;
+        if (organismCount > maxOrganismCount) return;
 
         for (int i = 0; i < organisms.Count; i++)
         {
+            if (CountOrganismNum() >= maxOrganismCount) return;
+
             Organisms org = organisms[i];
             if (org.isDead) continue;
 
@@ -1107,8 +1110,9 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyOrganismDeath() //function when the orgarnism is die
+    void ApplyOrganismDeath() //function when the orgarnism is dead
     {
+        int organismCount = CountOrganismNum();
         if (!isOrganismDead) return;
 
         for(int i=0; i<organismCount; i++)
@@ -1247,8 +1251,6 @@ public class CellManager : MonoBehaviour
         org.anchorEnabled = false;
         org.heading = Vector2.zero;
         org.headingPower = 0f;
-
-        OrganismLeftCount--;
 
         if (!alreadyDead)
         {

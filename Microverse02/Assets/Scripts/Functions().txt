@@ -26,8 +26,6 @@ void ApplyOrganismTendency()
 
 void ApplyKeepOrganismShape(int CurrentIndex, int OtherIndex)
 
-void ApplyEmitWBCFromOrganism()
-
 void ApplyCellPushing(int currentIndex, int otherIndex)   
 
 void ApplyCellEnergyDeath();
@@ -47,7 +45,9 @@ void ApplyCellWiggling()
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
 
-void ApplyOrganismEnergyAndReproduction()
+void ApplyEmitWBCFromOrganism()
+
+void ApplyOrganismReproduction()
 
 void ApplyOrganismDeath() 
 

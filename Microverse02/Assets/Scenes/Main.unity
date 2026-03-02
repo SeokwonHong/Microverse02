@@ -860,10 +860,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  organismCount: 1
-  WBCCount: 0
+  firstOrganismCount: 3
+  maxOrganismCount: 10
   mapCentre: {x: 0, y: 0}
-  mapRadius: 14
+  mapRadius: 7
   refToBg: {fileID: 237737088}
   wallBounciness: 1
   maxSpeed: 10
@@ -871,7 +871,6 @@ MonoBehaviour:
   playerPushStrength: 0
   BoxSize: 1.25
   ReproductionEnergy: 1000
-  OrganismLeftCount: 0
   SystemStability: 0
 --- !u!114 &1569142226
 MonoBehaviour:
@@ -1142,8 +1141,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278249471
-  m_fontColor: {r: 1, g: 0.9048885, b: 0, a: 1}
+    rgba: 4278255508
+  m_fontColor: {r: 0.5803922, g: 1, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1283,8 +1282,8 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 519420032}
-  - {fileID: 1569142223}
   - {fileID: 1453033166}
+  - {fileID: 1569142223}
   - {fileID: 1268927147}
   - {fileID: 2102113133}
   - {fileID: 237737090}
