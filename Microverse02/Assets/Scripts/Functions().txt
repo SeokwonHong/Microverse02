@@ -30,6 +30,8 @@ void ApplyEmitWBCFromOrganism()
 
 void ApplyCellPushing(int currentIndex, int otherIndex)   
 
+void ApplyCellEnergyDeath();
+
 void ApplyCohesion(int CurrentIndex, int OtherIndex)
 
 void ApplyDragToCells()
@@ -45,7 +47,7 @@ void ApplyCellWiggling()
 void ApplyPlayerFunctions()
 	ApplyPlayerPush()
 
-void ApplyOrganismEnergy()
+void ApplyOrganismEnergyAndReproduction()
 
 void ApplyOrganismDeath() 
 
@@ -57,11 +59,13 @@ void ApplyPlayerKillsOrganism()
 
 void KillEachCellInsideOrganism(int orgId)
 
-void ApplyWBCAttaching()   
+void ApplyWBCAttachingWBCEnergy()   
 
 void ApplyWBCDamagePlayer()
 
 void ApplyWBCWandering()
+
+public int CountOrganismNum()
 
 public bool IsOrganismDead(int i)
 

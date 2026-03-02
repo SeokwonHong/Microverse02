@@ -118,7 +118,7 @@ public class CellRenderer : MonoBehaviour
     {
         float life = cellManager.GetOrganismEnergy(organismId);
 
-        float t = Mathf.InverseLerp(1f, 5f, life);
+        float t = Mathf.InverseLerp(1f, 8f, life);
 
         Color baseCol = organismColour;
 

@@ -87,7 +87,7 @@ public class CellManager : MonoBehaviour
 
         // players
         public bool isPlayerAttachedToWBC;
-        public float hp;
+        public float energy;
 
         // WBC
         public bool WBCInSight;
@@ -206,7 +206,7 @@ public class CellManager : MonoBehaviour
         ApplyPlayerFunctions();
 
         // 4) WBC
-        ApplyWBCAttaching();
+        ApplyWBCAttachingWBCEnergy();
         ApplyWBCDamagePlayer();
 
         // 5) Organism constraints
@@ -218,6 +218,7 @@ public class CellManager : MonoBehaviour
         }
 
         // 6) Cell rules
+        ApplyCellEnergyDeath();
         ApplyPlayerKillsOrganism();
         ApplyCellWiggling();
 
@@ -253,13 +254,15 @@ public class CellManager : MonoBehaviour
 
 
         }
-        ApplyOrganismEnergy();
+        ApplyOrganismEnergyAndReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
+        CountOrganismNum();
 
         if (Input.GetKeyDown(KeyCode.V))
         {
-            Debug.Log($" {cells.Count}, playerCellIndex = {playerCellIndex}");
+            int organismCount = CountOrganismNum();
+            Debug.Log($" {cells.Count}, {organismCount}");
         }
     }
 
@@ -381,7 +384,7 @@ public class CellManager : MonoBehaviour
             Cell c = cells[idx];
 
             c.isDead = false;
-            c.hp = 2f;
+            c.energy = 2f;
             c.isPlayerAttachedToWBC = false;
 
             c.currentPos = pos;
@@ -420,7 +423,7 @@ public class CellManager : MonoBehaviour
         clone.organismId = -1;
         clone.role = CellRole.Player;
 
-        clone.hp = 2f;
+        clone.energy = 2f;
         clone.detected = true;
         clone.isDead = false;
         clone.isPlayerAttachedToWBC = false;
@@ -443,6 +446,8 @@ public class CellManager : MonoBehaviour
         w.cellRadius = 0.2f;
         w.detectRadius = w.cellRadius * 4f;
 
+        w.energy = 1f;
+
         w.organismId = -1;
         w.role = CellRole.WhiteBlood;
 
@@ -459,12 +464,12 @@ public class CellManager : MonoBehaviour
         core.currentPos = currentPos;
         core.currentVelocity = Vector2.zero;
         core.nextVelocity = Vector2.zero;
-        core.hp = 8f;
+        core.energy = 8f;
 
         org.energy = UnityEngine.Random.Range(1f, 3f);
-        float life = Mathf.InverseLerp(1f, 10f, org.energy);
-        core.cellRadius = Mathf.Lerp(0.25f, 0.3f, life);
-        int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 33f, life));
+        float energy2 = Mathf.InverseLerp(1f, 10f, org.energy);
+        core.cellRadius = Mathf.Lerp(0.25f, 0.3f, energy2);
+        int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 17f, energy2));
 
         core.detectRadius = core.cellRadius * 3.5f;
 
@@ -483,7 +488,7 @@ public class CellManager : MonoBehaviour
         org.members.Add(coreIndex);
         
         //Shell
-        float shellRadius = Mathf.Lerp(0.1f, 0.12f, life);
+        float shellRadius = Mathf.Lerp(0.1f, 0.12f, energy2);
         for (int i = 0; i < shellCount; i++)
         {
             float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) 는 각도로 이해 * 그걸 비율로 슬라이스
@@ -496,7 +501,7 @@ public class CellManager : MonoBehaviour
             shell.nextPos = pos;
             shell.currentVelocity = Vector2.zero;
             shell.nextVelocity = Vector2.zero;
-            shell.hp = 4f;
+            shell.energy = 4f;
 
             //이부분부터 프로퍼티화해야할듯.
             shell.cellRadius = shellRadius;
@@ -738,6 +743,21 @@ public class CellManager : MonoBehaviour
 
         cells[currentIndex] = a;
         cells[otherIndex] = b;
+    }
+
+    void ApplyCellEnergyDeath()
+    {
+        for(int i=0; i<cells.Count; i++)
+        {
+            Cell c = cells[i];
+            if(c.isDead) continue;
+
+            if(c.energy<=0f)
+            {
+                c.isDead = true;
+            }
+            cells[i] = c;
+        }
     }
 
     void ApplyCohesion(int aIndex, int bIndex)  //cell gathering method
@@ -1059,9 +1079,13 @@ public class CellManager : MonoBehaviour
     #region Organism 
 
 
-    void ApplyOrganismEnergy()
+    void ApplyOrganismEnergyAndReproduction()
     {
         float dt = Time.deltaTime;
+
+        int organismCount = CountOrganismNum();
+        if (organismCount > 100) return;
+
         for (int i = 0; i < organisms.Count; i++)
         {
             Organisms org = organisms[i];
@@ -1186,7 +1210,7 @@ public class CellManager : MonoBehaviour
 
                 Vector2 delta = coreCell.nextPos - player.nextPos;
                 float d2 = delta.sqrMagnitude;
-                if (d2 < 1e-8f) continue;
+                //if (d2 < 1e-8f) continue;
 
                 float inside = player.cellRadius + insideDist;
                 if(d2<=inside*inside)
@@ -1278,7 +1302,7 @@ public class CellManager : MonoBehaviour
     #region WBC Constraints
 
 
-    void ApplyWBCAttaching()
+    void ApplyWBCAttachingWBCEnergy()
     {
         float dt = Time.deltaTime;
 
@@ -1298,12 +1322,14 @@ public class CellManager : MonoBehaviour
             if (cells[i].role != CellRole.WhiteBlood) continue;
 
             Cell w = cells[i];
+            if(w.isDead ) continue; 
 
             int targetIdx = FindNearestPlayerIndex(w.nextPos, w.detectRadius);
 
             
             if (targetIdx < 0)
             {
+                w.energy -= dt;
                 w.nextVelocity *= Mathf.Exp(-drag * dt);
                 cells[i] = w;
                 continue;
@@ -1321,11 +1347,20 @@ public class CellManager : MonoBehaviour
 
             if (w.WBCInSight)
             {
+                w.energy += 5f*dt;
                 float dist = Mathf.Sqrt(d2);
                 Vector2 dir = delta / dist;
 
                 float force = (r - dist) / r;
                 w.nextPos += dir * (force * attractStrength) * dt;
+            }
+            else
+            {
+                w.energy -= 1*dt;
+            }
+            if (w.energy >= 5f)
+            {
+                w.energy = 5f;
             }
 
             float attachDist = player.cellRadius + w.cellRadius;
@@ -1356,12 +1391,12 @@ public class CellManager : MonoBehaviour
 
             if(p.isPlayerAttachedToWBC)
             {
-                p.hp = Mathf.Max(p.hp - damagePerSecond *dt, 0);
+                p.energy = Mathf.Max(p.energy - damagePerSecond *dt, 0);
             }
 
-            if(p.hp<=0 && !p.isDead)
+            if(p.energy <= 0 && !p.isDead)
             {
-                p.hp = 0;
+                p.energy = 0;
                 p.isDead = true;
                 deadPlayerPool.Add(i);
             }
@@ -1413,10 +1448,18 @@ public class CellManager : MonoBehaviour
 
             cells[i] = w;
         }
-
-
     }
 
+    public int CountOrganismNum()
+    {
+        int count = 0;  
+        for(int i = 0; i<organisms.Count; i++)
+        {
+            if (!organisms[i].isDead) count++;
+        }
+
+        return count;
+    }
 
     //gpu instancing
 
@@ -1432,13 +1475,12 @@ public class CellManager : MonoBehaviour
 
     public bool IsLevelWin()
     {
-        if(organisms.Count ==0) return false;   
+        int cellCount = CountOrganismNum();
+        if (organisms.Count ==0) return false;
 
-        for(int i = 0; i<organismCount; i++)
-        {
-            if (!organisms[i].isDead) return false;
-        }
-        return true;
+        if (cellCount == 0) return true;
+
+        return false;
     }
 
 
