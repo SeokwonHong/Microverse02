@@ -59,7 +59,7 @@ Material:
     - _EdgeDarken: 0.25
     - _EdgeGlow: 2
     - _EnableExternalAlpha: 0
-    - _FluidAlpha: 0.618
+    - _FluidAlpha: 1
     - _GlowStrength: 0.35
     - _GrainScale: 200
     - _GrainStrength: 1.955
@@ -83,7 +83,7 @@ Material:
     - _RimWidth: 0.25
     - _ShadowStrength: 1
     - _SpecSharpness: 128
-    - _SpecStrength: 8
+    - _SpecStrength: 2.25
     - _WiggleAmp: 0.126
     - _WiggleFreq: 40
     - _WiggleRadial: 0.98
