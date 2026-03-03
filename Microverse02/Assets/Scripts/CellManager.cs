@@ -23,7 +23,6 @@ public class CellManager : MonoBehaviour
     [Header("Bacteria - WBC Reproduce Timer")]
     float reproduceTimer = 0;
     float reproduceInterval = 0.01f;
-    float WBCSpawnTimer;
 
     [Header("Player")]
     [SerializeField] float maxSpeed = 10f;
@@ -114,10 +113,11 @@ public class CellManager : MonoBehaviour
         public float wanderTimer;
 
         public float energy;
+        public float wbcCooldown;
 
         public bool isDead;
         public float deadTimer;
-        public bool playerInside;
+        public bool attackedByBacteria;
     }
 
     void Awake()
@@ -168,6 +168,12 @@ public class CellManager : MonoBehaviour
             c.cohesionDV = Vector2.zero;
 
             cells[i] = c;
+        }
+        for(int i =0; i<organisms.Count;  i++)
+        {
+            Organisms org = organisms[i];
+            org.attackedByBacteria = false;
+            organisms[i] = org;
         }
 
         // 1) Spatial Hash
@@ -628,7 +634,7 @@ public class CellManager : MonoBehaviour
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
             //float k = (org.playerInside == 1) ? 150f : 10f; // spring
-            float k = (org.playerInside == true) ? 500f : 100f; // spring
+            float k = (org.attackedByBacteria == true) ? 500f : 100f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
@@ -1042,14 +1048,14 @@ public class CellManager : MonoBehaviour
                 speed = Mathf.Lerp(baseSpeed,0f,t);
                 
 
-                if (org.playerInside)
+                if (org.attackedByBacteria)
                 {
-                    speed = Mathf.Lerp(3f, 0f, t);
+                    speed = Mathf.Lerp(6f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance ;
                 }
                 else
                 {
-                    speed = Mathf.Lerp(30f, 0f, t);
+                    speed = Mathf.Lerp(3f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance * 1.1f;
                 }
                 organisms[c.organismId] = org;
@@ -1096,30 +1102,6 @@ public class CellManager : MonoBehaviour
 
     #region Organism 
 
-    void ApplyEmitWBCFromOrganism()
-    {
-        float dt = Time.deltaTime;
-        WBCSpawnTimer += dt;
-
-        const float interval = 0.5f;
-        if (WBCSpawnTimer < interval) return;
-
-        WBCSpawnTimer -= interval;
-
-        for (int i = 0; i < organisms.Count; i++)
-        {
-            Organisms o = organisms[i];
-            if (o.isDead) continue;
-            if (!o.playerInside) continue;
-            if (o.coreIndex < 0 || o.coreIndex >= cells.Count) continue;
-
-            Cell core = cells[o.coreIndex];
-            CreateWBCCell(core.currentPos);
-
-            o.energy -= 1f;
-            return;
-        }
-    }
 
     void ApplyOrganismReproduction()
     {
@@ -1213,27 +1195,58 @@ public class CellManager : MonoBehaviour
             float dist = Mathf.Sqrt(sqrDist);
             if (dist <= 0.0001f) return;
             Vector2 dir = delta / dist;
-            float chaseForce = 20f;
+            float chaseForce = 10f;
             bacteria.nextVelocity += dir * chaseForce * dt;
 
             //Energy Sucking
             float suckDist = bacteria.cellRadius + target.cellRadius;
             if (d2 <= suckDist * suckDist)
             {
-                const float suckPerSecond = 0.3f;
+                const float suckPerSecond = 0.1f;
                 float want = suckPerSecond * dt;
                 Organisms org = organisms[organismId];
+                org.attackedByBacteria = true;
+
                 float taken = Mathf.Min(want, org.energy);
                 org.energy -= taken;
                 bacteria.energy += taken;
                 ReproductionEnergy += taken;
                 organisms[organismId] = org;
             }
+            
             cells[bacteriaIndex] = bacteria;
         }
 
         
     }
+    void ApplyEmitWBCFromOrganism()
+    {
+        float dt = Time.deltaTime;
+        const float interval = 0.5f;
+
+        for (int i = 0; i < organisms.Count; i++)
+        {
+            Organisms o = organisms[i];
+            if (o.isDead) continue;
+
+            o.wbcCooldown -= dt;
+
+            if (o.wbcCooldown <= 0f &&
+                o.attackedByBacteria &&
+                o.coreIndex >= 0 && o.coreIndex < cells.Count &&
+                o.energy >= 1f)
+            {
+                Cell core = cells[o.coreIndex];
+                CreateWBCCell(core.currentPos);
+
+                o.energy -= 0.1f;
+                o.wbcCooldown = interval;
+            }
+
+            organisms[i] = o;
+        }
+    }
+
     #endregion
 
     int FindNearestPlayerIndex(Vector2 pos, float maxRange)
