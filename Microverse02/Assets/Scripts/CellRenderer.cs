@@ -67,7 +67,14 @@ public class CellRenderer : MonoBehaviour
 
             if (!isDead)
             {
-                float dd = cellManager.GetDetectRadius(i) * 2f;
+                float detectRadius = cellManager.GetDetectRadius(i);
+
+                if (cellManager.GetRole(i) == CellManager.CellRole.Player)
+                {
+                    detectRadius *= 0.5f;   // half size only for player
+                }
+
+                float dd = detectRadius * 2f;
 
                 rDet.transform.position = rBody.transform.position;
                 rDet.transform.localScale = new Vector3(dd, dd, 1f);
@@ -118,14 +125,14 @@ public class CellRenderer : MonoBehaviour
     {
         float life = cellManager.GetOrganismEnergy(organismId);
 
-        float t = Mathf.InverseLerp(1f, 8f, life);
+        float t = Mathf.InverseLerp(1f, 9.5f, life);
 
         Color baseCol = organismColour;
 
         Color.RGBToHSV(baseCol, out float h, out float s, out float v);
 
         // reduce saturation over lifespan
-        s = Mathf.Lerp(1f, 0.3f, t);
+        s = Mathf.Lerp(0.3f, 1f, t);
 
         return Color.HSVToRGB(h, s, v);
     }

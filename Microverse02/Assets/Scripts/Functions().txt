@@ -28,7 +28,9 @@ void ApplyKeepOrganismShape(int CurrentIndex, int OtherIndex)
 
 void ApplyCellPushing(int currentIndex, int otherIndex)   
 
-void ApplyCellEnergyDeath();
+void ApplyCellOrganismEnergyDeath();
+
+void KillEachCellInsideOrganism(int orgId)
 
 void ApplyCohesion(int CurrentIndex, int OtherIndex)
 
@@ -53,11 +55,7 @@ void ApplyOrganismDeath()
 
 void UpdateDeadOrganisms()
 
- void ApplyPlayerAttaching(float dt)
-
-void ApplyPlayerKillsOrganism()
-
-void KillEachCellInsideOrganism(int orgId)
+void ApplyPlayerAttaching(float dt)
 
 void ApplyWBCAttachingWBCEnergy()   
 

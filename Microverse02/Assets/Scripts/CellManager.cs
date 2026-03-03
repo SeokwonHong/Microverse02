@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Random = UnityEngine.Random;
+using System.Security.Cryptography;
 public class CellManager : MonoBehaviour
 {
     [Header("Defalut Settings")]
@@ -144,7 +145,6 @@ public class CellManager : MonoBehaviour
             CreateOrganism(pos);
         }
 
-        ReproductionEnergy = 1000;
         SystemStability = 100f;
 
     }
@@ -153,7 +153,8 @@ public class CellManager : MonoBehaviour
     /// </summary>
     void Update()
     {
-        float dt = Time.deltaTime;  
+        float dt = Time.deltaTime;
+        
 
         // 0) Double buffer start
         for (int i = 0; i < cells.Count; i++)
@@ -201,7 +202,7 @@ public class CellManager : MonoBehaviour
 
         // 3) Player input + functions
         ApplyPlayerInput();
-        ApplyPlayerFunctions();
+        //ApplyPlayerFunctions();
 
         // 4) WBC
         ApplyWBCAttachingWBCEnergy();
@@ -216,8 +217,7 @@ public class CellManager : MonoBehaviour
         }
 
         // 6) Cell rules
-        ApplyCellEnergyDeath();
-        ApplyPlayerKillsOrganism();
+        ApplyCellOrganismEnergyDeath();
         ApplyCellWiggling();
 
         ApplyDragToCells();
@@ -256,6 +256,8 @@ public class CellManager : MonoBehaviour
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         CountOrganismNum();
+
+        if (ReproductionEnergy <= 0) ReproductionEnergy = 0;
 
         if (Input.GetKeyDown(KeyCode.V))
         {
@@ -394,7 +396,7 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.15f;
-            c.detectRadius = c.cellRadius * 6f;
+            c.detectRadius = c.cellRadius * 10f;
 
             c.detected = true;
 
@@ -416,7 +418,7 @@ public class CellManager : MonoBehaviour
         clone.nextVelocity = Vector2.zero;
 
         clone.cellRadius = 0.15f;
-        clone.detectRadius = clone.cellRadius * 6f;
+        clone.detectRadius = clone.cellRadius * 10f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -722,7 +724,7 @@ public class CellManager : MonoBehaviour
         cells[otherIndex] = b;
     }
 
-    void ApplyCellEnergyDeath()
+    void ApplyCellOrganismEnergyDeath()
     {
         for(int i=0; i<cells.Count; i++)
         {
@@ -735,8 +737,47 @@ public class CellManager : MonoBehaviour
             }
             cells[i] = c;
         }
-    }
 
+        for(int i = 0; i<organisms.Count; i++)
+        {
+            if(organisms[i].isDead) continue;
+
+            if(organisms[i].energy<=0f)
+            {
+                KillEachCellInsideOrganism(i);
+            }
+        }
+    }
+    void KillEachCellInsideOrganism(int orgId)
+    {
+        if (orgId < 0 || orgId >= organisms.Count) return;
+
+        var org = organisms[orgId];
+        bool alreadyDead = org.isDead;
+
+        org.isDead = true;
+        org.anchorEnabled = false;
+        org.heading = Vector2.zero;
+        org.headingPower = 0f;
+
+        if (!alreadyDead)
+        {
+            org.deadTimer = 0f;
+        }
+
+        for (int m = 0; m < org.members.Count; m++)
+        {
+            int cellIdx = org.members[m];
+            if (cellIdx < 0 || cellIdx >= cells.Count) continue;
+
+            Cell c = cells[cellIdx];
+            c.isDead = true;
+
+            cells[cellIdx] = c;
+        }
+
+        organisms[orgId] = org;
+    }
     void ApplyCohesion(int aIndex, int bIndex)  //cell gathering method
     {
         float dt = Time.deltaTime;
@@ -861,7 +902,7 @@ public class CellManager : MonoBehaviour
 
 
                 float barrier=1f;
-                if(target.role==CellRole.WhiteBlood)
+                if(target.role==CellRole.WhiteBlood || target.role == CellRole.Player)
                 {
                     barrier = org.coreDistance + target.cellRadius;
                 }
@@ -1138,6 +1179,8 @@ public class CellManager : MonoBehaviour
 
     void ApplyPlayerAttaching(int a, int b)
     {
+        float dt = Time.deltaTime;
+
         Cell A = cells[a];
         Cell B = cells[b];
 
@@ -1155,122 +1198,41 @@ public class CellManager : MonoBehaviour
         Cell target = cells[targetIndex];
 
         if (target.role != CellRole.Shell && target.role != CellRole.Core) return;
-        if (bacteria == cells[playerCellIndex]) return;
+        if (bacteriaIndex == playerCellIndex) return;
+
+        int organismId = target.organismId;
+        if (organismId < 0 || organismId >= organisms.Count) return;
 
         Vector2 delta = target.nextPos - bacteria.nextPos;
+        float d2 = delta.sqrMagnitude;
         float sqrDist = delta.sqrMagnitude;
-
         float detect = bacteria.detectRadius;
-        if(sqrDist>detect*detect) return;   
-
-        float dist = Mathf.Sqrt(sqrDist);
-        if (dist < 0.0001f) return;
-
-        Vector2 dir = delta / dist;
-
-        float chaseForce = 40f;
-
-        bacteria.nextVelocity += dir * chaseForce * Time.deltaTime;
-
-        cells[bacteriaIndex] = bacteria;
-    }
-
-
-    void ApplyPlayerKillsOrganism()
-    {
-        List<int> playerCells = new List<int>(16);
-        for(int p =0;p<cells.Count;p++)
+        if(sqrDist<=detect*detect)
         {
-            if (cells[p].role==CellRole.Player && !cells[p].isDead)
+            //Attach
+            float dist = Mathf.Sqrt(sqrDist);
+            if (dist <= 0.0001f) return;
+            Vector2 dir = delta / dist;
+            float chaseForce = 20f;
+            bacteria.nextVelocity += dir * chaseForce * dt;
+
+            //Energy Sucking
+            float suckDist = bacteria.cellRadius + target.cellRadius;
+            if (d2 <= suckDist * suckDist)
             {
-                playerCells.Add(p);
+                const float suckPerSecond = 0.3f;
+                float want = suckPerSecond * dt;
+                Organisms org = organisms[organismId];
+                float taken = Mathf.Min(want, org.energy);
+                org.energy -= taken;
+                bacteria.energy += taken;
+                ReproductionEnergy += taken;
+                organisms[organismId] = org;
             }
-        }
-        if (playerCells.Count == 0) return;
-
-        for (int i = 0; i < organisms.Count; i++)
-        {
-            var org = organisms[i];
-            if (org.isDead) continue;
-
-            org.playerInside = false;
-
-            int coreIndex = org.coreIndex;
-            if (coreIndex < 0 || coreIndex >= cells.Count)
-            {
-                organisms[i] = org;
-                continue;
-            }
-
-            Cell coreCell = cells[coreIndex];
-
-            bool killed = false;    
-
-            float insideDist = org.coreDistance +coreCell.cellRadius;
-            
-            for(int k =0; k<playerCells.Count;k++)
-            {
-                Cell player = cells[playerCells[k]];
-
-                Vector2 delta = coreCell.nextPos - player.nextPos;
-                float d2 = delta.sqrMagnitude;
-                //if (d2 < 1e-8f) continue;
-
-                float inside = player.cellRadius + insideDist;
-                if(d2<=inside*inside)
-                {
-                    org.playerInside = true;
-
-                    float killDist = player.cellRadius + coreCell.cellRadius;
-
-                    if (d2 <= killDist * killDist)
-                    {
-                        organisms[i] = org;
-                        KillEachCellInsideOrganism(i);
-                        killed = true;
-                        break;
-                    }
-                }
-            }
-            if(!killed)
-            {
-                organisms[i] = org;
-            }
+            cells[bacteriaIndex] = bacteria;
         }
 
-    }
-
-    void KillEachCellInsideOrganism(int orgId)
-    {
-        if (orgId < 0 || orgId >= organisms.Count) return;
-
-        var org = organisms[orgId];
-        bool alreadyDead = org.isDead;
-
-        org.isDead = true;
-        org.anchorEnabled = false;
-        org.heading = Vector2.zero;
-        org.headingPower = 0f;
-
-        if (!alreadyDead)
-        {
-            org.deadTimer = 0f;
-        }
-
-        for(int m = 0; m<org.members.Count; m++)
-        {
-            int cellIdx = org.members[m];
-            if(cellIdx <0 ||cellIdx>=cells.Count) continue;
-
-            Cell c = cells[cellIdx];
-            c.isDead = true;
-
-            ReproductionEnergy++;
-
-            cells[cellIdx] = c;
-        }
-
-        organisms[orgId] = org;
+        
     }
     #endregion
 

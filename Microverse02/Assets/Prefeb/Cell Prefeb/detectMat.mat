@@ -85,7 +85,7 @@ Material:
     - _SpecSharpness: 128
     - _SpecStrength: 2.25
     - _WiggleAmp: 0.126
-    - _WiggleFreq: 14.7
+    - _WiggleFreq: 14.1
     - _WiggleRadial: 0.98
     - _WiggleSpeed: 10
     - _WobbleAmp: 0.035

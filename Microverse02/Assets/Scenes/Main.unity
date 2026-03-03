@@ -861,7 +861,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   firstOrganismCount: 3
-  maxOrganismCount: 30
+  maxOrganismCount: 100
   mapCentre: {x: 0, y: 0}
   mapRadius: 20
   refToBg: {fileID: 237737088}
@@ -870,7 +870,7 @@ MonoBehaviour:
   threshold: 17
   playerPushStrength: 0
   BoxSize: 1.25
-  ReproductionEnergy: 1000
+  ReproductionEnergy: 100
   SystemStability: 0
 --- !u!114 &1569142226
 MonoBehaviour:
