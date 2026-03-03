@@ -471,10 +471,10 @@ public class CellManager : MonoBehaviour
         core.nextVelocity = Vector2.zero;
         core.energy = 8f;
 
-        org.energy = UnityEngine.Random.Range(1f, 3f);
+        org.energy = UnityEngine.Random.Range(1f, 4f);
         float energy2 = Mathf.InverseLerp(1f, 10f, org.energy);
         core.cellRadius = Mathf.Lerp(0.25f, 0.3f, energy2);
-        int shellCount = Mathf.RoundToInt(Mathf.Lerp(20f, 25f, energy2));
+        int shellCount = Mathf.RoundToInt(Mathf.Lerp(20f, 30f, energy2));
 
         core.detectRadius = core.cellRadius * 3.5f;
 
@@ -1118,9 +1118,9 @@ public class CellManager : MonoBehaviour
 
             org.energy += dt;
 
-            if (org.energy >= 10)
+            if (org.energy >= 8)
             {
-                org.energy -=10f;
+                org.energy -=8f;
 
                 if (org.coreIndex >= 0 && org.coreIndex < cells.Count)
                 {

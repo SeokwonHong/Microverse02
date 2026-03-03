@@ -5379,15 +5379,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  organismCount: 30
-  WBCCount: 0
+  firstOrganismCount: 0
+  maxOrganismCount: 100
   mapCentre: {x: 0, y: 0}
   mapRadius: 20
   refToBg: {fileID: 237737088}
   wallBounciness: 0.5
+  maxSpeed: 10
+  threshold: 17
   playerPushStrength: 0
   BoxSize: 1.25
-  cellDebugPrefeb: {fileID: 0}
+  ReproductionEnergy: 0
+  SystemStability: 0
 --- !u!1 &1587657921
 GameObject:
   m_ObjectHideFlags: 0

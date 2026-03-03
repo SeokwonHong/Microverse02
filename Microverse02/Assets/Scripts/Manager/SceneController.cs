@@ -1,5 +1,3 @@
-using System.Xml.Serialization;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -7,14 +5,9 @@ public class SceneController : MonoBehaviour
 {
     public static SceneController Instance;
 
-    private void Awake()
+    void Awake()
     {
-        if(Instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
+        if (Instance != null) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
     }
@@ -23,14 +16,15 @@ public class SceneController : MonoBehaviour
     {
         int next = SceneManager.GetActiveScene().buildIndex + 1;
 
-        if(next<SceneManager.sceneCountInBuildSettings)
-        {
+        if (next < SceneManager.sceneCountInBuildSettings)
             SceneManager.LoadScene(next);
-        }
         else
-        {
             Debug.Log("Game Finished");
-        }
+    }
+
+    public void LoadCurrentLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void LoadLevel(int index)
