@@ -1037,7 +1037,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxOrganismCount
-      value: 120
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: ReproductionEnergy
@@ -1045,7 +1045,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: firstOrganismCount
-      value: 6
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 9041897232896126861, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: m_LocalPosition.x

@@ -934,7 +934,7 @@ PrefabInstance:
       objectReference: {fileID: 1490483794}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapRadius
-      value: 14
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxOrganismCount
@@ -1229,7 +1229,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 15.5
+  orthographic size: 13.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
