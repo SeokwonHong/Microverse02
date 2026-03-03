@@ -125,14 +125,14 @@ public class CellRenderer : MonoBehaviour
     {
         float life = cellManager.GetOrganismEnergy(organismId);
 
-        float t = Mathf.InverseLerp(1f, 9.5f, life);
+        float t = Mathf.InverseLerp(1f, 10f, life);
 
         Color baseCol = organismColour;
 
         Color.RGBToHSV(baseCol, out float h, out float s, out float v);
 
         // reduce saturation over lifespan
-        s = Mathf.Lerp(0.3f, 1f, t);
+        s = Mathf.Lerp(0.3f, 1.25f, t);
 
         return Color.HSVToRGB(h, s, v);
     }

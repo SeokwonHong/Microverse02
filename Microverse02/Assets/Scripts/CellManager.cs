@@ -219,9 +219,8 @@ public class CellManager : MonoBehaviour
         for (int iter = 0; iter < 2; iter++) // play iter times in one frame
         {
             ApplyOrganismJelly(Time.fixedDeltaTime);
-            ApplyKeepOrganismShape();
         }
-
+        ApplyKeepOrganismShape();
         // 6) Cell rules
         ApplyCellOrganismEnergyDeath();
         ApplyCellWiggling();
@@ -475,7 +474,7 @@ public class CellManager : MonoBehaviour
         org.energy = UnityEngine.Random.Range(1f, 3f);
         float energy2 = Mathf.InverseLerp(1f, 10f, org.energy);
         core.cellRadius = Mathf.Lerp(0.25f, 0.3f, energy2);
-        int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 17f, energy2));
+        int shellCount = Mathf.RoundToInt(Mathf.Lerp(20f, 25f, energy2));
 
         core.detectRadius = core.cellRadius * 3.5f;
 
@@ -1034,7 +1033,7 @@ public class CellManager : MonoBehaviour
             }
             else if (c.role == CellRole.WhiteBlood)
             {
-                speed = 30f;
+                speed = 60f;
             }
 
             // ORGANISM WIGGLE
@@ -1050,12 +1049,12 @@ public class CellManager : MonoBehaviour
 
                 if (org.attackedByBacteria)
                 {
-                    speed = Mathf.Lerp(6f, 0f, t);
+                    speed = Mathf.Lerp(50f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance ;
                 }
                 else
                 {
-                    speed = Mathf.Lerp(3f, 0f, t);
+                    speed = Mathf.Lerp(30f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance * 1.1f;
                 }
                 organisms[c.organismId] = org;
@@ -1222,7 +1221,7 @@ public class CellManager : MonoBehaviour
     void ApplyEmitWBCFromOrganism()
     {
         float dt = Time.deltaTime;
-        const float interval = 0.5f;
+        const float interval = 0.8f;
 
         for (int i = 0; i < organisms.Count; i++)
         {
@@ -1239,7 +1238,7 @@ public class CellManager : MonoBehaviour
                 Cell core = cells[o.coreIndex];
                 CreateWBCCell(core.currentPos);
 
-                o.energy -= 0.1f;
+                o.energy -= 0.3f;
                 o.wbcCooldown = interval;
             }
 
