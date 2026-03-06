@@ -58,7 +58,9 @@ public class OpenCloseButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
         UpdateIconsPanel();
 
         SetPanelHeightImmediate(targetPanelHeight);
-    
+
+
+
     }
 
     // Update is called once per frame
@@ -74,6 +76,7 @@ public class OpenCloseButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        Debug.Log("ENTER");
         targetColor = hoverColor;
     }
     public void OnPointerExit(PointerEventData eventData)
