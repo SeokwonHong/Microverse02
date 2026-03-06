@@ -8,8 +8,8 @@ public class OpenCloseButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
     //UI Button
     [SerializeField] GameObject refToDownIcon;
     [SerializeField] GameObject refToUpIcon;
-    private float closedButtonHeight = -188.2f;
-    private float openedButtonHeight = 160.1735f;
+    private float closedButtonHeight = -152.6f;
+    private float openedButtonHeight = 152.6199f;
     [SerializeField] RectTransform refToButton;
     float targetButtonHeight;
     float buttonAnimSpeed = 15f;
@@ -76,7 +76,6 @@ public class OpenCloseButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        Debug.Log("ENTER");
         targetColor = hoverColor;
     }
     public void OnPointerExit(PointerEventData eventData)
