@@ -28,7 +28,7 @@ public class OpenCloseButton : MonoBehaviour, IPointerEnterHandler, IPointerExit
     private float openedPreviewBgPanelHeight = 863.0674f;
     private float closedPreviewBgPanelHeight = 0f;
     float targetPreviewBgpanelHeight;
-    float previewbgAnimSpeed = 30f;
+    float previewbgAnimSpeed = 35f;
 
     //Upgrade text panel
     [SerializeField] GameObject refToUpgrageText;
