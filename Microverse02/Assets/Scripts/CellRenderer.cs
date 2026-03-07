@@ -6,15 +6,15 @@ public class CellRenderer : MonoBehaviour
     [SerializeField] private CellManager cellManager;
 
     [Header("Prefabs")]
-    [SerializeField] private GameObject organismBodyPrefab;
-    [SerializeField] private GameObject organismDetectPrefab;
+    [SerializeField] private GameObject cellBodyPrefab;
+    [SerializeField] private GameObject cellJellyPrefab;
 
     [Header("Detect Visuals")]
     [Range(0f, 1f)]
     [SerializeField] private float organismDetectAlpha = 0.1f;
 
     private readonly List<SpriteRenderer> organismBody = new();
-    private readonly List<SpriteRenderer> organismDetect = new();
+    private readonly List<SpriteRenderer> organismJelly = new();
 
 
     [Header("Colours")]
@@ -26,9 +26,6 @@ public class CellRenderer : MonoBehaviour
     private void Awake()
     {
         if(cellManager == null) cellManager = FindAnyObjectByType<CellManager>();
-
-
-
     }
 
     private void LateUpdate()
@@ -51,7 +48,7 @@ public class CellRenderer : MonoBehaviour
 
             if (!isDead)
             {
-                float d = cellManager.GetRadius(i) * 2f;
+                float d = cellManager.GetRadius(i);
 
                 rBody.transform.position = new Vector3(pos.x, pos.y, 0f);
                 rBody.transform.localScale = new Vector3(d, d, 1f);
@@ -59,22 +56,17 @@ public class CellRenderer : MonoBehaviour
                 rBody.color = ComputeColour(i);
             }
 
-            // Detect radius
-            if (organismDetect == null) continue;
+            // Jelly radius
+            if (organismJelly == null) continue;
 
-            var rDet = organismDetect[i];
+            var rDet = organismJelly[i];
             rDet.gameObject.SetActive(!isDead);
 
             if (!isDead)
             {
-                float detectRadius = cellManager.GetDetectRadius(i);
+                float jellyRadius = cellManager.GetRadius(i) *6f;
 
-                if (cellManager.GetRole(i) == CellManager.CellRole.Player)
-                {
-                    detectRadius *= 0.5f;   // half size only for player
-                }
-
-                float dd = detectRadius * 2f;
+                float dd = jellyRadius * 2f;
 
                 rDet.transform.position = rBody.transform.position;
                 rDet.transform.localScale = new Vector3(dd, dd, 1f);
@@ -107,16 +99,16 @@ public class CellRenderer : MonoBehaviour
     {
         while (organismBody.Count < count)
         {
-            var go = Instantiate(organismBodyPrefab, transform);
+            var go = Instantiate(cellBodyPrefab, transform);
             organismBody.Add(go.GetComponent<SpriteRenderer>());
         }
 
-        if (organismDetectPrefab == null) return;
+        if (cellJellyPrefab == null) return;
 
-        while (organismDetect.Count < count)
+        while (organismJelly.Count < count)
         {
-            var go = Instantiate(organismDetectPrefab, transform);
-            organismDetect.Add(go.GetComponent<SpriteRenderer>());
+            var go = Instantiate(cellJellyPrefab, transform);
+            organismJelly.Add(go.GetComponent<SpriteRenderer>());
         }
 
     }

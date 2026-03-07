@@ -449,7 +449,7 @@ public class CellManager : MonoBehaviour
         w.nextVelocity = Vector2.zero;
 
         w.cellRadius = 0.2f;
-        w.detectRadius = w.cellRadius * 4f;
+        w.detectRadius = w.cellRadius * 6f;
 
         w.energy = 1f;
 
@@ -493,7 +493,7 @@ public class CellManager : MonoBehaviour
         org.members.Add(coreIndex);
         
         //Shell
-        float shellRadius = Mathf.Lerp(0.1f, 0.12f, energy2);
+        float shellRadius = Mathf.Lerp(0.1f, 0.13f, energy2);
         for (int i = 0; i < shellCount; i++)
         {
             float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) 는 각도로 이해 * 그걸 비율로 슬라이스

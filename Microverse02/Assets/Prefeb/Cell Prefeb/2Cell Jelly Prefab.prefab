@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2110745226379430581}
   - component: {fileID: 8653773058092195831}
   m_Layer: 0
-  m_Name: 1cellRadius
+  m_Name: 2Cell Jelly Prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -52,7 +52,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 437ed6cebc7a58b4f9dc04c375baca4c, type: 2}
+  - {fileID: 2100000, guid: c04b86b000181644190ff4ef2310147a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
