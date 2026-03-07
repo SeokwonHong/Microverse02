@@ -23,6 +23,12 @@ public class CellRenderer : MonoBehaviour
     [SerializeField] Color organismColour;
     [SerializeField] Color deadColour;
 
+
+    //link to shader
+
+    private readonly MaterialPropertyBlock mpb = new();
+    //private static readonlyon
+
     private void Awake()
     {
         if(cellManager == null) cellManager = FindAnyObjectByType<CellManager>();
@@ -39,6 +45,16 @@ public class CellRenderer : MonoBehaviour
         {
             bool isDead = cellManager.IsDead(i);
             Vector2 pos = cellManager.GetPos(i);
+
+            int contactCount = cellManager.GetJellyContactCount(i);
+
+            for(int k =  0; k < contactCount; k++)
+            {
+                if(cellManager.TryGetJellyContact(i,k,out Vector2 dir, out float depth))
+                {
+                    Debug.DrawLine(pos,pos+dir*depth,Color.red);
+                }
+            }
 
             var rBody = organismBody[i];
 
@@ -57,10 +73,9 @@ public class CellRenderer : MonoBehaviour
             }
 
             // Jelly radius
-            if (organismJelly == null) continue;
 
-            var rDet = organismJelly[i];
-            rDet.gameObject.SetActive(!isDead);
+            var rJelly = organismJelly[i];
+            rJelly.gameObject.SetActive(!isDead);
 
             if (!isDead)
             {
@@ -68,12 +83,12 @@ public class CellRenderer : MonoBehaviour
 
                 float dd = jellyRadius * 2f;
 
-                rDet.transform.position = rBody.transform.position;
-                rDet.transform.localScale = new Vector3(dd, dd, 1f);
+                rJelly.transform.position = rBody.transform.position;
+                rJelly.transform.localScale = new Vector3(dd, dd, 1f);
 
                 Color dc = ComputeColour(i);
                 dc.a = organismDetectAlpha;
-                rDet.color = dc;
+                rJelly.color = dc;
             }
         }
     }

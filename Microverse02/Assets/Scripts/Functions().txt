@@ -12,7 +12,7 @@ float GetPlayerRadius()
 
 void CreatePlayerCell(Vector2 pos) --
 
-void CreateWBCCell (Vector2 pos)
+void  (Vector2 pos)
 
 void CreateOrganism(Vector2 currentPos)
 
@@ -68,4 +68,18 @@ public int CountOrganismNum()
 public bool IsOrganismDead(int i)
 
 public bool IsLevelWin()
+
+public float GetJellyRadius(int i)
+
+void ClearJellyContactStorage()
+
+void NearestJellySelector(int cellIndex, Vector2 dir, float depth)
+
+void CalculateJellyContacts()
+
+ public bool TryGetJellyContact(int cellIndex, int contactIndex, out  Vector2 dir, out float depth)
+
+ public int GetJellyContactCount(int i)
+
+ void RebuildSpatialHashForCurrentPositions()
 

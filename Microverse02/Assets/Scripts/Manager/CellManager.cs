@@ -5,6 +5,7 @@ using Vector2 = UnityEngine.Vector2;
 using Random = UnityEngine.Random;
 using System.Security.Cryptography;
 using JetBrains.Annotations;
+using UnityEngine.UIElements;
 public class CellManager : MonoBehaviour
 {
     [Header("Defalut Settings")]
@@ -129,12 +130,6 @@ public class CellManager : MonoBehaviour
         public bool attackedByBacteria;
     }
 
-    public struct VisualContact
-    {
-        public int otherIndex;
-        public Vector2 direction;
-        public float depth;
-    }
 
     void Awake()
     {
@@ -270,7 +265,7 @@ public class CellManager : MonoBehaviour
             c.currentVelocity = c.nextVelocity;
             c.currentPos = c.nextPos;
             cells[i] = c;
-
+            
 
         }
         ApplyOrganismReproduction();
@@ -278,13 +273,11 @@ public class CellManager : MonoBehaviour
         UpdateDeadOrganisms();
         CountOrganismNum();
 
-        if (ReproductionEnergy <= 0) ReproductionEnergy = 0;
+        RebuildSpatialHashForCurrentPositions();
+        CalculateJellyContacts();
 
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            int organismCount = CountOrganismNum();
-            Debug.Log($" {cells.Count}, {organismCount}");
-        }
+
+        if (ReproductionEnergy <= 0) ReproductionEnergy = 0;
     }
 
     void FixedUpdate()
@@ -1457,6 +1450,7 @@ public class CellManager : MonoBehaviour
 
     #endregion
 
+    #region GPU instancing + Jelly
     //gpu instancing
 
     public bool IsOrganismDead(int i)
@@ -1525,7 +1519,7 @@ public class CellManager : MonoBehaviour
         int weakestIndex = 0;
         float weakestDepth = jellyDepths[cellIndex, 0];
 
-        for(int k =1; k<maxOrganismCount; k++)
+        for(int k =1; k< MaxJellyContacts; k++)
         {
             if (jellyDepths[cellIndex, k] < weakestDepth)
             {
@@ -1540,6 +1534,73 @@ public class CellManager : MonoBehaviour
 
         }
     }
+
+    void CalculateJellyContacts()
+    {
+        ClearJellyContactStorage();
+
+        for(int i =0; i<cells.Count; i++)
+        {
+            if (cells[i].isDead) continue;
+
+            spatialHash.Query(cells[i].currentPos, neighbourBuffer);
+
+            for(int n = 0;n < neighbourBuffer.Count;n++)
+            {
+                int j = neighbourBuffer[n]; 
+                if(j<0 ||j>=cells.Count) continue;
+                if (cells[j].isDead) continue;
+                if(j==i) continue;
+
+                Vector2 delta = cells[j].currentPos - cells[i].currentPos;
+                float d2 = delta.sqrMagnitude;
+                if (d2 < 1e-8f) continue;
+
+                float dist = Mathf.Sqrt(d2);
+
+                float ri = GetJellyRadius(i);
+                float rj= GetJellyRadius(j);
+
+                float depth = (ri + rj) - dist;
+                if(depth<=0f) continue;
+
+                Vector2 dir = delta / dist;
+
+                NearestJellySelector(i,dir, depth);
+            }
+        }
+
+    }
+
+    public bool TryGetJellyContact(int cellIndex, int contactIndex, out  Vector2 dir, out float depth)
+    {
+        dir = Vector2.zero;
+        depth = 0f;
+
+        if (jellyContactCounts == null) return false;
+        if(cellIndex<0 ||cellIndex>=jellyContactCounts.Length) return false;
+        if (contactIndex < 0 || contactIndex >= jellyContactCounts[cellIndex]) return false;
+
+        dir = jellyDirs[cellIndex,contactIndex];
+        depth = jellyDepths[cellIndex,contactIndex];
+        return true;
+    }
+    public int GetJellyContactCount(int i)
+    {
+        if(jellyContactCounts == null||i<0||i>=jellyContactCounts.Length) return 0;
+        return jellyContactCounts[i];
+    }
+    void RebuildSpatialHashForCurrentPositions()
+    {
+        spatialHash.BeginFrame();
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            if (cells[i].isDead) continue;
+            spatialHash.Insert(cells[i].currentPos, i);
+        }
+    }
+    #endregion
 }
 
 
