@@ -26,12 +26,16 @@ public class CellRenderer : MonoBehaviour
 
     //link to shader
 
-    private readonly MaterialPropertyBlock mpb = new();
-    //private static readonlyon
+    private MaterialPropertyBlock mpb ;
+    private static readonly int JellyContact0ID = Shader.PropertyToID("_JellyContact0");
+    private static readonly int JellyContact1ID = Shader.PropertyToID("_JellyContact1");
+    private static readonly int JellyContact2ID = Shader.PropertyToID("_JellyContact2");
+    private static readonly int JellyContact3ID = Shader.PropertyToID("_JellyContact3");
 
     private void Awake()
     {
         if(cellManager == null) cellManager = FindAnyObjectByType<CellManager>();
+        mpb=new MaterialPropertyBlock();
     }
 
     private void LateUpdate()
@@ -47,14 +51,6 @@ public class CellRenderer : MonoBehaviour
             Vector2 pos = cellManager.GetPos(i);
 
             int contactCount = cellManager.GetJellyContactCount(i);
-
-            for(int k =  0; k < contactCount; k++)
-            {
-                if(cellManager.TryGetJellyContact(i,k,out Vector2 dir, out float depth))
-                {
-                    Debug.DrawLine(pos,pos+dir*depth,Color.red);
-                }
-            }
 
             var rBody = organismBody[i];
 
@@ -80,7 +76,6 @@ public class CellRenderer : MonoBehaviour
             if (!isDead)
             {
                 float jellyRadius = cellManager.GetJellyRadius(i);
-
                 float dd = jellyRadius * 2f;
 
                 rJelly.transform.position = rBody.transform.position;
@@ -89,6 +84,43 @@ public class CellRenderer : MonoBehaviour
                 Color dc = ComputeColour(i);
                 dc.a = organismDetectAlpha;
                 rJelly.color = dc;
+
+                mpb.Clear();
+
+                Vector4 c0 = Vector4.zero;
+                Vector4 c1 = Vector4.zero;
+                Vector4 c2 = Vector4.zero;
+                Vector4 c3 = Vector4.zero;
+
+                int jellyContactCount = cellManager.GetJellyContactCount(i);
+
+                for(int k =0; k<jellyContactCount; k++)
+                {
+                    if (!cellManager.TryGetJellyContact(i, k, out Vector2 dir, out float depth)) continue;
+
+                    float cutPos = 1f - (depth/(2f*jellyRadius));
+                    cutPos = Mathf.Clamp(cutPos, 0.05f, 1f);
+
+
+                    Vector4 packed = new Vector4(dir.x, dir.y, cutPos, 0f);
+
+                    if(k==0) c0 = packed;
+                    else if (k == 1) c1 = packed;
+                    else if (k == 2) c2 = packed;
+                    else if (k == 3) c3 = packed;
+
+                }
+                mpb.SetVector(JellyContact0ID, c0);
+                mpb.SetVector(JellyContact1ID, c1);
+                mpb.SetVector(JellyContact2ID, c2);
+                mpb.SetVector(JellyContact3ID, c3);
+
+                rJelly.SetPropertyBlock(mpb);
+
+            }
+            else
+            {
+                rJelly.SetPropertyBlock (null);
             }
         }
     }

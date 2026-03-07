@@ -59,7 +59,7 @@ public class CellManager : MonoBehaviour
     public int GetOrganismId(int i) => cells[i].organismId;
 
     //Jelly generation
-    private float jellyScale = 5f;
+    private float jellyScale = 2f;
     const int MaxJellyContacts = 4;
 
     Vector2[,] jellyDirs;
@@ -482,10 +482,10 @@ public class CellManager : MonoBehaviour
 
         org.energy = UnityEngine.Random.Range(1f, 4f);
         float energy2 = Mathf.InverseLerp(1f, 10f, org.energy);
-        core.cellRadius = Mathf.Lerp(0.25f, 0.3f, energy2);
-        int shellCount = Mathf.RoundToInt(Mathf.Lerp(20f, 30f, energy2));
+        core.cellRadius = Mathf.Lerp(0.3f, 0.35f, energy2);
+        int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 18f, energy2));
 
-        core.detectRadius = core.cellRadius * 3.5f;
+        core.detectRadius = core.cellRadius * 2.5f;
 
 
         org.coreDistance = core.detectRadius;
@@ -502,7 +502,7 @@ public class CellManager : MonoBehaviour
         org.members.Add(coreIndex);
         
         //Shell
-        float shellRadius = Mathf.Lerp(0.1f, 0.13f, energy2);
+        float shellRadius = Mathf.Lerp(0.25f, 0.28f, energy2);
         for (int i = 0; i < shellCount; i++)
         {
             float angle = (Mathf.PI * 2f) * (i / (float)shellCount); //(Mathf.PI * 2f) 는 각도로 이해 * 그걸 비율로 슬라이스
@@ -519,7 +519,7 @@ public class CellManager : MonoBehaviour
 
             //이부분부터 프로퍼티화해야할듯.
             shell.cellRadius = shellRadius;
-            shell.detectRadius = shell.cellRadius * 4.5f;
+            shell.detectRadius = shell.cellRadius * 2f;
 
             shell.organismId = org.id;
             shell.role = CellRole.Shell;
@@ -700,7 +700,7 @@ public class CellManager : MonoBehaviour
         if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
-        float maxDist = a.detectRadius + b.detectRadius;
+        float maxDist = a.detectRadius + b.cellRadius;
 
         float overlap = maxDist - dist;
         if (overlap <= 0f) return;

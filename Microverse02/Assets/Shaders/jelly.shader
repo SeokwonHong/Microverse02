@@ -1,33 +1,20 @@
-Shader "Custom/URP_Sprite_JellyRadial_2022_WiggleCut"
+Shader "Custom/URP_Sprite_JellyPackedCells_Static"
 {
     Properties
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
-        _Color ("Tint", Color) = (1,1,1,1)
 
-        _EdgeAlpha ("Edge Alpha", Range(0,1)) = 0.5
-        _Power ("Falloff Power", Range(0.1, 8)) = 3.0
-        _Inner ("Inner (0-1)", Range(0,1)) = 0.0
-        _Outer ("Outer (0-1)", Range(0,1)) = 1.0
-        _CircleSoftness ("Circle Softness", Range(0.001, 0.2)) = 0.02
+        _FillAlpha ("Fill Alpha", Range(0,1)) = 1.0
+        _EdgeSoftness ("Edge Softness", Range(0.001, 0.08)) = 0.01
 
-        // Wiggle
-        _WiggleAmp   ("Wiggle Amplitude", Range(0, 0.2)) = 0.04
-        _WiggleFreq  ("Wiggle Frequency", Range(0, 24))  = 10
-        _WiggleSpeed ("Wiggle Speed", Range(0, 10))      = 2
-        _WiggleRadial("Wiggle Radial Bias", Range(0, 4)) = 1.5
+        _OutlineColor ("Outline Color", Color) = (0.35,0.28,0.08,1)
+        _OutlineWidth ("Outline Width", Range(0.001, 0.08)) = 0.015
 
-        // Contact cutting
-        _CutStrength   ("Cut Strength", Range(0, 4)) = 1.0
-        _CutCone       ("Cut Cone", Range(0, 1)) = 0.75
-        _DepthScale    ("Depth Scale", Range(0, 10)) = 2.0
-        _CutOuterStart ("Cut Outer Start", Range(0, 1)) = 0.55
-
-        // Per-cell contact data: xy = direction, z = depth, w unused
-        [PerRendererData] _JellyContact0 ("Jelly Contact 0", Vector) = (0,0,0,0)
-        [PerRendererData] _JellyContact1 ("Jelly Contact 1", Vector) = (0,0,0,0)
-        [PerRendererData] _JellyContact2 ("Jelly Contact 2", Vector) = (0,0,0,0)
-        [PerRendererData] _JellyContact3 ("Jelly Contact 3", Vector) = (0,0,0,0)
+        // xy = neighbour dir, z = cut position in local radius space, w unused
+        [PerRendererData] _JellyContact0 ("Jelly Contact 0", Vector) = (0,0,1,0)
+        [PerRendererData] _JellyContact1 ("Jelly Contact 1", Vector) = (0,0,1,0)
+        [PerRendererData] _JellyContact2 ("Jelly Contact 2", Vector) = (0,0,1,0)
+        [PerRendererData] _JellyContact3 ("Jelly Contact 3", Vector) = (0,0,1,0)
     }
 
     SubShader
@@ -74,22 +61,11 @@ Shader "Custom/URP_Sprite_JellyRadial_2022_WiggleCut"
             };
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _Color;
-                float _EdgeAlpha;
-                float _Power;
-                float _Inner;
-                float _Outer;
-                float _CircleSoftness;
+                float _FillAlpha;
+                float _EdgeSoftness;
 
-                float _WiggleAmp;
-                float _WiggleFreq;
-                float _WiggleSpeed;
-                float _WiggleRadial;
-
-                float _CutStrength;
-                float _CutCone;
-                float _DepthScale;
-                float _CutOuterStart;
+                float4 _OutlineColor;
+                float _OutlineWidth;
 
                 float4 _JellyContact0;
                 float4 _JellyContact1;
@@ -106,76 +82,76 @@ Shader "Custom/URP_Sprite_JellyRadial_2022_WiggleCut"
                 return OUT;
             }
 
-            float ContactCut(float2 radialDir, float rBase, float4 contact)
+            float HalfPlaneMask(float2 p, float4 contact, float softness)
             {
-                float2 cdir = contact.xy;
-                float depth = contact.z;
+                float2 dir = contact.xy;
+                float cutPos = contact.z;
 
-                float len2 = dot(cdir, cdir);
-                if (len2 < 1e-6 || depth <= 0.0)
-                    return 0.0;
+                float len2 = dot(dir, dir);
+                if (len2 < 1e-6) return 1.0;
 
-                cdir = normalize(cdir);
+                dir = normalize(dir);
 
-                // 1 when pixel points toward the neighbour, 0 elsewhere
-                float alignment = dot(radialDir, cdir);
+                float s = dot(p, dir);
 
-                // only affect a cone facing the neighbour
-                float coneMask = smoothstep(_CutCone, 1.0, alignment);
-
-                // cut mainly near the outer jelly edge
-                float outerMask = smoothstep(_CutOuterStart, 1.0, rBase);
-
-                // deeper overlap = stronger cut
-                float depthMask = saturate(depth * _DepthScale);
-
-                return coneMask * outerMask * depthMask * _CutStrength;
+                return 1.0 - smoothstep(cutPos - softness, cutPos + softness, s);
             }
 
             half4 frag (Varyings IN) : SV_Target
             {
-                float2 p = IN.uv - 0.5;
-                float rLen = length(p);
+                // local coordinates: centre = 0, edge radius = 1
+                float2 p = (IN.uv - 0.5) * 2.0;
+                float r = length(p);
 
-                float2 radialDir = (rLen > 1e-5) ? (p / rLen) : float2(1, 0);
+                // full circle
+                float circle = 1.0 - smoothstep(1.0 - _EdgeSoftness, 1.0 + _EdgeSoftness, r);
 
-                // base radius: 0 centre -> 1 edge
-                float rBase = rLen * 2.0;
+                // clipped cell body
+                float bodyMask = circle;
+                bodyMask *= HalfPlaneMask(p, _JellyContact0, _EdgeSoftness);
+                bodyMask *= HalfPlaneMask(p, _JellyContact1, _EdgeSoftness);
+                bodyMask *= HalfPlaneMask(p, _JellyContact2, _EdgeSoftness);
+                bodyMask *= HalfPlaneMask(p, _JellyContact3, _EdgeSoftness);
 
-                // wiggle
-                float ang = atan2(p.y, p.x);
-                float time = _Time.y * _WiggleSpeed;
+                // inner mask for outer outline
+                float innerCircle = 1.0 - smoothstep(
+                    1.0 - _OutlineWidth - _EdgeSoftness,
+                    1.0 - _OutlineWidth + _EdgeSoftness,
+                    r
+                );
 
-                float wiggle =
-                    sin(ang * _WiggleFreq + time) *
-                    (1.0 + rBase * _WiggleRadial) *
-                    _WiggleAmp;
+                float innerMask = innerCircle;
+                innerMask *= HalfPlaneMask(p, _JellyContact0, _EdgeSoftness);
+                innerMask *= HalfPlaneMask(p, _JellyContact1, _EdgeSoftness);
+                innerMask *= HalfPlaneMask(p, _JellyContact2, _EdgeSoftness);
+                innerMask *= HalfPlaneMask(p, _JellyContact3, _EdgeSoftness);
 
-                float r = rBase + wiggle;
+                // outer border ring
+                float outlineMask = saturate(bodyMask - innerMask);
 
-                // circle mask
-                float circle = 1.0 - smoothstep(1.0 - _CircleSoftness, 1.0 + _CircleSoftness, r);
+                // overlap seam: where neighbour clipping planes pass through the cell interior
+                float seam0 = bodyMask * (1.0 - HalfPlaneMask(p, _JellyContact0, _EdgeSoftness * 1.2));
+                float seam1 = bodyMask * (1.0 - HalfPlaneMask(p, _JellyContact1, _EdgeSoftness * 1.2));
+                float seam2 = bodyMask * (1.0 - HalfPlaneMask(p, _JellyContact2, _EdgeSoftness * 1.2));
+                float seam3 = bodyMask * (1.0 - HalfPlaneMask(p, _JellyContact3, _EdgeSoftness * 1.2));
 
-                // radial alpha ramp
-                float a = min(_Inner, _Outer);
-                float b = max(_Inner, _Outer);
-                float t = smoothstep(a, b, r);
-                t = pow(saturate(t), _Power);
-
-                // neighbour cuts
-                float cut = 0.0;
-                cut += ContactCut(radialDir, rBase, _JellyContact0);
-                cut += ContactCut(radialDir, rBase, _JellyContact1);
-                cut += ContactCut(radialDir, rBase, _JellyContact2);
-                cut += ContactCut(radialDir, rBase, _JellyContact3);
-                cut = saturate(cut);
+                float seamMask = max(max(seam0, seam1), max(seam2, seam3));
+                seamMask = saturate(seamMask);
 
                 half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, IN.uv);
 
-                half4 col = tex * _Color * IN.color;
-                col.a = circle * t * (1.0 - cut) * _EdgeAlpha * _Color.a * IN.color.a;
+                // no tint property: use sprite texture * renderer colour only
+                half4 baseCol = tex * IN.color;
+                baseCol.a *= _FillAlpha;
 
-                return col;
+                half4 finalCol = baseCol * bodyMask;
+
+                // apply same colour to outer outline and overlap seam
+                float borderMask = saturate(max(outlineMask, seamMask));
+                finalCol.rgb = lerp(finalCol.rgb, _OutlineColor.rgb, borderMask * _OutlineColor.a);
+                finalCol.a = max(finalCol.a, borderMask * _OutlineColor.a);
+
+                return finalCol;
             }
             ENDHLSL
         }
