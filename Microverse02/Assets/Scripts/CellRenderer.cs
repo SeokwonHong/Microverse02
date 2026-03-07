@@ -48,7 +48,7 @@ public class CellRenderer : MonoBehaviour
 
             if (!isDead)
             {
-                float d = cellManager.GetRadius(i);
+                float d = cellManager.GetRadius(i) *2f;
 
                 rBody.transform.position = new Vector3(pos.x, pos.y, 0f);
                 rBody.transform.localScale = new Vector3(d, d, 1f);
@@ -64,7 +64,7 @@ public class CellRenderer : MonoBehaviour
 
             if (!isDead)
             {
-                float jellyRadius = cellManager.GetRadius(i) *6f;
+                float jellyRadius = cellManager.GetJellyRadius(i);
 
                 float dd = jellyRadius * 2f;
 

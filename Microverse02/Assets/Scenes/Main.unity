@@ -1911,6 +1911,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3181221499565562391, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: cellBodyPrefab
+      value: 
+      objectReference: {fileID: 647007298097418435, guid: 83f99c3f291f50641b993e54ffcf9b49, type: 3}
+    - target: {fileID: 3181221499565562391, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: cellJellyPrefab
+      value: 
+      objectReference: {fileID: 647007298097418435, guid: 5892f57fdae7bde40833ec4fd10641fe, type: 3}
     - target: {fileID: 8034811381048981240, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: m_Name
       value: CellManager

@@ -4,6 +4,7 @@ using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Random = UnityEngine.Random;
 using System.Security.Cryptography;
+using JetBrains.Annotations;
 public class CellManager : MonoBehaviour
 {
     [Header("Defalut Settings")]
@@ -55,6 +56,14 @@ public class CellManager : MonoBehaviour
     public float GetDetectRadius(int i) => cells[i].detectRadius;
     public CellRole GetRole(int i) => cells[i].role;
     public int GetOrganismId(int i) => cells[i].organismId;
+
+    //Jelly generation
+    private float jellyScale = 5f;
+    const int MaxJellyContacts = 4;
+
+    Vector2[,] jellyDirs;
+    float[,] jellyDepths;
+    int[] jellyContactCounts;
 
 
     [Header ("cells  |  organisms")]
@@ -118,6 +127,13 @@ public class CellManager : MonoBehaviour
         public bool isDead;
         public float deadTimer;
         public bool attackedByBacteria;
+    }
+
+    public struct VisualContact
+    {
+        public int otherIndex;
+        public Vector2 direction;
+        public float depth;
     }
 
     void Awake()
@@ -1437,6 +1453,10 @@ public class CellManager : MonoBehaviour
         return count;
     }
 
+
+
+    #endregion
+
     //gpu instancing
 
     public bool IsOrganismDead(int i)
@@ -1452,17 +1472,74 @@ public class CellManager : MonoBehaviour
     public bool IsLevelWin()
     {
         int cellCount = CountOrganismNum();
-        if (organisms.Count ==0) return false;
+        if (organisms.Count == 0) return false;
 
         if (cellCount == 0) return true;
 
         return false;
     }
 
+    //jelly
+    public float GetJellyRadius(int i)
+    {
+        if (i < 0 || i >= cells.Count) return 0f;
+        return cells[i].cellRadius * jellyScale;
+    }
 
-    #endregion
+    //clear jellys
+    void ClearJellyContactStorage()
+    {
+        int count = cells.Count;
 
+        if(jellyDirs==null ||jellyDirs.GetLength(0)!=count)
+        {
+            jellyDirs = new Vector2[count, MaxJellyContacts];
+            jellyDepths = new float[count, MaxJellyContacts];
+            jellyContactCounts = new int[count];
+        }
 
+        for(int i = 0; i<count; i++)
+        {
+            jellyContactCounts[i] = 0;
+            
+            for(int k =0; k<MaxJellyContacts; k++)
+            {
+                jellyDirs[i,k] = Vector2.zero;
+                jellyDepths[i, k] = 0f;
+            }
+        }
+    }
+
+    void NearestJellySelector(int cellIndex, Vector2 dir, float depth)
+    {
+        int count = jellyContactCounts[cellIndex];
+
+        if(count<MaxJellyContacts)
+        {
+            jellyDirs[cellIndex, count] = dir;
+            jellyDepths[cellIndex,count] = depth;
+            jellyContactCounts[cellIndex]++;
+            return;
+        }
+
+        int weakestIndex = 0;
+        float weakestDepth = jellyDepths[cellIndex, 0];
+
+        for(int k =1; k<maxOrganismCount; k++)
+        {
+            if (jellyDepths[cellIndex, k] < weakestDepth)
+            {
+                weakestDepth = jellyDepths[cellIndex,k];
+                weakestIndex = k;
+            }
+        }
+        if(depth> weakestDepth)
+        {
+            jellyDirs[cellIndex,weakestIndex] = dir;
+            jellyDepths[cellIndex, weakestIndex] = depth;
+
+        }
+    }
 }
 
 
