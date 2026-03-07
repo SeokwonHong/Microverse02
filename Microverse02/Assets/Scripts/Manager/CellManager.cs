@@ -448,7 +448,7 @@ public class CellManager : MonoBehaviour
         w.currentVelocity = Vector2.zero;
         w.nextVelocity = Vector2.zero;
 
-        w.cellRadius = 0.2f;
+        w.cellRadius = 0.15f;
         w.detectRadius = w.cellRadius * 4f;
 
         w.energy = 1f;

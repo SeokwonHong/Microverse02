@@ -67,7 +67,7 @@ public class CellRenderer : MonoBehaviour
 
             if (!isDead)
             {
-                float detectRadius = cellManager.GetDetectRadius(i);
+                float detectRadius = cellManager.GetRadius(i)*4.5f;
 
                 if (cellManager.GetRole(i) == CellManager.CellRole.Player)
                 {
