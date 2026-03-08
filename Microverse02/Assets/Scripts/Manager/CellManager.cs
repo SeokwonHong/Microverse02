@@ -32,6 +32,12 @@ public class CellManager : MonoBehaviour
     int playerCellIndex = -1; //-1 means player not allocated yet. If player is made, int number will be allocated
     public float playerPushStrength;
 
+    [Header("Player Evolution Test")]
+    [SerializeField] float bacteriaSpeedMultiplier = 1f;
+    [SerializeField] float bacteriaSpeedStep = 0.01f;
+    [SerializeField] float minBacteriaSpeedMultiplier = 0.1f;
+    [SerializeField] float maxBacteriaSpeedMultiplier = 100f;
+
     [Header("Spatial Hash")]
     SpatialHash spatialHash;
     [SerializeField] float BoxSize = 1.25f;
@@ -199,37 +205,26 @@ public class CellManager : MonoBehaviour
                 if (cells[otherIndex].isDead) continue;
 
                 ResolveOverlap(i, otherIndex);
-                ApplyCellDetection(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                ApplyCohesion(i, otherIndex);
                 ApplyPlayerAttaching(i, otherIndex);
             }
         }
 
         // 3) Player input + functions
         ApplyPlayerInput();
-        //ApplyPlayerFunctions();
 
         // 4) WBC
         ApplyWBCAttachingWBCEnergy();
         ApplyWBCDamagePlayer();
 
         // 5) Organism constraints
-        ApplyCoreAnchor();
-        for (int iter = 0; iter < 2; iter++) // play iter times in one frame
-        {
-            ApplyOrganismJelly(Time.fixedDeltaTime);
-        }
         ApplyKeepOrganismShape();
+
         // 6) Cell rules
         ApplyCellOrganismEnergyDeath();
         ApplyCellWiggling();
-
         ApplyDragToCells();
-
         ApplyEmitWBCFromOrganism();
-        //ApplyCellMovement();
-        //ApplyOrganismTendency();
 
 
         // 7) Map boundary + end buffer
@@ -263,6 +258,18 @@ public class CellManager : MonoBehaviour
         CountOrganismNum();
 
         if (ReproductionEnergy <= 0) ReproductionEnergy = 0;
+
+        if (Input.GetKey(KeyCode.Alpha1))
+        {
+            bacteriaSpeedMultiplier = Mathf.Max(minBacteriaSpeedMultiplier, bacteriaSpeedMultiplier - bacteriaSpeedStep);
+            Debug.Log("Bacteria speed multiplier down: " + bacteriaSpeedMultiplier);
+        }
+
+        if (Input.GetKey(KeyCode.Alpha2))
+        {
+            bacteriaSpeedMultiplier = Mathf.Min(maxBacteriaSpeedMultiplier, bacteriaSpeedMultiplier + bacteriaSpeedStep);
+            Debug.Log("Bacteria speed multiplier up: " + bacteriaSpeedMultiplier);
+        }
 
         if (Input.GetKeyDown(KeyCode.V))
         {
@@ -401,7 +408,7 @@ public class CellManager : MonoBehaviour
             c.role = CellRole.Player;
 
             c.cellRadius = 0.15f;
-            c.detectRadius = c.cellRadius * 10f;
+            c.detectRadius = c.cellRadius * 13f;
 
             c.detected = true;
 
@@ -423,7 +430,7 @@ public class CellManager : MonoBehaviour
         clone.nextVelocity = Vector2.zero;
 
         clone.cellRadius = 0.15f;
-        clone.detectRadius = clone.cellRadius * 10f;
+        clone.detectRadius = clone.cellRadius * 13f;
 
         clone.organismId = -1;
         clone.role = CellRole.Player;
@@ -449,7 +456,7 @@ public class CellManager : MonoBehaviour
         w.nextVelocity = Vector2.zero;
 
         w.cellRadius = 0.15f;
-        w.detectRadius = w.cellRadius * 4f;
+        w.detectRadius = w.cellRadius * 8f;
 
         w.energy = 1f;
 
@@ -857,9 +864,9 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
     }
-    void ApplyOrganismJelly(float dt) //apply this to organisms instead of ApplyKeepDistance()?? 
+    void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
     {
-
+        float dt = Time.deltaTime;
         float k = 0f;     // spring strength
         float c = 1.1f;     // damping
         float maxPenetration = 0.35f;
@@ -1020,7 +1027,7 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
             if (c.isDead) continue;
-            if (c == cells[playerCellIndex]) continue;
+            if (i == playerCellIndex) continue;
 
             Vector2 randomDir = Random.insideUnitCircle;
             if (randomDir.sqrMagnitude < 1e-6f) continue;
@@ -1029,7 +1036,8 @@ public class CellManager : MonoBehaviour
 
             if (c.role == CellRole.Player)
             {
-                speed = 30f;
+                speed = 1f;
+                //speed = 30f *bacteriaSpeedMultiplier;
             }
             else if (c.role == CellRole.WhiteBlood)
             {
@@ -1194,7 +1202,7 @@ public class CellManager : MonoBehaviour
             float dist = Mathf.Sqrt(sqrDist);
             if (dist <= 0.0001f) return;
             Vector2 dir = delta / dist;
-            float chaseForce = 10f;
+            float chaseForce = 10f *bacteriaSpeedMultiplier;
             bacteria.nextVelocity += dir * chaseForce * dt;
 
             //Energy Sucking

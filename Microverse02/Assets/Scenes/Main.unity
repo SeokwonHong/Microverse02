@@ -1927,6 +1927,18 @@ PrefabInstance:
       propertyPath: maxOrganismCount
       value: 10
       objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: bacteriaSpeedStep
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: maxBacteriaSpeedMultiplier
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: minBacteriaSpeedMultiplier
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 9041897232896126861, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
