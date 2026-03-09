@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using Vector2 = UnityEngine.Vector2;
 
 public class BacteriaFieldManager : MonoBehaviour
 {
@@ -8,8 +7,11 @@ public class BacteriaFieldManager : MonoBehaviour
     float mapRadius = 25f;
     
     [Header("Chemo Grid")]
-    float[,] chemoField;
-    float[,] chemoNext;
+    float[,] exploreField;
+    float[,] exploreNext;
+
+    float[,] foodField;
+    float[,] foodNext;
 
     int chemoWidth = 128; 
     int chemoHeight = 128;
@@ -18,7 +20,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     float chemoDecayPerSecond = 0.001f; 
     float chemoDiffuseRate = 0.6f;  //How much chemical spreads to neighbours. Like blurring.
-
+    
     [SerializeField] float chemoSensorDistance = 1.2f; 
     float chemoSensorAngle = 35f; 
     float chemoSteerStrength = 5f;
@@ -34,9 +36,9 @@ public class BacteriaFieldManager : MonoBehaviour
 
     private void Awake()
     {
-        
-        chemoField = new float[chemoWidth, chemoHeight];
-        chemoNext = new float[chemoWidth, chemoHeight];
+
+        exploreField = new float[chemoWidth, chemoHeight];
+        exploreNext = new float[chemoWidth, chemoHeight];
 
     }
 
@@ -63,7 +65,7 @@ public class BacteriaFieldManager : MonoBehaviour
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
-            chemoField[gx, gy] += chemoDepositAmount * amountMultiplier * Time.deltaTime;
+            exploreField[gx, gy] += chemoDepositAmount * amountMultiplier * Time.deltaTime;
         }
     }
     public void DepositOrganism(Vector2 worldPos)
@@ -75,7 +77,7 @@ public class BacteriaFieldManager : MonoBehaviour
     public float Sample(Vector2 worldPos) // take chemicals value out
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
-            return chemoField[gx, gy];
+            return exploreField[gx, gy];
 
         return 0f;
     }
@@ -87,23 +89,23 @@ public class BacteriaFieldManager : MonoBehaviour
         {
             for (int y = 0; y < chemoHeight; y++)
             {
-                float center = chemoField[x, y];
+                float center = exploreField[x, y];
                 float sum = center;
                 int count = 1;
 
-                if (x > 0) { sum += chemoField[x - 1, y]; count++; }
-                if (x < chemoWidth - 1) { sum += chemoField[x + 1, y]; count++; }
-                if (y > 0) { sum += chemoField[x, y - 1]; count++; }
-                if (y < chemoHeight - 1) { sum += chemoField[x, y + 1]; count++; }
+                if (x > 0) { sum += exploreField[x - 1, y]; count++; }
+                if (x < chemoWidth - 1) { sum += exploreField[x + 1, y]; count++; }
+                if (y > 0) { sum += exploreField[x, y - 1]; count++; }
+                if (y < chemoHeight - 1) { sum += exploreField[x, y + 1]; count++; }
 
                 float blurred = Mathf.Lerp(center, sum / count, chemoDiffuseRate);
-                chemoNext[x, y] = Mathf.Max(0f, blurred - decay);
+                exploreField[x, y] = Mathf.Max(0f, blurred - decay);
             }
         }
 
-        var temp = chemoField;
-        chemoField = chemoNext;
-        chemoNext = temp;
+        var temp = exploreField;
+        exploreField = exploreNext;
+        exploreNext = temp;
     }
 
 }

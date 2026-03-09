@@ -265,7 +265,7 @@ public class CellManager : MonoBehaviour
 
 
         }
-        ApplyOrganismReproduction();
+        //ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         CountOrganismNum();
