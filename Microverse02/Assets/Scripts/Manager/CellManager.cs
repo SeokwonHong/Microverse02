@@ -38,6 +38,7 @@ public class CellManager : MonoBehaviour
 
     //GPU instancing
     public enum CellRole { Bacteria, Core, Shell, WhiteBlood}
+    public enum AntState { Searching, Returning }
 
     public int CellCount =>cells.Count;
     public bool IsDead(int i) => cells[i].isDead;
@@ -87,8 +88,11 @@ public class CellManager : MonoBehaviour
         public float headingTimer;
         public float wanderAngle;
         public Vector2 cohesionDV;
-    }
 
+        public AntState antState;
+        public bool carryingFood;
+    }
+    
     class Organisms
     {
         public int id;
