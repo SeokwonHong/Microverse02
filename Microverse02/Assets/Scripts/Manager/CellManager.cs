@@ -1473,8 +1473,73 @@ public class CellManager : MonoBehaviour
     }
 
 
-    
 
+    void ApplyAntStateBehaviour()
+    {
+        float dt = Time.deltaTime;
+        Vector2 nestPos = reftoBacteriaSpawnPos.transform.position;
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            Cell c = cells[i];
+            if (c.isDead) continue;
+            if (c.role != CellRole.Bacteria) continue;
+
+            if (c.antState == AntState.Searching)
+            {
+                // for now do nothing here, let wandering handle it
+            }
+            else if (c.antState == AntState.Returning)
+            {
+                Vector2 delta = nestPos - c.nextPos;
+                float d2 = delta.sqrMagnitude;
+
+                if (d2 > 0.0001f)
+                {
+                    float dist = Mathf.Sqrt(d2);
+                    Vector2 dir = delta / dist;
+                    float returnForce = 12f;
+                    c.nextVelocity += dir * returnForce * dt;
+                }
+
+                float nestReachDist = 0.5f;
+                if (d2 <= nestReachDist * nestReachDist)
+                {
+                    c.antState = AntState.Searching;
+                    c.carryingFood = false;
+                }
+            }
+             
+            cells[i] = c;
+        }
+    }
+
+    void ApplyFoodPickup()
+    {
+        for (int i = 0; i < cells.Count; i++)
+        {
+            Cell c = cells[i];
+            if (c.isDead) continue;
+            if (c.role != CellRole.Bacteria) continue;
+            if (c.antState != AntState.Searching) continue;
+
+            for (int f = 0; f < foodSources.Count; f++)
+            {
+                Vector2 delta = foodSources[f].pos - c.nextPos;
+                float pickupDist = c.cellRadius + 0.3f;
+
+                if (delta.sqrMagnitude <= pickupDist * pickupDist && foodSources[f].amount > 0f)
+                {
+                    c.antState = AntState.Returning;
+                    c.carryingFood = true;
+                    foodSources[f].amount -= 1f;
+                    break;
+                }
+            }
+
+            cells[i] = c;
+        }
+    }
 
 }
 
