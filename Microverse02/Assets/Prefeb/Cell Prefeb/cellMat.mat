@@ -58,14 +58,14 @@ Material:
     - _GlowStrength: 0.35
     - _HighlightSize: 1
     - _HighlightStrength: 1.02
-    - _Inner: 0.25
+    - _Inner: 0.442
     - _LightStrength: 0
     - _NucleusRatio: 0.42
     - _OrganelleDensity: 12
     - _OrganelleSize: 0.03
     - _OrganelleSoft: 0.5
-    - _Outer: 1
-    - _Power: 0.1
+    - _Outer: 0
+    - _Power: 6.55
     - _PulseAmp: 0.04
     - _PulseFreq: 1
     - _RimNoiseAmp: 0.05

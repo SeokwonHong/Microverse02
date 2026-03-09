@@ -1180,6 +1180,11 @@ MonoBehaviour:
   refToPanel: {fileID: 806001159}
   refToPreviewBgPanel: {fileID: 531809716}
   refToUpgrageText: {fileID: 443894305}
+--- !u!1 &1096715513 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8034811381048981240, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+  m_PrefabInstance: {fileID: 5402479487759917563}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1262859526
 GameObject:
   m_ObjectHideFlags: 0
@@ -1354,12 +1359,27 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
   m_PrefabInstance: {fileID: 5402479487759917563}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1096715513}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1569142227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1096715513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fa66ca12c2db39459276f5992da8422, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chemoDepositAmount: 0.05
+  chemoOrganismDepositAmount: 5
+  chemoSensorDistance: 1.6
 --- !u!1 &1765543666
 GameObject:
   m_ObjectHideFlags: 0
@@ -1854,6 +1874,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5990385158855586220, guid: 0b4369f761930344e86715470ad0a326, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5990385158855586220, guid: 0b4369f761930344e86715470ad0a326, type: 3}
+      propertyPath: m_Color.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5990385158855586220, guid: 0b4369f761930344e86715470ad0a326, type: 3}
+      propertyPath: m_Color.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6243197524715541988, guid: 0b4369f761930344e86715470ad0a326, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1920,20 +1952,32 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 237737088}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
-      propertyPath: mapRadius
+      propertyPath: maxSpeed
       value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: mapRadius
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxOrganismCount
-      value: 10
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeedStep
       value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: firstOrganismCount
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: bacteriaFieldManager
+      value: 
+      objectReference: {fileID: 1569142227}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxBacteriaSpeedMultiplier
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: minBacteriaSpeedMultiplier
@@ -1982,7 +2026,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8034811381048981240, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1569142227}
   m_SourcePrefab: {fileID: 100100000, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
 --- !u!1001 &8440521327410845940
 PrefabInstance:

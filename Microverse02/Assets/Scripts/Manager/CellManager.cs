@@ -32,6 +32,8 @@ public class CellManager : MonoBehaviour
     int playerCellIndex = -1; //-1 means player not allocated yet. If player is made, int number will be allocated
     public float playerPushStrength;
 
+    [SerializeField] BacteriaFieldManager bacteriaFieldManager;
+
     [Header("Player Evolution Test")]
     [SerializeField] float bacteriaSpeedMultiplier = 1f;
     [SerializeField] float bacteriaSpeedStep = 0.01f;
@@ -222,6 +224,17 @@ public class CellManager : MonoBehaviour
 
         // 6) Cell rules
         ApplyCellOrganismEnergyDeath();
+
+        //bactera rules
+        DepositOrganismField();
+        DepositBacteriaField();
+
+        if (bacteriaFieldManager != null)
+            bacteriaFieldManager.TickField(Time.deltaTime);
+
+        ApplyBacteriaFieldSteering();
+  
+
         ApplyCellWiggling();
         ApplyDragToCells();
         ApplyEmitWBCFromOrganism();
@@ -1037,7 +1050,7 @@ public class CellManager : MonoBehaviour
             if (c.role == CellRole.Player)
             {
                 speed = 1f;
-                //speed = 30f *bacteriaSpeedMultiplier;
+                speed = 1.1f *bacteriaSpeedMultiplier;
             }
             else if (c.role == CellRole.WhiteBlood)
             {
@@ -1229,7 +1242,7 @@ public class CellManager : MonoBehaviour
     void ApplyEmitWBCFromOrganism()
     {
         float dt = Time.deltaTime;
-        const float interval = 0.8f;
+        const float interval = 1.3f;
 
         for (int i = 0; i < organisms.Count; i++)
         {
@@ -1433,6 +1446,95 @@ public class CellManager : MonoBehaviour
             cells[i] = w;
         }
     }
+    #endregion
+
+    Vector2 Rotate(Vector2 v, float degrees)  // makes normalized vector2 with applied degrees
+    {
+        float rad = degrees * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(rad);
+        float sin = Mathf.Sin(rad);
+
+        return new Vector2(
+            v.x * cos - v.y * sin,
+            v.x * sin + v.y * cos
+        );
+    }
+    void DepositOrganismField()
+    {
+        if (bacteriaFieldManager == null) return;
+
+        for (int i = 0; i < organisms.Count; i++)
+        {
+            Organisms org = organisms[i];
+            if (org.isDead) continue;
+
+            for (int m = 0; m < org.members.Count; m++)
+            {
+                int cellIdx = org.members[m];
+                if (cellIdx < 0 || cellIdx >= cells.Count) continue;
+
+                Cell c = cells[cellIdx];
+                if (c.isDead) continue;
+
+                Vector2 pos = c.currentPos;
+                bacteriaFieldManager.DepositOrganism(pos);
+            }
+        }
+    }
+    void DepositBacteriaField() // use the Deposit() funtion per bacteria
+    {
+        if (bacteriaFieldManager == null) return;
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            Cell c = cells[i];
+            if (c.isDead) continue;
+            if (c.role != CellRole.Player) continue;
+            if (i == playerCellIndex) continue;
+
+            bacteriaFieldManager.Deposit(c.currentPos);
+        }
+    }
+    void ApplyBacteriaFieldSteering() //makes bacteria to move(steer) based on the chemical field
+    {
+        if (bacteriaFieldManager == null) return;
+
+        float dt = Time.deltaTime;
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            Cell c = cells[i];
+            if (c.isDead) continue;
+            if (c.role != CellRole.Player) continue;
+            if (i == playerCellIndex) continue;
+
+            Vector2 forward = c.nextVelocity.sqrMagnitude > 0.0001f
+                ? c.nextVelocity.normalized
+                : Random.insideUnitCircle.normalized;
+
+            Vector2 leftDir = Rotate(forward, -bacteriaFieldManager.SensorAngle);
+            Vector2 rightDir = Rotate(forward, bacteriaFieldManager.SensorAngle);
+
+            Vector2 forwardPos = c.currentPos + forward * bacteriaFieldManager.SensorDistance;
+            Vector2 leftPos = c.currentPos + leftDir * bacteriaFieldManager.SensorDistance;
+            Vector2 rightPos = c.currentPos + rightDir * bacteriaFieldManager.SensorDistance;
+
+            float forwardValue = bacteriaFieldManager.Sample(forwardPos);
+            float leftValue = bacteriaFieldManager.Sample(leftPos);
+            float rightValue = bacteriaFieldManager.Sample(rightPos);
+
+            Vector2 desiredDir = forward;
+
+            if (leftValue > forwardValue && leftValue > rightValue)
+                desiredDir = leftDir;
+            else if (rightValue > forwardValue && rightValue > leftValue)
+                desiredDir = rightDir;
+
+            c.nextVelocity += desiredDir * bacteriaFieldManager.SteerStrength * dt;
+            cells[i] = c;
+        }
+    }
+
 
     public int CountOrganismNum()
     {
@@ -1468,7 +1570,7 @@ public class CellManager : MonoBehaviour
     }
 
 
-    #endregion
+    
 
 
 }

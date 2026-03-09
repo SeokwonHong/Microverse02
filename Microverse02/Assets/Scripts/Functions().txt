@@ -63,6 +63,14 @@ void ApplyWBCDamagePlayer()
 
 void ApplyWBCWandering()
 
+Vector2 Rotate(Vector2 v, float degrees)
+
+void DepositOrganismField()
+
+void DepositBacteriaField() 
+
+void ApplyBacteriaFieldSteering()
+
 public int CountOrganismNum()
 
 public bool IsOrganismDead(int i)
