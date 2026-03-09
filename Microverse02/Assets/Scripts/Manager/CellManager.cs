@@ -36,6 +36,9 @@ public class CellManager : MonoBehaviour
     bool isOrganismDead = false;
     const float maxDeadTime = 20f;
 
+
+    List<FoodSource> foodSources = new List<FoodSource>();
+
     //GPU instancing
     public enum CellRole { Bacteria, Core, Shell, WhiteBlood}
     public enum AntState { Searching, Returning }
@@ -93,6 +96,11 @@ public class CellManager : MonoBehaviour
         public bool carryingFood;
     }
     
+    class FoodSource
+    {
+        public Vector2 pos;
+        public float amount;
+    }
     class Organisms
     {
         public int id;
@@ -358,6 +366,9 @@ public class CellManager : MonoBehaviour
 
             c.cohesionDV = Vector2.zero;
 
+            c.antState = AntState.Searching;
+            c.carryingFood = false;
+
             cells[idx] = c;
             return;
         }
@@ -379,6 +390,9 @@ public class CellManager : MonoBehaviour
         clone.detected = true;
         clone.isDead = false;
         clone.isBacteriaAttachedToWBC = false;
+
+        clone.antState = AntState.Searching;
+        clone.carryingFood = false;
 
         clone.cohesionDV = Vector2.zero;
 
