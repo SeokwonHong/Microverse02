@@ -10,51 +10,34 @@ public class CellManager : MonoBehaviour
     [SerializeField] int firstOrganismCount;
     public int maxOrganismCount = 100;
 
+    [Header("Bacteria Spawn")]
+    [SerializeField] GameObject reftoBacteriaSpawnPos;
+    [SerializeField] float bacteriaSpawnInterval = 1f;
+    float bacteriaSpawnTimer = 0f;
+
     [Header("Map generation")]
-    [SerializeField] Vector2 mapCentre = Vector2.zero;
+    Vector2 mapCentre = Vector2.zero;
     [SerializeField] float mapRadius = 25f;
     public GameObject refToBg;
     [SerializeField] float wallBounciness = 0.5f;
-
-    [Header("Mouse and Player")]
-    float mousePlayerDistance;
-    float playerSpeed;
-
-    [Header("Bacteria - WBC Reproduce Timer")]
-    float reproduceTimer = 0;
-    float reproduceInterval = 0.01f;
-
-    [Header("Player")]
-    [SerializeField] float maxSpeed = 10f;
-    [SerializeField] float threshold = 17f;
-    private float playerRadius;
-    private float playerInfluenceRadius;
-    int playerCellIndex = -1; //-1 means player not allocated yet. If player is made, int number will be allocated
-    public float playerPushStrength;
-
     [SerializeField] BacteriaFieldManager bacteriaFieldManager;
 
-    [Header("Player Evolution Test")]
-    [SerializeField] float bacteriaSpeedMultiplier = 1f;
-    [SerializeField] float bacteriaSpeedStep = 0.01f;
-    [SerializeField] float minBacteriaSpeedMultiplier = 0.1f;
-    [SerializeField] float maxBacteriaSpeedMultiplier = 100f;
 
     [Header("Spatial Hash")]
     SpatialHash spatialHash;
     [SerializeField] float BoxSize = 1.25f;
     readonly List<int> neighbourBuffer = new List<int>(128);
-    readonly List<int> nearestPlayerBuffer = new List<int>(128);
+    readonly List<int> nearestBacteriaBuffer = new List<int>(128);
 
-    [Header("Players Pooling")]
-    readonly List<int> deadPlayerPool = new List<int>(128);
+    [Header("Bacterias Pooling")]
+    readonly List<int> deadBacteriaPool = new List<int>(128);
 
     [Header("Organism Death")]
     bool isOrganismDead = false;
     const float maxDeadTime = 20f;
 
     //GPU instancing
-    public enum CellRole { Player, Core, Shell, WhiteBlood}
+    public enum CellRole { Bacteria, Core, Shell, WhiteBlood}
 
     public int CellCount =>cells.Count;
     public bool IsDead(int i) => cells[i].isDead;
@@ -92,8 +75,8 @@ public class CellManager : MonoBehaviour
         public bool detected;
         public bool isDead;
 
-        // players
-        public bool isPlayerAttachedToWBC;
+        // bacteria
+        public bool isBacteriaAttachedToWBC;
         public float energy;
 
         // WBC
@@ -134,10 +117,11 @@ public class CellManager : MonoBehaviour
 
         if(refToBg !=null) refToBg.transform.localScale = new Vector3(mapRadius * 2f, mapRadius * 2f, 1);
 
-        CreatePlayerCell(Vector2.zero);
-        playerRadius = GetPlayerRadius();
-        playerInfluenceRadius = playerRadius * 6f;
+        for (int i = 0; i < 50; i++)
+        {
+            CreateBacteriaCell(reftoBacteriaSpawnPos.transform.position*Random.insideUnitCircle * 0.5f);
 
+        }
         float minX = -mapRadius;
         float maxX = mapRadius;
         float minY = -mapRadius;
@@ -162,7 +146,16 @@ public class CellManager : MonoBehaviour
     void Update()
     {
         float dt = Time.deltaTime;
-        
+
+        bacteriaSpawnTimer += dt;
+
+        if (bacteriaSpawnTimer >= bacteriaSpawnInterval)
+        {
+            bacteriaSpawnTimer -= bacteriaSpawnInterval;
+
+            Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
+            CreateBacteriaCell(spawnPos);
+        }
 
         // 0) Double buffer start
         for (int i = 0; i < cells.Count; i++)
@@ -171,7 +164,7 @@ public class CellManager : MonoBehaviour
             c.nextVelocity = c.currentVelocity; 
             c.nextPos = c.currentPos;
             c.detected = false;
-            c.isPlayerAttachedToWBC = false;
+            c.isBacteriaAttachedToWBC = false;
 
             c.cohesionDV = Vector2.zero;
 
@@ -208,16 +201,14 @@ public class CellManager : MonoBehaviour
 
                 ResolveOverlap(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
-                ApplyPlayerAttaching(i, otherIndex);
+                ApplyBacteriaAttackingOrganism(i, otherIndex);
             }
         }
 
-        // 3) Player input + functions
-        ApplyPlayerInput();
 
         // 4) WBC
         ApplyWBCAttachingWBCEnergy();
-        ApplyWBCDamagePlayer();
+        ApplyWBCDamageBacteria();
 
         // 5) Organism constraints
         ApplyKeepOrganismShape();
@@ -265,24 +256,13 @@ public class CellManager : MonoBehaviour
 
 
         }
-        //ApplyOrganismReproduction();
+        ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         CountOrganismNum();
 
         if (ReproductionEnergy <= 0) ReproductionEnergy = 0;
 
-        if (Input.GetKey(KeyCode.Alpha1))
-        {
-            bacteriaSpeedMultiplier = Mathf.Max(minBacteriaSpeedMultiplier, bacteriaSpeedMultiplier - bacteriaSpeedStep);
-            Debug.Log("Bacteria speed multiplier down: " + bacteriaSpeedMultiplier);
-        }
-
-        if (Input.GetKey(KeyCode.Alpha2))
-        {
-            bacteriaSpeedMultiplier = Mathf.Min(maxBacteriaSpeedMultiplier, bacteriaSpeedMultiplier + bacteriaSpeedStep);
-            Debug.Log("Bacteria speed multiplier up: " + bacteriaSpeedMultiplier);
-        }
 
         if (Input.GetKeyDown(KeyCode.V))
         {
@@ -291,26 +271,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
-    {
-        if (playerCellIndex < 0) return;
 
-        if (Input.GetMouseButton(0))
-        {
-            if (ReproductionEnergy <= 0) return;
-
-            Cell player = cells[playerCellIndex];
-
-            reproduceTimer += Time.fixedDeltaTime;
-
-            if(reproduceTimer>=reproduceInterval)
-            {
-                reproduceTimer = 0f;
-                ReproductionEnergy -= 1;
-                CreatePlayerCell(player.currentPos);
-            }
-        }
-    }
 
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,67 +311,33 @@ public class CellManager : MonoBehaviour
 
     #endregion
 
-    #region Input, player function
+    #region Input
 
-    Cell ApplyInput(Cell player)
-    {
 
-        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mousePlayerDistance = Vector2.Distance(GetPlayerPosition(), mousePos);
 
-        playerSpeed = Mathf.Lerp(0, maxSpeed, Mathf.InverseLerp(0f, threshold, mousePlayerDistance));
-
-        player.nextPos = Vector2.MoveTowards(GetPlayerNextPosition(), mousePos, playerSpeed * Time.deltaTime);
-        return player;
-    }
-    void ApplyPlayerInput()
-    {
-        if (playerCellIndex < 0 || playerCellIndex >=cells.Count) return;
-
-        Cell player = cells[playerCellIndex];
-        player = ApplyInput(player);
-        player.nextVelocity = Vector2.zero;
-        cells[playerCellIndex] = player;
-    }
     static bool IsFinite(Vector2 v)
     {
         return !(float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.x) || float.IsInfinity(v.y));
     }
-    public Vector2 GetPlayerPosition()
-    {
-        if (playerCellIndex < 0 || playerCellIndex >= cells.Count) return Vector2.zero;
-        Vector2 p = cells[playerCellIndex].currentPos;
-        return IsFinite(p) ? p : Vector2.zero;
-    }
-    Vector2 GetPlayerNextPosition()
-    {
-        if (playerCellIndex < 0 || playerCellIndex >= cells.Count) return Vector2.zero;
-        return cells[playerCellIndex].nextPos;
-    }
 
-    float GetPlayerRadius()
-    {
-        if (playerCellIndex < 0 || playerCellIndex >= cells.Count) return 0.4f;
-        return cells[playerCellIndex].cellRadius;
-    }
 
     #endregion
 
     #region Create
 
-    void CreatePlayerCell(Vector2 pos)
+    void CreateBacteriaCell(Vector2 pos)
     {
         //reuse pool
-        if (deadPlayerPool.Count > 0)
+        if (deadBacteriaPool.Count > 0)
         {
-            int idx = deadPlayerPool[^1];
-            deadPlayerPool.RemoveAt(deadPlayerPool.Count - 1);
+            int idx = deadBacteriaPool[^1];
+            deadBacteriaPool.RemoveAt(deadBacteriaPool.Count - 1);
 
             Cell c = cells[idx];
 
             c.isDead = false;
             c.energy = 2f;
-            c.isPlayerAttachedToWBC = false;
+            c.isBacteriaAttachedToWBC = false;
 
             c.currentPos = pos;
             c.nextPos = pos;
@@ -418,7 +345,7 @@ public class CellManager : MonoBehaviour
             c.nextVelocity = Vector2.zero;
 
             c.organismId = -1;
-            c.role = CellRole.Player;
+            c.role = CellRole.Bacteria;
 
             c.cellRadius = 0.15f;
             c.detectRadius = c.cellRadius * 13f;
@@ -428,12 +355,8 @@ public class CellManager : MonoBehaviour
             c.cohesionDV = Vector2.zero;
 
             cells[idx] = c;
-
-            playerCellIndex = idx;
             return;
         }
-
-       int newIdx = cells.Count;
 
         Cell clone = new Cell();
 
@@ -446,18 +369,16 @@ public class CellManager : MonoBehaviour
         clone.detectRadius = clone.cellRadius * 13f;
 
         clone.organismId = -1;
-        clone.role = CellRole.Player;
+        clone.role = CellRole.Bacteria;
 
         clone.energy = 2f;
         clone.detected = true;
         clone.isDead = false;
-        clone.isPlayerAttachedToWBC = false;
+        clone.isBacteriaAttachedToWBC = false;
 
         clone.cohesionDV = Vector2.zero;
 
         cells.Add(clone);
-
-        playerCellIndex = newIdx;   
     }
 
     void CreateWBCCell(Vector2 pos)
@@ -702,7 +623,7 @@ public class CellManager : MonoBehaviour
         Cell a = cells[currentIndex];
         Cell b = cells[otherIndex];
 
-        if (a.role == CellRole.Player || b.role == CellRole.Player) return; //---
+        if (a.role == CellRole.Bacteria || b.role == CellRole.Bacteria) return; //---
         if (a.role == CellRole.WhiteBlood || b.role == CellRole.WhiteBlood) return;
         if(a.role == CellRole.Core || b.role == CellRole.Core) return;
 
@@ -890,13 +811,8 @@ public class CellManager : MonoBehaviour
         {
             Cell target = cells[i];
 
-            bool isPlayer = (i==playerCellIndex);
 
-            if(isPlayer)
-            {
-                k = 300f;
-            }
-            else if (target.role==CellRole.Core)
+            if (target.role==CellRole.Core)
             {
                 k = 5;
             }
@@ -910,7 +826,7 @@ public class CellManager : MonoBehaviour
             if (target.isDead) continue;
 
             // Only push these roles
-            if (target.role != CellRole.Player && target.role != CellRole.WhiteBlood && target.role != CellRole.Core) continue;
+            if (target.role != CellRole.Bacteria && target.role != CellRole.WhiteBlood && target.role != CellRole.Core) continue;
 
 
             Vector2 totalAccel = Vector2.zero;
@@ -927,7 +843,7 @@ public class CellManager : MonoBehaviour
 
 
                 float barrier=1f;
-                if(target.role==CellRole.WhiteBlood || target.role == CellRole.Player)
+                if(target.role==CellRole.WhiteBlood || target.role == CellRole.Bacteria)
                 {
                     barrier = org.coreDistance + target.cellRadius;
                 }
@@ -973,7 +889,7 @@ public class CellManager : MonoBehaviour
         Cell A = cells[a];
         Cell B = cells[b];
 
-        if (A.role == CellRole.Player && B.role != CellRole.Player)
+        if (A.role == CellRole.Bacteria && B.role != CellRole.Bacteria)
         {
             float r = A.detectRadius + B.cellRadius;
             if ((A.nextPos - B.nextPos).sqrMagnitude <= r * r)
@@ -983,7 +899,7 @@ public class CellManager : MonoBehaviour
             }
             else B.detected = false;
         }
-        else if (B.role == CellRole.Player && A.role != CellRole.Player)
+        else if (B.role == CellRole.Bacteria && A.role != CellRole.Bacteria)
         {
             float r = B.detectRadius + A.cellRadius;
             if ((B.nextPos - A.nextPos).sqrMagnitude <= r * r)
@@ -1040,17 +956,15 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
             if (c.isDead) continue;
-            if (i == playerCellIndex) continue;
 
             Vector2 randomDir = Random.insideUnitCircle;
             if (randomDir.sqrMagnitude < 1e-6f) continue;
 
             float speed;
 
-            if (c.role == CellRole.Player)
+            if (c.role == CellRole.Bacteria)
             {
                 speed = 1f;
-                speed = 1.1f *bacteriaSpeedMultiplier;
             }
             else if (c.role == CellRole.WhiteBlood)
             {
@@ -1089,35 +1003,8 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
     }
-    void ApplyPlayerFunctions()
-    {
-        ApplyPlayerPush();
-    }
 
-    void ApplyPlayerPush()
-    {
-        Vector2 playerPos = GetPlayerNextPosition();
 
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell c = cells[i];
-
-            if (c.role == CellRole.Player || c.role == CellRole.WhiteBlood) continue;
-
-            Vector2 delta = c.nextPos - playerPos;
-            float d2 = delta.sqrMagnitude;
-            if (d2 > playerInfluenceRadius * playerInfluenceRadius) continue;
-
-            float dist = Mathf.Sqrt(d2);
-            if (dist < 1e-5f) continue;
-
-            Vector2 dir = delta / dist;
-            float force = (playerInfluenceRadius - dist) / playerInfluenceRadius;
-
-            c.nextPos += dir * force * playerPushStrength * Time.deltaTime;
-            cells[i] = c;
-        }
-    }
     #endregion
 
     #region Organism 
@@ -1179,7 +1066,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyPlayerAttaching(int a, int b)
+    void ApplyBacteriaAttackingOrganism(int a, int b)
     {
         float dt = Time.deltaTime;
 
@@ -1188,8 +1075,8 @@ public class CellManager : MonoBehaviour
 
         if (A.isDead || B.isDead) return;
 
-        bool AisBacteria = (A.role == CellRole.Player && A.organismId == -1);
-        bool BisBacteria = (B.role == CellRole.Player && B.organismId == -1);
+        bool AisBacteria = (A.role == CellRole.Bacteria && A.organismId == -1);
+        bool BisBacteria = (B.role == CellRole.Bacteria && B.organismId == -1);
 
         if(!AisBacteria && !BisBacteria) return;
 
@@ -1200,7 +1087,6 @@ public class CellManager : MonoBehaviour
         Cell target = cells[targetIndex];
 
         if (target.role != CellRole.Shell && target.role != CellRole.Core) return;
-        if (bacteriaIndex == playerCellIndex) return;
 
         int organismId = target.organismId;
         if (organismId < 0 || organismId >= organisms.Count) return;
@@ -1215,7 +1101,7 @@ public class CellManager : MonoBehaviour
             float dist = Mathf.Sqrt(sqrDist);
             if (dist <= 0.0001f) return;
             Vector2 dir = delta / dist;
-            float chaseForce = 10f *bacteriaSpeedMultiplier;
+            float chaseForce = 10f;
             bacteria.nextVelocity += dir * chaseForce * dt;
 
             //Energy Sucking
@@ -1269,19 +1155,19 @@ public class CellManager : MonoBehaviour
 
     #endregion
 
-    int FindNearestPlayerIndex(Vector2 pos, float maxRange)
+    int FindNearestBacteriaIndex(Vector2 pos, float maxRange)
     {
         float bestD2 = maxRange * maxRange;
         int bestIdx = -1;
 
-        nearestPlayerBuffer.Clear();
-        spatialHash.Query(pos, nearestPlayerBuffer);
+        nearestBacteriaBuffer.Clear();
+        spatialHash.Query(pos, nearestBacteriaBuffer);
 
-        for (int k = 0; k < nearestPlayerBuffer.Count; k++)
+        for (int k = 0; k < nearestBacteriaBuffer.Count; k++)
         {
-            int j = nearestPlayerBuffer[k];
+            int j = nearestBacteriaBuffer[k];
             Cell c = cells[j];
-            if (c.role != CellRole.Player) continue;
+            if (c.role != CellRole.Bacteria) continue;
             if (c.isDead) continue;
 
             Vector2 d = c.nextPos - pos;
@@ -1308,9 +1194,9 @@ public class CellManager : MonoBehaviour
 
         for (int i = 0; i<cells.Count; i++)
         {
-            if (cells[i].role != CellRole.Player) continue; 
+            if (cells[i].role != CellRole.Bacteria) continue; 
             Cell p = cells[i];
-            p.isPlayerAttachedToWBC = false;
+            p.isBacteriaAttachedToWBC = false;
             cells[i] = p;    
         }
 
@@ -1321,7 +1207,7 @@ public class CellManager : MonoBehaviour
             Cell w = cells[i];
             if(w.isDead ) continue; 
 
-            int targetIdx = FindNearestPlayerIndex(w.nextPos, w.detectRadius);
+            int targetIdx = FindNearestBacteriaIndex(w.nextPos, w.detectRadius);
 
             
             if (targetIdx < 0)
@@ -1332,14 +1218,14 @@ public class CellManager : MonoBehaviour
                 continue;
             }
             if (cells[targetIdx].isDead) continue;
-            Cell player = cells[targetIdx];
+            Cell bacteria = cells[targetIdx];
 
-            Vector2 delta = player.nextPos - w.nextPos;
+            Vector2 delta = bacteria.nextPos - w.nextPos;
             float d2 = delta.sqrMagnitude;
 
             float r = w.detectRadius;
 
-            w.WBCInSight = (d2 <= r * r) && (d2 > player.cellRadius*player.cellRadius);
+            w.WBCInSight = (d2 <= r * r) && (d2 > bacteria.cellRadius*bacteria.cellRadius);
             
 
             if (w.WBCInSight)
@@ -1360,22 +1246,22 @@ public class CellManager : MonoBehaviour
                 w.energy = 5f;
             }
 
-            float attachDist = player.cellRadius + w.cellRadius;
-            bool isAttachedToPlayer = (d2 <= (attachDist * attachDist) * 1.5f);
+            float attachDist = bacteria.cellRadius + w.cellRadius;
+            bool isAttachedToBacteria = (d2 <= (attachDist * attachDist) * 1.5f);
 
-            if (isAttachedToPlayer)
+            if (isAttachedToBacteria)
             {
-                player.isPlayerAttachedToWBC = true;
+                bacteria.isBacteriaAttachedToWBC = true;
             }
 
             cells[i] = w;
-            cells[targetIdx] = player;
+            cells[targetIdx] = bacteria;
         }
 
 
     }
 
-    void ApplyWBCDamagePlayer()
+    void ApplyWBCDamageBacteria()
     {
         float dt = Time.deltaTime;
         float damagePerSecond = 1f;
@@ -1383,10 +1269,10 @@ public class CellManager : MonoBehaviour
         for(int i = 0; i<cells.Count; i++)
         {
             Cell p = cells[i];
-            if (p.role != CellRole.Player) continue;
+            if (p.role != CellRole.Bacteria) continue;
             if(p.isDead) continue;
 
-            if(p.isPlayerAttachedToWBC)
+            if(p.isBacteriaAttachedToWBC)
             {
                 p.energy = Mathf.Max(p.energy - damagePerSecond *dt, 0);
             }
@@ -1395,7 +1281,7 @@ public class CellManager : MonoBehaviour
             {
                 p.energy = 0;
                 p.isDead = true;
-                deadPlayerPool.Add(i);
+                deadBacteriaPool.Add(i);
             }
 
             cells[i] = p;
@@ -1489,8 +1375,7 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
             if (c.isDead) continue;
-            if (c.role != CellRole.Player) continue;
-            if (i == playerCellIndex) continue;
+            if (c.role != CellRole.Bacteria) continue;
 
             bacteriaFieldManager.Deposit(c.currentPos);
         }
@@ -1505,8 +1390,8 @@ public class CellManager : MonoBehaviour
         {
             Cell c = cells[i];
             if (c.isDead) continue;
-            if (c.role != CellRole.Player) continue;
-            if (i == playerCellIndex) continue;
+            if (c.role != CellRole.Bacteria) continue;
+       
 
             Vector2 forward = c.nextVelocity.sqrMagnitude > 0.0001f
                 ? c.nextVelocity.normalized

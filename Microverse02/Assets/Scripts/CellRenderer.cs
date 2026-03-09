@@ -69,7 +69,7 @@ public class CellRenderer : MonoBehaviour
             {
                 float detectRadius = cellManager.GetRadius(i)*4.5f;
 
-                if (cellManager.GetRole(i) == CellManager.CellRole.Player)
+                if (cellManager.GetRole(i) == CellManager.CellRole.Bacteria)
                 {
                     detectRadius *= 0.5f;   // half size only for player
                 }
@@ -90,7 +90,7 @@ public class CellRenderer : MonoBehaviour
     {
         var role = cellManager.GetRole(i);
 
-        if (role == CellManager.CellRole.Player)
+        if (role == CellManager.CellRole.Bacteria)
             return playerColour;
 
         if (role == CellManager.CellRole.WhiteBlood)

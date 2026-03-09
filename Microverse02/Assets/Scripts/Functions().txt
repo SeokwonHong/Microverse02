@@ -1,38 +1,32 @@
 void ApplyCircleBoundary(int i)
 
-void ApplyPlayerInput()
+static bool IsFinite(Vector2 v)
 
-public Vector2 GetPlayerPosition()
+------------------------------------------------------------------
 
-Vector2 GetPlayerNextPosition()
+void CreateBacteriaCell(Vector2 pos)
 
-float GetPlayerRadius()
-
------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void CreatePlayerCell(Vector2 pos) --
-
-void CreateWBCCell (Vector2 pos)
+void CreateWBCCell(Vector2 pos)
 
 void CreateOrganism(Vector2 currentPos)
 
------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------
 
-void ResolveOverlap(int CurrentIndex, int OtherIndex)
+void ResolveOverlap(int currentIndex, int otherIndex)
 
 void ApplyCoreAnchor()
 
 void ApplyOrganismTendency()
 
-void ApplyKeepOrganismShape(int CurrentIndex, int OtherIndex)
+void ApplyKeepOrganismShape()
 
-void ApplyCellPushing(int currentIndex, int otherIndex)   
+void ApplyCellPushing(int currentIndex, int otherIndex)
 
-void ApplyCellOrganismEnergyDeath();
+void ApplyCellOrganismEnergyDeath()
 
 void KillEachCellInsideOrganism(int orgId)
 
-void ApplyCohesion(int CurrentIndex, int OtherIndex)
+void ApplyCohesion(int currentIndex, int otherIndex)
 
 void ApplyDragToCells()
 
@@ -42,24 +36,23 @@ void ApplyCellDetection(int currentIndex, int otherIndex)
 
 void ApplyCellMovement()
 
-void ApplyCellWiggling() - based on energy?
-
-void ApplyPlayerFunctions()
-	ApplyPlayerPush()
-
-void ApplyEmitWBCFromOrganism()
+void ApplyCellWiggling()
 
 void ApplyOrganismReproduction()
 
-void ApplyOrganismDeath() 
+void ApplyOrganismDeath()
 
 void UpdateDeadOrganisms()
 
-void ApplyPlayerAttaching(float dt)
+void ApplyBacteriaAttackingOrganism(int a, int b)
 
-void ApplyWBCAttachingWBCEnergy()   
+void ApplyEmitWBCFromOrganism()
 
-void ApplyWBCDamagePlayer()
+int FindNearestBacteriaIndex(Vector2 pos, float maxRange)
+
+void ApplyWBCAttachingWBCEnergy()
+
+void ApplyWBCDamageBacteria()
 
 void ApplyWBCWandering()
 
@@ -67,13 +60,15 @@ Vector2 Rotate(Vector2 v, float degrees)
 
 void DepositOrganismField()
 
-void DepositBacteriaField() 
+void DepositBacteriaField()
 
 void ApplyBacteriaFieldSteering()
 
 public int CountOrganismNum()
 
 public bool IsOrganismDead(int i)
+
+public float GetOrganismEnergy(int organismId)
 
 public bool IsLevelWin()
 
