@@ -14,6 +14,7 @@ public class CellManager : MonoBehaviour
     [SerializeField] GameObject reftoBacteriaSpawnPos;
     [SerializeField] float bacteriaSpawnInterval = 1f;
     float bacteriaSpawnTimer = 0f;
+    [SerializeField] int bacteriaCount = 200;
 
     [Header("Map generation")]
     Vector2 mapCentre = Vector2.zero;
@@ -28,6 +29,10 @@ public class CellManager : MonoBehaviour
     [SerializeField] float BoxSize = 1.25f;
     readonly List<int> neighbourBuffer = new List<int>(128);
     readonly List<int> nearestBacteriaBuffer = new List<int>(128);
+
+    [Header("Wall")]
+    [SerializeField] WallManager wallManager;
+    readonly List<int> wallBuffer = new List<int>(32);
 
     [Header("Bacterias Pooling")]
     readonly List<int> deadBacteriaPool = new List<int>(128);
@@ -117,11 +122,6 @@ public class CellManager : MonoBehaviour
 
         if(refToBg !=null) refToBg.transform.localScale = new Vector3(mapRadius * 2f, mapRadius * 2f, 1);
 
-        for (int i = 0; i < 50; i++)
-        {
-            CreateBacteriaCell(reftoBacteriaSpawnPos.transform.position*Random.insideUnitCircle * 0.5f);
-
-        }
         float minX = -mapRadius;
         float maxX = mapRadius;
         float minY = -mapRadius;
@@ -149,13 +149,15 @@ public class CellManager : MonoBehaviour
 
         bacteriaSpawnTimer += dt;
 
-        if (bacteriaSpawnTimer >= bacteriaSpawnInterval)
+        if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount>0)
         {
             bacteriaSpawnTimer -= bacteriaSpawnInterval;
 
             Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
             CreateBacteriaCell(spawnPos);
+            bacteriaCount--;
         }
+        if(bacteriaCount <= 0) bacteriaCount = 0;
 
         // 0) Double buffer start
         for (int i = 0; i < cells.Count; i++)
@@ -228,7 +230,7 @@ public class CellManager : MonoBehaviour
 
         ApplyCellWiggling();
         ApplyDragToCells();
-        ApplyEmitWBCFromOrganism();
+        //ApplyEmitWBCFromOrganism();
 
 
         // 7) Map boundary + end buffer
@@ -239,6 +241,18 @@ public class CellManager : MonoBehaviour
             if(c.isDead) continue;
 
             c.nextPos += c.nextVelocity * dt;
+
+            if (wallManager != null)
+            {
+                wallManager.ResolveCircleAgainstNearbyWalls(
+                    ref c.nextPos,
+                    ref c.nextVelocity,
+                    c.cellRadius,
+                    wallBounciness,
+                    wallBuffer,
+                    out _
+                );
+            }
 
             cells[i] = c;
             ApplyCircleBoundary(i);
@@ -256,7 +270,7 @@ public class CellManager : MonoBehaviour
 
 
         }
-        ApplyOrganismReproduction();
+        //ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         CountOrganismNum();
