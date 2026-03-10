@@ -15,6 +15,7 @@ public class CellManager : MonoBehaviour
     [SerializeField] float bacteriaSpawnInterval = 1f;
     float bacteriaSpawnTimer = 0f;
     [SerializeField] int bacteriaCount = 200;
+    [SerializeField] float bacteriaSpeed = 1.5f;
 
     [Header("Map generation")]
     Vector2 mapCentre = Vector2.zero;
@@ -431,7 +432,7 @@ public class CellManager : MonoBehaviour
         core.cellRadius = Mathf.Lerp(0.25f, 0.3f, energy2);
         int shellCount = Mathf.RoundToInt(Mathf.Lerp(20f, 30f, energy2));
 
-        core.detectRadius = core.cellRadius * 3.5f;
+        core.detectRadius = core.cellRadius * 5f;
 
 
         org.coreDistance = core.detectRadius;
@@ -571,7 +572,7 @@ public class CellManager : MonoBehaviour
 
         float tolerance = 0.2f;
         float c = 1.1f;     // damping
-        float maxForce = 80f;
+        float maxForce = 40f;
 
         for (int i = 0; i < organisms.Count; i++)
         {
@@ -588,7 +589,7 @@ public class CellManager : MonoBehaviour
             float massCore = Mathf.Max(0.001f, core.cellRadius * core.cellRadius);
 
             //float k = (org.playerInside == 1) ? 150f : 10f; // spring
-            float k = (org.attackedByBacteria == true) ? 500f : 100f; // spring
+            float k = (org.attackedByBacteria == true) ? 200f : 70f; // spring
             // apply to shells only (members excluding core)
             for (int m = 0; m < org.members.Count; m++)
             {
@@ -646,7 +647,7 @@ public class CellManager : MonoBehaviour
         if (d2 < 1e-8f) return;
 
         float dist = Mathf.Sqrt(d2);
-        float maxDist = a.detectRadius + b.detectRadius;
+        float maxDist = a.detectRadius + b.cellRadius;
 
         float overlap = maxDist - dist;
         if (overlap <= 0f) return;
@@ -976,11 +977,8 @@ public class CellManager : MonoBehaviour
 
             float speed;
 
-            if (c.role == CellRole.Bacteria)
-            {
-                speed = 1f;
-            }
-            else if (c.role == CellRole.WhiteBlood)
+
+            if (c.role == CellRole.WhiteBlood)
             {
                 speed = 60f;
             }
@@ -998,12 +996,12 @@ public class CellManager : MonoBehaviour
 
                 if (org.attackedByBacteria)
                 {
-                    speed = Mathf.Lerp(50f, 0f, t);
+                    speed = Mathf.Lerp(20f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance ;
                 }
                 else
                 {
-                    speed = Mathf.Lerp(30f, 0f, t);
+                    speed = Mathf.Lerp(10f, 0f, t);
                     org.coreDistance = org.defaultCoreDistance * 1.1f;
                 }
                 organisms[c.organismId] = org;
@@ -1429,7 +1427,7 @@ public class CellManager : MonoBehaviour
             else if (rightValue > forwardValue && rightValue > leftValue)
                 desiredDir = rightDir;
 
-            c.nextVelocity += desiredDir * bacteriaFieldManager.SteerStrength * dt;
+            c.nextVelocity += bacteriaSpeed* desiredDir * bacteriaFieldManager.SteerStrength * dt;
             cells[i] = c;
         }
     }
