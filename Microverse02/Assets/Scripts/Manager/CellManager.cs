@@ -222,12 +222,13 @@ public class CellManager : MonoBehaviour
         //bactera rules
         DepositOrganismField();
         DepositBacteriaField();
+        bacteriaFieldManager.TickField(dt);
+        ApplyBacteriaFieldSteering();
 
         if (bacteriaFieldManager != null)
             bacteriaFieldManager.TickField(Time.deltaTime);
 
-        ApplyBacteriaFieldSteering();
-  
+
 
         ApplyCellWiggling();
         ApplyDragToCells();
@@ -1375,7 +1376,7 @@ public class CellManager : MonoBehaviour
                 if (c.isDead) continue;
 
                 Vector2 pos = c.currentPos;
-                bacteriaFieldManager.DepositOrganism(pos);
+                bacteriaFieldManager.DepositFood(pos);
             }
         }
     }
@@ -1389,21 +1390,21 @@ public class CellManager : MonoBehaviour
             if (c.isDead) continue;
             if (c.role != CellRole.Bacteria) continue;
 
-            bacteriaFieldManager.Deposit(c.currentPos);
+            bacteriaFieldManager.DepositTrail(c.currentPos);
         }
     }
-    void ApplyBacteriaFieldSteering() //makes bacteria to move(steer) based on the chemical field
+    void ApplyBacteriaFieldSteering()
     {
         if (bacteriaFieldManager == null) return;
 
         float dt = Time.deltaTime;
+        float turnRate = 5f;
 
         for (int i = 0; i < cells.Count; i++)
         {
             Cell c = cells[i];
             if (c.isDead) continue;
             if (c.role != CellRole.Bacteria) continue;
-       
 
             Vector2 forward = c.nextVelocity.sqrMagnitude > 0.0001f
                 ? c.nextVelocity.normalized
@@ -1426,8 +1427,12 @@ public class CellManager : MonoBehaviour
                 desiredDir = leftDir;
             else if (rightValue > forwardValue && rightValue > leftValue)
                 desiredDir = rightDir;
+            else
+                desiredDir = Rotate(forward, Random.Range(-12f, 12f));
 
-            c.nextVelocity += bacteriaSpeed* desiredDir * bacteriaFieldManager.SteerStrength * dt;
+            Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
+            c.nextVelocity = newDir * bacteriaSpeed;
+
             cells[i] = c;
         }
     }

@@ -1648,9 +1648,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9fa66ca12c2db39459276f5992da8422, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  chemoDepositAmount: 0.01
-  chemoOrganismDepositAmount: 10
-  chemoSensorDistance: 5
+  chemoDepositAmount: 0.3
+  foodDepositAmount: 0.5
+  chemoSensorDistance: 1.2
+  trailWeight: 1
+  foodWeight: 2
 --- !u!1 &1610983192
 GameObject:
   m_ObjectHideFlags: 0
@@ -2402,6 +2404,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3181221499565562391, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerColour.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3181221499565562391, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerColour.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3181221499565562391, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerColour.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3181221499565562391, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerColour.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8034811381048981240, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: m_Name
       value: CellManager
@@ -2420,7 +2438,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapRadius
-      value: 20
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: wallManager
@@ -2428,11 +2446,11 @@ PrefabInstance:
       objectReference: {fileID: 555529754}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 600
+      value: 450
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxOrganismCount
