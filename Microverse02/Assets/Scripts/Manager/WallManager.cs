@@ -4,6 +4,10 @@ using Vector2 = UnityEngine.Vector2;
 
 public class WallManager : MonoBehaviour
 {
+    [Header("Runtime Visual")]
+    [SerializeField] bool drawRuntimeWalls = true;
+    [SerializeField] Material wallMaterial;
+
     [System.Serializable]
     public class WallAuthoring
     {
@@ -31,8 +35,8 @@ public class WallManager : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] bool drawGizmos = true;
-    [SerializeField] Color wallColor = new Color(1f, 0.85f, 0.2f, 1f);
-    [SerializeField] Color wallFillColor = new Color(1f, 0.85f, 0.2f, 0.15f);
+    //[SerializeField] Color wallColor = new Color(1f, 0.85f, 0.2f, 1f);
+    //[SerializeField] Color wallFillColor = new Color(1f, 0.85f, 0.2f, 0.15f);
 
     [Header("Hash")]
     [SerializeField] float hashCellSize = 2f;
@@ -41,12 +45,14 @@ public class WallManager : MonoBehaviour
     readonly Dictionary<Vector2Int, List<int>> wallHash = new Dictionary<Vector2Int, List<int>>();
     readonly HashSet<int> queryDedup = new HashSet<int>();
 
+    List<GameObject> wallVisuals = new List<GameObject>();
     public int WallCount => runtimeWalls.Count;
     public IReadOnlyList<WallSegment> Walls => runtimeWalls;
 
     void Awake()
     {
         BuildWalls();
+        BuildWallVisuals();
     }
 
 #if UNITY_EDITOR
@@ -76,7 +82,42 @@ public class WallManager : MonoBehaviour
 
         BuildHash();
     }
+    void BuildWallVisuals()
+    {
+        if (!drawRuntimeWalls) return;
 
+        foreach (var v in wallVisuals)
+            if (v != null) Destroy(v);
+
+        wallVisuals.Clear();
+
+        for (int i = 0; i < runtimeWalls.Count; i++)
+        {
+            WallSegment w = runtimeWalls[i];
+
+            Vector2 dir = w.b - w.a;
+            float length = dir.magnitude;
+            float thickness = w.radius * 2f;
+
+            Vector2 mid = (w.a + w.b) * 0.5f;
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            quad.transform.SetParent(transform);
+
+            quad.transform.position = new Vector3(mid.x, mid.y, 1f);
+            quad.transform.rotation = Quaternion.Euler(0, 0, angle);
+            quad.transform.localScale = new Vector3(length, thickness, 1f);
+
+            var col = quad.GetComponent<Collider>();
+            if (col != null) Destroy(col);
+
+            if (wallMaterial != null)
+                quad.GetComponent<MeshRenderer>().material = wallMaterial;
+
+            wallVisuals.Add(quad);
+        }
+    }
     void BuildHash()
     {
         for (int i = 0; i < runtimeWalls.Count; i++)
@@ -227,7 +268,7 @@ public class WallManager : MonoBehaviour
         for (int i = 0; i < drawList.Count; i++)
         {
             WallSegment w = drawList[i];
-            DrawCapsuleGizmo(w);
+            //DrawCapsuleGizmo(w);
         }
     }
 
@@ -250,29 +291,29 @@ public class WallManager : MonoBehaviour
         return list;
     }
 
-    void DrawCapsuleGizmo(WallSegment w)
-    {
-        Gizmos.color = wallColor;
-        Gizmos.DrawLine(w.a, w.b);
-        Gizmos.DrawWireSphere(w.a, w.radius);
-        Gizmos.DrawWireSphere(w.b, w.radius);
+//    void DrawCapsuleGizmo(WallSegment w)
+//    {
+//        Gizmos.color = wallColor;
+//        Gizmos.DrawLine(w.a, w.b);
+//        Gizmos.DrawWireSphere(w.a, w.radius);
+//        Gizmos.DrawWireSphere(w.b, w.radius);
 
-#if UNITY_EDITOR
-        UnityEditor.Handles.color = wallFillColor;
+//#if UNITY_EDITOR
+//        UnityEditor.Handles.color = wallFillColor;
 
-        Vector2 dir = (w.b - w.a);
-        if (dir.sqrMagnitude > 0.0001f)
-        {
-            dir.Normalize();
-            Vector2 n = new Vector2(-dir.y, dir.x) * w.radius;
+//        Vector2 dir = (w.b - w.a);
+//        if (dir.sqrMagnitude > 0.0001f)
+//        {
+//            dir.Normalize();
+//            Vector2 n = new Vector2(-dir.y, dir.x) * w.radius;
 
-            Vector3 p1 = w.a + n;
-            Vector3 p2 = w.b + n;
-            Vector3 p3 = w.b - n;
-            Vector3 p4 = w.a - n;
+//            Vector3 p1 = w.a + n;
+//            Vector3 p2 = w.b + n;
+//            Vector3 p3 = w.b - n;
+//            Vector3 p4 = w.a - n;
 
-            UnityEditor.Handles.DrawAAConvexPolygon(p1, p2, p3, p4);
-        }
-#endif
-    }
+//            UnityEditor.Handles.DrawAAConvexPolygon(p1, p2, p3, p4);
+//        }
+//#endif
+//    }
 }

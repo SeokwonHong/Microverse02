@@ -849,6 +849,7 @@ GameObject:
   m_Component:
   - component: {fileID: 555529755}
   - component: {fileID: 555529754}
+  - component: {fileID: 555529756}
   m_Layer: 0
   m_Name: WallManager
   m_TagString: Untagged
@@ -868,6 +869,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55ff33acf46a7e34f88d9e67d43acdee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  drawRuntimeWalls: 1
+  wallMaterial: {fileID: 2100000, guid: 7bbb5acb45225ea48bf6e1dcb73c56ee, type: 2}
   authoredWalls:
   - pointA: {fileID: 1664606341}
     pointB: {fileID: 2002677234}
@@ -882,8 +885,6 @@ MonoBehaviour:
     pointB: {fileID: 716284519}
     thickness: 2
   drawGizmos: 1
-  wallColor: {r: 1, g: 0.85, b: 0.2, a: 1}
-  wallFillColor: {r: 1, g: 1, b: 1, a: 0.6666667}
   hashCellSize: 2
 --- !u!4 &555529755
 Transform:
@@ -900,6 +901,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!210 &555529756
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 555529753}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 8
+  m_SortAtRoot: 0
 --- !u!1001 &673330696
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1756,11 +1769,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fieldRenderer: {fileID: 42457891}
   chemoDepositAmount: 0.1
-  foodDepositAmount: 0.5
-  chemoSensorDistance: 0.2
+  foodDepositAmount: 2
+  chemoSensorDistance: 0.4
   trailWeight: 1
   foodWeight: 2
-  enableDiffuse: 0
   fieldTickInterval: 0.033333335
   weakColor: {r: 0.5188679, g: 0, b: 0, a: 0}
   midColor: {r: 1, g: 0.5921569, b: 0.5921569, a: 1}
@@ -2153,7 +2165,7 @@ Transform:
   m_GameObject: {fileID: 1921727452}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 658, y: 0, z: 0}
+  m_LocalPosition: {x: 93.5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2460,6 +2472,18 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6243197524715541988, guid: 0b4369f761930344e86715470ad0a326, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6243197524715541988, guid: 0b4369f761930344e86715470ad0a326, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6243197524715541988, guid: 0b4369f761930344e86715470ad0a326, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 2.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6243197524715541988, guid: 0b4369f761930344e86715470ad0a326, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -2562,7 +2586,7 @@ PrefabInstance:
       objectReference: {fileID: 555529754}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 450
+      value: 600
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
@@ -2578,7 +2602,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: firstOrganismCount
-      value: 10
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaFieldManager

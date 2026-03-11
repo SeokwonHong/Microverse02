@@ -25,7 +25,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
     float chemoDiffuseRate = 0.01f;  //How much chemical spreads to neighbours. Like blurring.
-    float chemoDecayPerSecond = 0.1f;
+    float chemoDecayPerSecond = 0.2f;
 
     [Header("Food")]
     [SerializeField] float foodDepositAmount = 0.5f;
