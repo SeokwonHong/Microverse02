@@ -12,7 +12,11 @@ public class BacteriaFieldManager : MonoBehaviour
 
     float[] foodField;
     float[] foodNext;
-    
+
+    [SerializeField] Renderer fieldRenderer;
+
+    Texture2D trailTexture;
+    Color[] trailPixels;
 
     int chemoWidth = 512; 
     int chemoHeight = 512;
@@ -45,7 +49,7 @@ public class BacteriaFieldManager : MonoBehaviour
     //getter
     public float SensorDistance => chemoSensorDistance;
     public float SensorAngle => chemoSensorAngle;
-    public float SteerStrength => chemoSteerStrength;   
+    public float SteerStrength => chemoSteerStrength;
 
 
 
@@ -58,6 +62,20 @@ public class BacteriaFieldManager : MonoBehaviour
 
         foodField = new float[cellCount];
         foodNext = new float[cellCount];
+
+        //GPU
+        trailTexture = new Texture2D(chemoWidth, chemoHeight, TextureFormat.RGBA32, false);
+        trailTexture.wrapMode = TextureWrapMode.Clamp;
+        trailTexture.filterMode = FilterMode.Point;
+
+        trailPixels = new Color[CellCount];
+
+        if (fieldRenderer != null)
+        {
+            fieldRenderer.material.mainTexture = trailTexture;
+            fieldRenderer.transform.position = new Vector3(mapCentre.x, mapCentre.y, 0f);
+            fieldRenderer.transform.localScale = new Vector3(mapRadius * 2f, mapRadius * 2f, 1f);
+        }
     }
     int Index(int x, int y)
     {
@@ -206,34 +224,29 @@ public class BacteriaFieldManager : MonoBehaviour
         b = temp;
     }
 
-
-    void OnDrawGizmos()
+    //GPU
+    public void UpdateTrailTexture()
     {
-        if (exploreField == null) return;
+        if (trailTexture == null) return;
 
-        float mapSize = mapRadius * 2f;
-        float cellSizeX = mapSize / chemoWidth;
-        float cellSizeY = mapSize / chemoHeight;
-
-        for (int x = 0; x < chemoWidth; x++)
+        for (int i = 0; i < CellCount; i++)
         {
-            for (int y = 0; y < chemoHeight; y++)
-            {
-                float v = exploreField[Index(x, y)];
+            float v = exploreField[i];
+            float t = Mathf.Clamp01(v * 0.15f);
+            float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.6f));
 
-                if (v <= 0.001f) continue;
+            Color weak = new Color(0.4f, 0f, 0f, 0f);
+            Color strong = new Color(1f, 0.3f, 0.05f, 1f);
 
-                float wx = mapCentre.x - mapRadius + x * cellSizeX;
-                float wy = mapCentre.y - mapRadius + y * cellSizeY;
+            Color c = Color.Lerp(weak, strong, t);
+            c.a = alpha;
 
-                float alpha = Mathf.Clamp01(v * 0.1f);
-                Gizmos.color = new Color(1f, 0f, 0f, alpha);
-
-                Gizmos.DrawCube(
-                    new Vector3(wx, wy, 0),
-                    new Vector3(cellSizeX, cellSizeY, 0.01f)
-                );
-            }
+            trailPixels[i] = c;
         }
+
+        trailTexture.SetPixels(trailPixels);
+        trailTexture.Apply(false);
+
     }
+   
 }

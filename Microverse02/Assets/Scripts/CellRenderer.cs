@@ -23,6 +23,8 @@ public class CellRenderer : MonoBehaviour
     [SerializeField] Color organismColour;
     [SerializeField] Color deadColour;
 
+    [Header("Debug")]
+    [SerializeField] bool showBacteria = true;
     private void Awake()
     {
         if(cellManager == null) cellManager = FindAnyObjectByType<CellManager>();
@@ -42,10 +44,22 @@ public class CellRenderer : MonoBehaviour
         {
             bool isDead = cellManager.IsDead(i);
             Vector2 pos = cellManager.GetPos(i);
+            var role = cellManager.GetRole(i);
 
             var rBody = organismBody[i];
 
-   
+            // hide bacteria if debug toggle is off
+            if (!showBacteria && role == CellManager.CellRole.Bacteria)
+            {
+                rBody.gameObject.SetActive(false);
+
+                if (organismDetect != null)
+                    organismDetect[i].gameObject.SetActive(false);
+
+                continue;
+            }
+
+
 
             rBody.gameObject.SetActive(!isDead);
 

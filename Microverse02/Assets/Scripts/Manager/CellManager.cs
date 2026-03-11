@@ -226,7 +226,10 @@ public class CellManager : MonoBehaviour
         ApplyBacteriaFieldSteering();
 
         if (bacteriaFieldManager != null)
+        {
             bacteriaFieldManager.TickField(Time.deltaTime);
+            bacteriaFieldManager.UpdateTrailTexture();
+        }
 
 
 
