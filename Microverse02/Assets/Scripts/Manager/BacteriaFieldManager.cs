@@ -7,24 +7,27 @@ public class BacteriaFieldManager : MonoBehaviour
     float mapRadius = 50f;
     
     [Header("Chemo Grid")]
-    float[,] exploreField;
-    float[,] exploreNext;
+    float[] exploreField;
+    float[] exploreNext;
 
-    float[,] foodField;
-    float[,] foodNext;
+    float[] foodField;
+    float[] foodNext;
+    
 
-    int chemoWidth = 256; 
-    int chemoHeight = 256;
+    int chemoWidth = 512; 
+    int chemoHeight = 512;
+    int CellCount => chemoWidth * chemoHeight;
 
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
-    float chemoDiffuseRate = 0.03f;  //How much chemical spreads to neighbours. Like blurring.
-    float chemoDecayPerSecond = 0.001f;
+    float chemoDiffuseRate = 0.01f;  //How much chemical spreads to neighbours. Like blurring.
+    float chemoDecayPerSecond = 0.01f;
 
     [Header("Food")]
     [SerializeField] float foodDepositAmount = 0.5f;
     float foodDecayPerSecond = 0.02f;
-    float foodDiffuseRate = 0.03f;
+    float foodDiffuseRate = 0.01f;
+
 
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 6f; 
@@ -35,6 +38,10 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] float trailWeight = 1f;
     [SerializeField] float foodWeight = 2f;
 
+    [Header("Debug")]
+    [SerializeField] bool enableDiffuse = true;
+
+    int foodTickCounter;
     //getter
     public float SensorDistance => chemoSensorDistance;
     public float SensorAngle => chemoSensorAngle;
@@ -44,11 +51,17 @@ public class BacteriaFieldManager : MonoBehaviour
 
     private void Awake()
     {
-        exploreField = new float[chemoWidth, chemoHeight];
-        exploreNext = new float[chemoWidth, chemoHeight];
+        int cellCount =chemoWidth * chemoHeight;
 
-        foodField = new float[chemoWidth, chemoHeight];
-        foodNext = new float[chemoWidth, chemoHeight];
+        exploreField = new float[cellCount];
+        exploreNext = new float[cellCount];
+
+        foodField = new float[cellCount];
+        foodNext = new float[cellCount];
+    }
+    int Index(int x, int y)
+    {
+        return x + y * chemoWidth;
     }
 
     bool WorldToGrid(Vector2 worldPos, out int gx, out int gy) //check if bacteria's inside of array map + return with cordinate of a bacteria
@@ -74,14 +87,14 @@ public class BacteriaFieldManager : MonoBehaviour
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
-            exploreField[gx, gy] += chemoDepositAmount * amountMultiplier * Time.deltaTime;
+            exploreField[Index(gx, gy)] += chemoDepositAmount * amountMultiplier;
         }
     }
     public void DepositFood(Vector2 worldPos, float amountMultiplier = 1f)
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
-            foodField[gx, gy] += foodDepositAmount * amountMultiplier * Time.deltaTime;
+            foodField[Index(gx, gy)] += foodDepositAmount * amountMultiplier;
         }
     }
 
@@ -89,8 +102,9 @@ public class BacteriaFieldManager : MonoBehaviour
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
-            float trail = exploreField[gx, gy] * trailWeight;
-            float food = foodField[gx, gy] * foodWeight;
+            int idx = Index(gx, gy);
+            float trail = exploreField[idx] * trailWeight;
+            float food = foodField[idx] * foodWeight;
             return trail + food;
         }
 
@@ -101,36 +115,52 @@ public class BacteriaFieldManager : MonoBehaviour
         UpdateField(exploreField, exploreNext, chemoDiffuseRate, chemoDecayPerSecond, dt);
         Swap(ref exploreField, ref exploreNext);
 
-        UpdateField(foodField, foodNext, foodDiffuseRate, foodDecayPerSecond, dt);
-        Swap(ref foodField, ref foodNext);
+        foodTickCounter++;
+        if (foodTickCounter >= 2)
+        {
+            foodTickCounter = 0;
+            UpdateField(foodField, foodNext, foodDiffuseRate, foodDecayPerSecond, dt * 2f);
+            Swap(ref foodField, ref foodNext);
+        }
     }
 
-    void UpdateField(float[,] source, float[,] target, float diffuseRate, float decayPerSecond, float dt)
+    void UpdateField(float[] source, float[] target, float diffuseRate, float decayPerSecond, float dt) //blur + decay
     {
         float decay = decayPerSecond * dt;
 
         int maxX = chemoWidth - 1;
         int maxY = chemoHeight - 1;
 
-        // Interior cells: no boundary checks
         for (int x = 1; x < maxX; x++)
         {
             for (int y = 1; y < maxY; y++)
             {
-                float center = source[x, y];
+                int idx = Index(x, y);
+
+                float center = source[idx];
                 float sum =
                     center +
-                    source[x - 1, y] +
-                    source[x + 1, y] +
-                    source[x, y - 1] +
-                    source[x, y + 1];
+                    source[Index(x - 1, y)] +
+                    source[Index(x + 1, y)] +
+                    source[Index(x, y - 1)] +
+                    source[Index(x, y + 1)];
 
-                float blurred = Mathf.Lerp(center, sum * 0.2f, diffuseRate); // divide by 5
-                target[x, y] = Mathf.Max(0f, blurred - decay);
+                float value;
+
+                if (enableDiffuse)
+                {
+                    float blurred = Mathf.Lerp(center, sum * 0.2f, diffuseRate);
+                    value = blurred;
+                }
+                else
+                {
+                    value = center;
+                }
+
+                target[idx] = Mathf.Max(0f, value - decay);
             }
         }
 
-        // Edges: keep the safe version
         for (int x = 0; x < chemoWidth; x++)
         {
             UpdateEdgeCell(source, target, x, 0, diffuseRate, decay);
@@ -143,27 +173,38 @@ public class BacteriaFieldManager : MonoBehaviour
             UpdateEdgeCell(source, target, maxX, y, diffuseRate, decay);
         }
     }
-    void UpdateEdgeCell(float[,] source, float[,] target, int x, int y, float diffuseRate, float decay)
+    void UpdateEdgeCell(float[] source, float[] target, int x, int y, float diffuseRate, float decay)
     {
-        float center = source[x, y];
+        float center = source[Index(x, y)];
         float sum = center;
         int count = 1;
 
-        if (x > 0) { sum += source[x - 1, y]; count++; }
-        if (x < chemoWidth - 1) { sum += source[x + 1, y]; count++; }
-        if (y > 0) { sum += source[x, y - 1]; count++; }
-        if (y < chemoHeight - 1) { sum += source[x, y + 1]; count++; }
+        if (x > 0) { sum += source[Index(x - 1, y)]; count++; }
+        if (x < chemoWidth - 1) { sum += source[Index(x + 1, y)]; count++; }
+        if (y > 0) { sum += source[Index(x, y - 1)]; count++; }
+        if (y < chemoHeight - 1) { sum += source[Index(x, y + 1)]; count++; }
 
-        float blurred = Mathf.Lerp(center, sum / count, diffuseRate);
-        target[x, y] = Mathf.Max(0f, blurred - decay);
+        float value;
+
+        if (enableDiffuse)
+        {
+            float blurred = Mathf.Lerp(center, sum / count, diffuseRate);
+            value = blurred;
+        }
+        else
+        {
+            value = center;
+        }
+
+        target[Index(x, y)] = Mathf.Max(0f, value - decay);
     }
-    void Swap(ref float[,] a, ref float[,] b) //for double buffering
+
+    void Swap(ref float[] a, ref float[] b) //for double buffering
     {
-        float[,] temp = a;
+        float[] temp = a;
         a = b;
         b = temp;
     }
-
 
 
     void OnDrawGizmos()
@@ -178,15 +219,15 @@ public class BacteriaFieldManager : MonoBehaviour
         {
             for (int y = 0; y < chemoHeight; y++)
             {
-                float v = exploreField[x, y];
+                float v = exploreField[Index(x, y)];
 
                 if (v <= 0.001f) continue;
 
                 float wx = mapCentre.x - mapRadius + x * cellSizeX;
                 float wy = mapCentre.y - mapRadius + y * cellSizeY;
 
-                float alpha = Mathf.Clamp01(v);
-                Gizmos.color = new Color(1f, 0f, 1f, alpha);
+                float alpha = Mathf.Clamp01(v * 0.1f);
+                Gizmos.color = new Color(1f, 0f, 0f, alpha);
 
                 Gizmos.DrawCube(
                     new Vector3(wx, wy, 0),
