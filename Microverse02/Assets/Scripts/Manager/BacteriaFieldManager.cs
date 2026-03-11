@@ -25,7 +25,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
     float chemoDiffuseRate = 0.01f;  //How much chemical spreads to neighbours. Like blurring.
-    float chemoDecayPerSecond = 0.05f;
+    float chemoDecayPerSecond = 0.1f;
 
     [Header("Food")]
     [SerializeField] float foodDepositAmount = 0.5f;
@@ -42,8 +42,6 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] float trailWeight = 1f;
     [SerializeField] float foodWeight = 2f;
 
-    [Header("Debug")]
-    [SerializeField] bool enableDiffuse = true;
 
     float fieldTickTimer = 0f;
     [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
@@ -146,7 +144,7 @@ public class BacteriaFieldManager : MonoBehaviour
             fieldTickTimer -= fieldTickInterval;
             updated = true;
 
-            UpdateField(exploreField, exploreNext, chemoDiffuseRate, chemoDecayPerSecond, fieldTickInterval);
+            UpdateField(exploreField, exploreNext, 0f, chemoDecayPerSecond, fieldTickInterval);
             Swap(ref exploreField, ref exploreNext);
 
             foodTickCounter++;
@@ -187,13 +185,7 @@ public class BacteriaFieldManager : MonoBehaviour
                     source[rowUp + x] +
                     source[rowDown + x];
 
-                float value = center;
-
-                if (enableDiffuse)
-                {
-                    float blurred = Mathf.Lerp(center, sum * 0.2f, diffuseRate);
-                    value = blurred;
-                }
+                float value = Mathf.Lerp(center, sum * 0.2f, diffuseRate);
 
                 target[idx] = Mathf.Max(0f, value - decay);
             }
@@ -222,17 +214,7 @@ public class BacteriaFieldManager : MonoBehaviour
         if (y > 0) { sum += source[Index(x, y - 1)]; count++; }
         if (y < chemoHeight - 1) { sum += source[Index(x, y + 1)]; count++; }
 
-        float value;
-
-        if (enableDiffuse)
-        {
-            float blurred = Mathf.Lerp(center, sum / count, diffuseRate);
-            value = blurred;
-        }
-        else
-        {
-            value = center;
-        }
+        float value = Mathf.Lerp(center, sum / count, diffuseRate);
 
         target[Index(x, y)] = Mathf.Max(0f, value - decay);
     }

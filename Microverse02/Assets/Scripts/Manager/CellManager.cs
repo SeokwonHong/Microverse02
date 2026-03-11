@@ -276,7 +276,7 @@ public class CellManager : MonoBehaviour
 
 
         }
-        ApplyOrganismReproduction();
+        //ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         CountOrganismNum();
@@ -1402,7 +1402,8 @@ public class CellManager : MonoBehaviour
         if (bacteriaFieldManager == null) return;
 
         float dt = Time.deltaTime;
-        float turnRate = 5f;
+        float turnRate = 2f;
+        float turnThreshold = 0.01f;
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -1427,12 +1428,26 @@ public class CellManager : MonoBehaviour
 
             Vector2 desiredDir = forward;
 
-            if (leftValue > forwardValue && leftValue > rightValue)
+            if (leftValue > forwardValue + turnThreshold && leftValue > rightValue + turnThreshold)
+            {
                 desiredDir = leftDir;
-            else if (rightValue > forwardValue && rightValue > leftValue)
+            }
+            else if (rightValue > forwardValue + turnThreshold && rightValue > leftValue + turnThreshold)
+            {
                 desiredDir = rightDir;
+            }
             else
-                desiredDir = Rotate(forward, Random.Range(-12f, 12f));
+            {
+                c.headingTimer -= dt;
+
+                if (c.headingTimer <= 0f)
+                {
+                    c.wanderAngle = Random.Range(-20f, 20f);
+                    c.headingTimer = Random.Range(0.2f, 0.6f);
+                }
+
+                desiredDir = Rotate(forward, c.wanderAngle);
+            }
 
             Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
             c.nextVelocity = newDir * bacteriaSpeed;
