@@ -222,14 +222,15 @@ public class CellManager : MonoBehaviour
         //bactera rules
         DepositOrganismField();
         DepositBacteriaField();
-        bacteriaFieldManager.TickField(dt);
-        ApplyBacteriaFieldSteering();
 
-        if (bacteriaFieldManager != null)
+        bool updated = bacteriaFieldManager.TickField(Time.deltaTime);
+        if (updated)
         {
-            bacteriaFieldManager.TickField(Time.deltaTime);
             bacteriaFieldManager.UpdateTrailTexture();
         }
+        ApplyBacteriaFieldSteering();
+
+        
 
 
 
@@ -275,7 +276,7 @@ public class CellManager : MonoBehaviour
 
 
         }
-        //ApplyOrganismReproduction();
+        ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
         CountOrganismNum();

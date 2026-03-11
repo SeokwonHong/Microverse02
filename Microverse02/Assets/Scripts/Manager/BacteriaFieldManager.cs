@@ -25,7 +25,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
     float chemoDiffuseRate = 0.01f;  //How much chemical spreads to neighbours. Like blurring.
-    float chemoDecayPerSecond = 0.01f;
+    float chemoDecayPerSecond = 0.05f;
 
     [Header("Food")]
     [SerializeField] float foodDepositAmount = 0.5f;
@@ -44,6 +44,14 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] bool enableDiffuse = true;
+
+    float fieldTickTimer = 0f;
+    [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
+
+    [Header("Trail Colours")]
+    [SerializeField] Color weakColor = new Color(0.4f, 0f, 0f, 0f);
+    [SerializeField] Color midColor = new Color(1f, 0.3f, 0.05f, 1f);
+    [SerializeField] Color strongColor = new Color(1f, 1f, 0.6f, 1f);
 
     int foodTickCounter;
     //getter
@@ -128,51 +136,63 @@ public class BacteriaFieldManager : MonoBehaviour
 
         return 0f;
     }
-    public void TickField(float dt) //update pretty much
+    public bool TickField(float dt) //update pretty much
     {
-        UpdateField(exploreField, exploreNext, chemoDiffuseRate, chemoDecayPerSecond, dt);
-        Swap(ref exploreField, ref exploreNext);
+        bool updated = false;
+        fieldTickTimer += dt;
 
-        foodTickCounter++;
-        if (foodTickCounter >= 2)
+        while (fieldTickTimer >= fieldTickInterval)
         {
-            foodTickCounter = 0;
-            UpdateField(foodField, foodNext, foodDiffuseRate, foodDecayPerSecond, dt * 2f);
-            Swap(ref foodField, ref foodNext);
+            fieldTickTimer -= fieldTickInterval;
+            updated = true;
+
+            UpdateField(exploreField, exploreNext, chemoDiffuseRate, chemoDecayPerSecond, fieldTickInterval);
+            Swap(ref exploreField, ref exploreNext);
+
+            foodTickCounter++;
+            if (foodTickCounter >= 2)
+            {
+                foodTickCounter = 0;
+                UpdateField(foodField, foodNext, foodDiffuseRate, foodDecayPerSecond, fieldTickInterval * 2f);
+                Swap(ref foodField, ref foodNext);
+            }
         }
+
+        return updated;
     }
 
-    void UpdateField(float[] source, float[] target, float diffuseRate, float decayPerSecond, float dt) //blur + decay
+
+    void UpdateField(float[] source, float[] target, float diffuseRate, float decayPerSecond, float dt)
     {
         float decay = decayPerSecond * dt;
 
         int maxX = chemoWidth - 1;
         int maxY = chemoHeight - 1;
 
-        for (int x = 1; x < maxX; x++)
+        for (int y = 1; y < maxY; y++)
         {
-            for (int y = 1; y < maxY; y++)
+            int row = y * chemoWidth;
+            int rowUp = (y - 1) * chemoWidth;
+            int rowDown = (y + 1) * chemoWidth;
+
+            for (int x = 1; x < maxX; x++)
             {
-                int idx = Index(x, y);
+                int idx = row + x;
 
                 float center = source[idx];
                 float sum =
                     center +
-                    source[Index(x - 1, y)] +
-                    source[Index(x + 1, y)] +
-                    source[Index(x, y - 1)] +
-                    source[Index(x, y + 1)];
+                    source[idx - 1] +
+                    source[idx + 1] +
+                    source[rowUp + x] +
+                    source[rowDown + x];
 
-                float value;
+                float value = center;
 
                 if (enableDiffuse)
                 {
                     float blurred = Mathf.Lerp(center, sum * 0.2f, diffuseRate);
                     value = blurred;
-                }
-                else
-                {
-                    value = center;
                 }
 
                 target[idx] = Mathf.Max(0f, value - decay);
@@ -225,6 +245,8 @@ public class BacteriaFieldManager : MonoBehaviour
     }
 
     //GPU
+
+
     public void UpdateTrailTexture()
     {
         if (trailTexture == null) return;
@@ -232,13 +254,22 @@ public class BacteriaFieldManager : MonoBehaviour
         for (int i = 0; i < CellCount; i++)
         {
             float v = exploreField[i];
+
             float t = Mathf.Clamp01(v * 0.15f);
             float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.6f));
 
-            Color weak = new Color(0.4f, 0f, 0f, 0f);
-            Color strong = new Color(1f, 0.3f, 0.05f, 1f);
 
-            Color c = Color.Lerp(weak, strong, t);
+            Color c;
+
+            if (t < 0.99f)
+            {
+                c = Color.Lerp(weakColor, midColor, t / 0.99f);
+            }
+            else
+            {
+                c = Color.Lerp(midColor, strongColor, (t - 0.99f) / 0.05f);
+            }
+
             c.a = alpha;
 
             trailPixels[i] = c;
@@ -246,7 +277,6 @@ public class BacteriaFieldManager : MonoBehaviour
 
         trailTexture.SetPixels(trailPixels);
         trailTexture.Apply(false);
-
     }
-   
+
 }
