@@ -1768,15 +1768,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fieldRenderer: {fileID: 42457891}
-  chemoDepositAmount: 0.1
+  chemoDepositAmount: 0.01
+  chemoDecayPerSecond: 0.02
   foodDepositAmount: 2
   chemoSensorDistance: 0.4
   trailWeight: 1
   foodWeight: 2
   fieldTickInterval: 0.033333335
   weakColor: {r: 0.5188679, g: 0, b: 0, a: 0}
-  midColor: {r: 1, g: 0.5921569, b: 0.5921569, a: 1}
-  strongColor: {r: 1, g: 1, b: 0.3915094, a: 1}
+  midColor: {r: 0.7294118, g: 0.46410543, b: 0.34901962, a: 1}
+  strongColor: {r: 1, g: 0.7254902, b: 0.6666667, a: 1}
 --- !u!1 &1610983192
 GameObject:
   m_ObjectHideFlags: 0
@@ -2165,7 +2166,7 @@ Transform:
   m_GameObject: {fileID: 1921727452}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 93.5, y: 0, z: 0}
+  m_LocalPosition: {x: 300, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2602,7 +2603,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: firstOrganismCount
-      value: 30
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaFieldManager

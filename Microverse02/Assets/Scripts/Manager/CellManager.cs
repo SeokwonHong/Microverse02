@@ -435,7 +435,7 @@ public class CellManager : MonoBehaviour
         org.energy = UnityEngine.Random.Range(1f, 4f);
         float energy2 = Mathf.InverseLerp(1f, 10f, org.energy);
         core.cellRadius = Mathf.Lerp(0.25f, 0.3f, energy2);
-        int shellCount = Mathf.RoundToInt(Mathf.Lerp(20f, 30f, energy2));
+        int shellCount = Mathf.RoundToInt(Mathf.Lerp(15f, 17f, energy2));
 
         core.detectRadius = core.cellRadius * 5f;
 

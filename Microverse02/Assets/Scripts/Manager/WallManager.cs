@@ -8,6 +8,11 @@ public class WallManager : MonoBehaviour
     [SerializeField] bool drawRuntimeWalls = true;
     [SerializeField] Material wallMaterial;
 
+    readonly List<Vector2> cachedPointAPos = new List<Vector2>();
+    readonly List<Vector2> cachedPointBPos = new List<Vector2>();
+
+    float rebuildTimer;
+
     [System.Serializable]
     public class WallAuthoring
     {
@@ -53,8 +58,18 @@ public class WallManager : MonoBehaviour
     {
         BuildWalls();
         BuildWallVisuals();
+        CacheWallPoints();
     }
 
+    private void Update()
+    {
+        if (DidAnyWallPointMove())
+        {
+            BuildWalls();
+            BuildWallVisuals();
+            CacheWallPoints();
+        }
+    }
 #if UNITY_EDITOR
     void OnValidate()
     {
@@ -291,29 +306,40 @@ public class WallManager : MonoBehaviour
         return list;
     }
 
-//    void DrawCapsuleGizmo(WallSegment w)
-//    {
-//        Gizmos.color = wallColor;
-//        Gizmos.DrawLine(w.a, w.b);
-//        Gizmos.DrawWireSphere(w.a, w.radius);
-//        Gizmos.DrawWireSphere(w.b, w.radius);
+    void CacheWallPoints()
+    {
+        cachedPointAPos.Clear();
+        cachedPointBPos.Clear();
 
-//#if UNITY_EDITOR
-//        UnityEditor.Handles.color = wallFillColor;
+        for (int i = 0; i < authoredWalls.Count; i++)
+        {
+            WallAuthoring w = authoredWalls[i];
 
-//        Vector2 dir = (w.b - w.a);
-//        if (dir.sqrMagnitude > 0.0001f)
-//        {
-//            dir.Normalize();
-//            Vector2 n = new Vector2(-dir.y, dir.x) * w.radius;
+            if (w == null || w.pointA == null || w.pointB == null)
+            {
+                cachedPointAPos.Add(Vector2.zero);
+                cachedPointBPos.Add(Vector2.zero);
+                continue;
+            }
 
-//            Vector3 p1 = w.a + n;
-//            Vector3 p2 = w.b + n;
-//            Vector3 p3 = w.b - n;
-//            Vector3 p4 = w.a - n;
+            cachedPointAPos.Add(w.pointA.position);
+            cachedPointBPos.Add(w.pointB.position);
+        }
+    }
 
-//            UnityEditor.Handles.DrawAAConvexPolygon(p1, p2, p3, p4);
-//        }
-//#endif
-//    }
+    bool DidAnyWallPointMove()
+    {
+        if (authoredWalls.Count != cachedPointAPos.Count) return true;
+
+        for (int i = 0; i < authoredWalls.Count; i++)
+        {
+            WallAuthoring w = authoredWalls[i];
+            if (w == null || w.pointA == null || w.pointB == null) return true;
+
+            if ((Vector2)w.pointA.position != cachedPointAPos[i]) return true;
+            if ((Vector2)w.pointB.position != cachedPointBPos[i]) return true;
+        }
+
+        return false;
+    }
 }
