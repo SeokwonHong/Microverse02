@@ -24,13 +24,12 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
-    float chemoDiffuseRate = 0.01f;  //How much chemical spreads to neighbours. Like blurring.
     [SerializeField] float chemoDecayPerSecond = 0.2f;
 
     [Header("Food")]
     [SerializeField] float foodDepositAmount = 0.5f;
     float foodDecayPerSecond = 0.02f;
-    float foodDiffuseRate = 0.01f;
+    float foodDiffuseRate = 0.8f; //How much chemical spreads to neighbours. Like blurring.
 
 
     [Header("Sensors")]
@@ -242,18 +241,18 @@ public class BacteriaFieldManager : MonoBehaviour
             float v = exploreField[i];
 
             float t = Mathf.Clamp01(v);
-            float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.4f));
+            float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.6f));
 
 
             Color c;
 
-            if (t < 0.98f)
+            if (t < 0.96f)
             {
-                c = Color.Lerp(weakColor, midColor, t / 0.98f);
+                c = Color.Lerp(weakColor, midColor, t / 0.96f);
             }
             else
             {
-                c = Color.Lerp(midColor, strongColor, (t - 0.98f) / 0.05f);
+                c = Color.Lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
             }
 
             c.a = alpha;

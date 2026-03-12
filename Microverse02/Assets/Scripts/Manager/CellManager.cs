@@ -1114,12 +1114,12 @@ public class CellManager : MonoBehaviour
         float detect = bacteria.detectRadius;
         if(sqrDist<=detect*detect)
         {
-            //Attach
-            float dist = Mathf.Sqrt(sqrDist);
-            if (dist <= 0.0001f) return;
-            Vector2 dir = delta / dist;
-            float chaseForce = 10f;
-            bacteria.nextVelocity += dir * chaseForce * dt;
+            ////Attach
+            //float dist = Mathf.Sqrt(sqrDist);
+            //if (dist <= 0.0001f) return;
+            //Vector2 dir = delta / dist;
+            //float chaseForce = 10f;
+            //bacteria.nextVelocity += dir * chaseForce * dt;
 
             //Energy Sucking
             float suckDist = bacteria.cellRadius + target.cellRadius;

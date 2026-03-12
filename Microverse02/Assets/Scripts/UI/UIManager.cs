@@ -3,7 +3,9 @@ using UnityEngine;
 
 public class UIManager : MonoBehaviour
 {
+    [SerializeField] private GameManager gameManager;
     [SerializeField] CellManager cellManager;
+    [SerializeField] TMP_Text winLoseText;
     [SerializeField] TMP_Text energyText;
     [SerializeField] TMP_Text systemStabilityText;
 
@@ -21,5 +23,14 @@ public class UIManager : MonoBehaviour
 
         energyText.text = "Energy: " + cellManager.ReproductionEnergy.ToString("F0");
         systemStabilityText.text = "Organism Left: " + organismCount;
+
+        if(gameManager.win)
+        {
+            winLoseText.text = "WIN!!";
+        }
+        //else
+        //{
+        //    winLoseText.text = "LOSE!";
+        //}
     }
 }
