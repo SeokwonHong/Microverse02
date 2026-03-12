@@ -28,7 +28,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Food")]
     [SerializeField] float foodDepositAmount = 0.5f;
-    float foodDecayPerSecond = 0.02f;
+    float foodDecayPerSecond = 0.0001f;
     float foodDiffuseRate = 0.8f; //How much chemical spreads to neighbours. Like blurring.
 
 
