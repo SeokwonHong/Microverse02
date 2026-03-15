@@ -773,7 +773,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.5372549, g: 0.5372549, b: 0.5372549, a: 1}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -2170,10 +2170,10 @@ MonoBehaviour:
   trailWeight: 1
   foodWeight: 5
   fieldTickInterval: 0.033333335
-  weakColor: {r: 0, g: 0.22745098, b: 0.25490198, a: 0}
-  midColor: {r: 0.7490196, g: 0.20784314, b: 0.20784314, a: 1}
-  strongColor: {r: 1, g: 0.35686275, b: 0.20392157, a: 1}
-  foodColor: {r: 0.2, g: 1, b: 0.2, a: 1}
+  weakColor: {r: 0, g: 0.14509805, b: 0.16078432, a: 0}
+  midColor: {r: 0.85882354, g: 0.85882354, b: 0.85882354, a: 1}
+  strongColor: {r: 1, g: 1, b: 1, a: 1}
+  foodColor: {r: 1, g: 1, b: 1, a: 1}
   foodVisualStrength: 1
 --- !u!1 &1610983192
 GameObject:
@@ -2563,7 +2563,7 @@ Transform:
   m_GameObject: {fileID: 1921727452}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 30.2, y: -30, z: 0}
+  m_LocalPosition: {x: 30.09, y: -29.92, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2975,8 +2975,16 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: mapWidth
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxSpeed
       value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: mapHeight
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapRadius
@@ -2988,11 +2996,11 @@ PrefabInstance:
       objectReference: {fileID: 555529754}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 500
+      value: 1807
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
-      value: 1.5
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: refToCircleBg
@@ -3000,7 +3008,7 @@ PrefabInstance:
       objectReference: {fileID: 237737088}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxOrganismCount
-      value: 5
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: refToRectengleBg
@@ -3012,7 +3020,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: firstOrganismCount
-      value: 6
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaFieldManager

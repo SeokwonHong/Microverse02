@@ -244,7 +244,7 @@ public class CellManager : MonoBehaviour
 
                 if (cells[otherIndex].isDead) continue;
 
-                ResolveOverlap(i, otherIndex);
+                //ResolveOverlap(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
                 ApplyBacteriaAttackingOrganism(i, otherIndex);
             }
@@ -278,7 +278,7 @@ public class CellManager : MonoBehaviour
 
         ApplyCellWiggling();
         ApplyDragToCells();
-        //ApplyEmitWBCFromOrganism();
+       // ApplyEmitWBCFromOrganism();
 
 
         // 7) Map boundary + end buffer

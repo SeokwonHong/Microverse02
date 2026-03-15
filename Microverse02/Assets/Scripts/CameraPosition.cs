@@ -8,7 +8,7 @@ public class CameraPosition : MonoBehaviour
     float camZ = -10;
     Camera cam;
     float minZoom = 3.5f;
-    float maxZoom = 45f;
+    float maxZoom = 75f;
     private void Awake()
     {
         cam = GetComponent<Camera>();

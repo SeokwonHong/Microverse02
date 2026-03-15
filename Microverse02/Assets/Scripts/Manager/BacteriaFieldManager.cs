@@ -28,8 +28,8 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Food")]
     [SerializeField] float foodDepositAmount = 0.8f;
-    float foodDecayPerSecond = 0.2f;
-    float foodDiffuseRate = 10f; //How much chemical spreads to neighbours. Like blurring.
+    float foodDecayPerSecond = 0.88f;
+    float foodDiffuseRate = 1f; //How much chemical spreads to neighbours. Like blurring.
 
 
     [Header("Sensors")]
@@ -255,13 +255,13 @@ public class BacteriaFieldManager : MonoBehaviour
 
             Color c;
 
-            if (t < 0.96f)
+            if (t < 0.8f)
             {
-                c = Color.Lerp(weakColor, midColor, t / 0.96f);
+                c = Color.Lerp(weakColor, midColor, t / 0.8f);
             }
             else
             {
-                c = Color.Lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
+                c = Color.Lerp(midColor, strongColor, (t - 0.8f) / 0.05f);
             }
 
             c.a = alpha;
