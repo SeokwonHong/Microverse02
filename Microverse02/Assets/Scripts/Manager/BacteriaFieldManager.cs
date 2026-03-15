@@ -27,9 +27,9 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] float chemoDecayPerSecond = 0.2f;
 
     [Header("Food")]
-    [SerializeField] float foodDepositAmount = 0.5f;
-    float foodDecayPerSecond = 0.0001f;
-    float foodDiffuseRate = 0.8f; //How much chemical spreads to neighbours. Like blurring.
+    [SerializeField] float foodDepositAmount = 0.8f;
+    float foodDecayPerSecond = 0.2f;
+    float foodDiffuseRate = 10f; //How much chemical spreads to neighbours. Like blurring.
 
 
     [Header("Sensors")]
@@ -41,6 +41,8 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] float trailWeight = 1f;
     [SerializeField] float foodWeight = 2f;
 
+    float trailMaxDeposit = 1f;
+    float foodMaxDeposit = 5f;
 
     float fieldTickTimer = 0f;
     [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
@@ -49,6 +51,10 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] Color weakColor = new Color(0.4f, 0f, 0f, 0f);
     [SerializeField] Color midColor = new Color(1f, 0.3f, 0.05f, 1f);
     [SerializeField] Color strongColor = new Color(1f, 1f, 0.6f, 1f);
+
+    [Header("Food Colours")]
+    [SerializeField] Color foodColor = new Color(0.2f, 1f, 0.2f, 1f);
+    [SerializeField] float foodVisualStrength = 1f;
 
     int foodTickCounter;
     //getter
@@ -113,7 +119,7 @@ public class BacteriaFieldManager : MonoBehaviour
             int idx = Index(gx, gy);
             exploreField[idx] = Mathf.Min(
                 exploreField[idx] + chemoDepositAmount * amountMultiplier,
-                1f
+                trailMaxDeposit
             );
         }
     }
@@ -121,7 +127,11 @@ public class BacteriaFieldManager : MonoBehaviour
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
-            foodField[Index(gx, gy)] += foodDepositAmount * amountMultiplier;
+            int idx = Index(gx, gy);
+            foodField[idx] = Mathf.Min(
+            foodField[idx] + foodDepositAmount * amountMultiplier,
+            foodMaxDeposit
+);
         }
     }
 
@@ -243,7 +253,6 @@ public class BacteriaFieldManager : MonoBehaviour
             float t = Mathf.Clamp01(v);
             float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.6f));
 
-
             Color c;
 
             if (t < 0.96f)
@@ -256,6 +265,18 @@ public class BacteriaFieldManager : MonoBehaviour
             }
 
             c.a = alpha;
+
+            // ---- add food overlay (does not change bacteria colour)
+            float food = Mathf.Clamp01(foodField[i] * foodVisualStrength);
+
+            if (food > 0f)
+            {
+                Color foodOverlay = foodColor;
+                foodOverlay.a = food;
+
+                c = Color.Lerp(c, foodOverlay, food);
+            }
+            // -------------------------------------
 
             trailPixels[i] = c;
         }

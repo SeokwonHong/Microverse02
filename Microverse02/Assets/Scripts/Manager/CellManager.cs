@@ -18,12 +18,19 @@ public class CellManager : MonoBehaviour
     [SerializeField] float bacteriaSpeed = 1.5f;
 
     [Header("Map generation")]
+    [SerializeField] MapShape mapShape = MapShape.Circle;
+
     Vector2 mapCentre = Vector2.zero;
-    [SerializeField] float mapRadius = 25f;
-    public GameObject refToBg;
-    [SerializeField] float wallBounciness = 0.5f;
     [SerializeField] BacteriaFieldManager bacteriaFieldManager;
 
+    [SerializeField] float mapRadius = 25f;
+    [SerializeField] GameObject refToCircleBg;
+
+    [SerializeField] float mapWidth = 50f;
+    [SerializeField] float mapHeight = 50f;
+    [SerializeField] GameObject refToRectengleBg;
+
+    [SerializeField] float wallBounciness = 0.5f;
 
     [Header("Spatial Hash")]
     SpatialHash spatialHash;
@@ -41,7 +48,11 @@ public class CellManager : MonoBehaviour
     [Header("Organism Death")]
     bool isOrganismDead = false;
     const float maxDeadTime = 20f;
-
+    public enum MapShape
+    {
+        Circle,
+        Rectangle
+    }
     //GPU instancing
     public enum CellRole { Bacteria, Core, Shell, WhiteBlood}
 
@@ -121,13 +132,44 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        if(refToBg !=null) refToBg.transform.localScale = new Vector3(mapRadius * 2f, mapRadius * 2f, 1);
+        if (mapShape == MapShape.Circle)
+        {
+            if (refToCircleBg != null)
+                refToCircleBg.transform.localScale =
+                    new Vector3(mapRadius * 2f, mapRadius * 2f, 1f);
 
-        float minX = -mapRadius;
-        float maxX = mapRadius;
-        float minY = -mapRadius;
-        float maxY = mapRadius;
+            if (refToRectengleBg != null)
+                refToRectengleBg.SetActive(false);
+        }
+        else
+        {
+            if (refToRectengleBg != null)
+                refToRectengleBg.transform.localScale =
+                    new Vector3(mapWidth, mapHeight, 1f);
 
+            if (refToCircleBg != null)
+                refToCircleBg.SetActive(false);
+        }
+
+        float minX, maxX, minY, maxY;
+
+        if (mapShape == MapShape.Circle)
+        {
+            minX = mapCentre.x - mapRadius;
+            maxX = mapCentre.x + mapRadius;
+            minY = mapCentre.y - mapRadius;
+            maxY = mapCentre.y + mapRadius;
+        }
+        else
+        {
+            float halfW = mapWidth * 0.5f;
+            float halfH = mapHeight * 0.5f;
+
+            minX = mapCentre.x - halfW;
+            maxX = mapCentre.x + halfW;
+            minY = mapCentre.y - halfH;
+            maxY = mapCentre.y + halfH;
+        }
 
         for (int i = 0; i < firstOrganismCount; i++)
         {
@@ -261,7 +303,7 @@ public class CellManager : MonoBehaviour
             }
 
             cells[i] = c;
-            ApplyCircleBoundary(i);
+            ApplyMapBoundary(i);
             c =cells[i];
 
             if(!IsFinite(c.nextPos)||!IsFinite(c.nextVelocity))
@@ -302,6 +344,20 @@ public class CellManager : MonoBehaviour
 
 
     #region Map
+
+    void ApplyMapBoundary(int i)
+    {
+        switch (mapShape)
+        {
+            case MapShape.Circle:
+                ApplyCircleBoundary(i);
+                break;
+
+            case MapShape.Rectangle:
+                ApplyRectangleBoundary(i);
+                break;
+        }
+    }
     void ApplyCircleBoundary(int i)
     {
         Cell c = cells[i];
@@ -326,6 +382,54 @@ public class CellManager : MonoBehaviour
             c.nextVelocity = v;
 
         }
+        cells[i] = c;
+    }
+
+    void ApplyRectangleBoundary(int i)
+    {
+        Cell c = cells[i];
+
+        Vector2 p = c.nextPos;
+        Vector2 v = c.nextVelocity;
+
+        float halfWidth = mapWidth * 0.5f;
+        float halfHeight = mapHeight * 0.5f;
+
+        float minX = mapCentre.x - halfWidth + c.cellRadius;
+        float maxX = mapCentre.x + halfWidth - c.cellRadius;
+        float minY = mapCentre.y - halfHeight + c.cellRadius;
+        float maxY = mapCentre.y + halfHeight - c.cellRadius;
+
+        bool hitX = false;
+        bool hitY = false;
+
+        if (p.x < minX)
+        {
+            p.x = minX;
+            hitX = true;
+        }
+        else if (p.x > maxX)
+        {
+            p.x = maxX;
+            hitX = true;
+        }
+
+        if (p.y < minY)
+        {
+            p.y = minY;
+            hitY = true;
+        }
+        else if (p.y > maxY)
+        {
+            p.y = maxY;
+            hitY = true;
+        }
+
+        if (hitX) v.x = -v.x * wallBounciness;
+        if (hitY) v.y = -v.y * wallBounciness;
+
+        c.nextPos = p;
+        c.nextVelocity = v;
         cells[i] = c;
     }
 

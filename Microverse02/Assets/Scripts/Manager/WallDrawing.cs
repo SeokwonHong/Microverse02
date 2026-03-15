@@ -1,44 +1,94 @@
-using Unity.VisualScripting;
-using UnityEditor;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 
 public class WallDrawing : MonoBehaviour
 {
-    
-    Vector2 mapCentre = Vector2.zero;
-    float mapRadius = 50f;
+    [Header("Refs")]
+    [SerializeField] WallManager wallManager;
+    [SerializeField] Camera cam;
 
-    [Header("Wall Drawing")]
-    float[] mapField;
-    int mapWidth = 512;
-    int mapHeight = 512;    
-    int MapSize => mapWidth * mapHeight;
+    [Header("Map")]
+    [SerializeField] Vector2 mapCentre = Vector2.zero;
+    [SerializeField] float mapRadius = 50f;
 
-    [Header("Mouse Pos")]
-    MouseCursor mousePos;
+    [Header("Draw")]
+    [SerializeField] float wallThickness = 0.35f;
+    [SerializeField] float minSegmentDistance = 0.25f;
+    [SerializeField] bool drawOnlyWhileHolding = true;
 
+    bool isDrawing;
+    Vector2 lastDrawPos;
 
-
-
-    [SerializeField] Color mapColour;
-
-    bool isDrawn;
-
-    private void Awake()
+    void Awake()
     {
-        int mapSize = mapWidth * mapHeight;
-
-        mapField = new float[MapSize];
-  
+        if (cam == null) cam = Camera.main;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        
+        if (wallManager == null || cam == null) return;
+
+        if (drawOnlyWhileHolding)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                isDrawing = true;
+                lastDrawPos = GetMouseWorldPos();
+            }
+
+            if (Input.GetMouseButtonUp(0))
+            {
+                isDrawing = false;
+            }
+
+            if (isDrawing)
+            {
+                TryDraw();
+            }
+        }
+        else
+        {
+            TryDraw();
+        }
     }
 
+    void TryDraw()
+    {
+        Vector2 mouseWorld = GetMouseWorldPos();
 
+        if (!IsInsideMap(mouseWorld))
+            return;
 
+        float d = Vector2.Distance(lastDrawPos, mouseWorld);
+        if (d < minSegmentDistance)
+            return;
+
+        Vector2 a = ClampToMap(lastDrawPos);
+        Vector2 b = ClampToMap(mouseWorld);
+
+        wallManager.AddRuntimeWall(a, b, wallThickness);
+        lastDrawPos = b;
+    }
+
+    Vector2 GetMouseWorldPos()
+    {
+        Vector3 p = cam.ScreenToWorldPoint(Input.mousePosition);
+        return new Vector2(p.x, p.y);
+    }
+
+    bool IsInsideMap(Vector2 p)
+    {
+        return (p - mapCentre).sqrMagnitude <= mapRadius * mapRadius;
+    }
+
+    Vector2 ClampToMap(Vector2 p)
+    {
+        Vector2 delta = p - mapCentre;
+        float dist = delta.magnitude;
+
+        if (dist <= mapRadius || dist <= 0.0001f)
+            return p;
+
+        return mapCentre + delta / dist * mapRadius;
+    }
 }

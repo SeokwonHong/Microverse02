@@ -342,4 +342,69 @@ public class WallManager : MonoBehaviour
 
         return false;
     }
+
+    public void AddRuntimeWall(Vector2 a, Vector2 b, float thickness)
+    {
+        float radius = Mathf.Max(0.01f, thickness * 0.5f);
+
+        runtimeWalls.Add(new WallSegment(a, b, radius));
+
+        int wallIndex = runtimeWalls.Count - 1;
+        AddWallToHash(runtimeWalls[wallIndex], wallIndex);
+
+        if (drawRuntimeWalls)
+            CreateWallVisual(runtimeWalls[wallIndex]);
+    }
+
+    void AddWallToHash(WallSegment w, int wallIndex)
+    {
+        float minX = Mathf.Min(w.a.x, w.b.x) - w.radius;
+        float maxX = Mathf.Max(w.a.x, w.b.x) + w.radius;
+        float minY = Mathf.Min(w.a.y, w.b.y) - w.radius;
+        float maxY = Mathf.Max(w.a.y, w.b.y) + w.radius;
+
+        Vector2Int minCell = WorldToCell(new Vector2(minX, minY));
+        Vector2Int maxCell = WorldToCell(new Vector2(maxX, maxY));
+
+        for (int y = minCell.y; y <= maxCell.y; y++)
+        {
+            for (int x = minCell.x; x <= maxCell.x; x++)
+            {
+                Vector2Int key = new Vector2Int(x, y);
+
+                if (!wallHash.TryGetValue(key, out List<int> list))
+                {
+                    list = new List<int>(4);
+                    wallHash.Add(key, list);
+                }
+
+                list.Add(wallIndex);
+            }
+        }
+    }
+
+    void CreateWallVisual(WallSegment w)
+    {
+        Vector2 dir = w.b - w.a;
+        float length = dir.magnitude;
+        if (length <= 0.001f) return;
+
+        float thickness = w.radius * 2f;
+        Vector2 mid = (w.a + w.b) * 0.5f;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+        GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.transform.SetParent(transform);
+        quad.transform.position = new Vector3(mid.x, mid.y, 1f);
+        quad.transform.rotation = Quaternion.Euler(0, 0, angle);
+        quad.transform.localScale = new Vector3(length, thickness, 1f);
+
+        var col = quad.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+
+        if (wallMaterial != null)
+            quad.GetComponent<MeshRenderer>().material = wallMaterial;
+
+        wallVisuals.Add(quad);
+    }
 }
