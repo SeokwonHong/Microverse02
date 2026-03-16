@@ -255,13 +255,13 @@ public class BacteriaFieldManager : MonoBehaviour
 
             Color c;
 
-            if (t < 0.8f)
+            if (t < 0.96f)
             {
-                c = Color.Lerp(weakColor, midColor, t / 0.8f);
+                c = Color.Lerp(weakColor, midColor, t / 0.96f);
             }
             else
             {
-                c = Color.Lerp(midColor, strongColor, (t - 0.8f) / 0.05f);
+                c = Color.Lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
             }
 
             c.a = alpha;

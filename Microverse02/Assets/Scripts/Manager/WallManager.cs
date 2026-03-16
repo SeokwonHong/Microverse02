@@ -4,7 +4,7 @@ using Vector2 = UnityEngine.Vector2;
 
 public class WallManager : MonoBehaviour
 {
-    [Header("Runtime Visual")]
+    
     [SerializeField] bool drawRuntimeWalls = true;
     [SerializeField] Material wallMaterial;
 
@@ -273,19 +273,7 @@ public class WallManager : MonoBehaviour
         return a + ab * t;
     }
 
-    void OnDrawGizmos()
-    {
-        if (!drawGizmos) return;
-
-        List<WallSegment> drawList = Application.isPlaying ? runtimeWalls : GetEditorWalls();
-        if (drawList == null) return;
-
-        for (int i = 0; i < drawList.Count; i++)
-        {
-            WallSegment w = drawList[i];
-            //DrawCapsuleGizmo(w);
-        }
-    }
+    
 
     List<WallSegment> GetEditorWalls()
     {
@@ -406,5 +394,34 @@ public class WallManager : MonoBehaviour
             quad.GetComponent<MeshRenderer>().material = wallMaterial;
 
         wallVisuals.Add(quad);
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!drawGizmos) return;
+
+        List<WallSegment> drawList = Application.isPlaying ? runtimeWalls : GetEditorWalls();
+        if (drawList == null) return;
+
+        Gizmos.color = Color.yellow;
+
+        for (int i = 0; i < drawList.Count; i++)
+        {
+            DrawWallGizmo(drawList[i]);
+        }
+    }
+
+    void DrawWallGizmo(WallSegment w)
+    {
+        Gizmos.DrawLine(w.a, w.b);
+
+        Gizmos.DrawWireSphere(w.a, w.radius);
+        Gizmos.DrawWireSphere(w.b, w.radius);
+
+        Vector2 dir = (w.b - w.a).normalized;
+        Vector2 normal = new Vector2(-dir.y, dir.x) * w.radius;
+
+        Gizmos.DrawLine(w.a + normal, w.b + normal);
+        Gizmos.DrawLine(w.a - normal, w.b - normal);
     }
 }

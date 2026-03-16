@@ -12,7 +12,7 @@ public class CellManager : MonoBehaviour
 
     [Header("Bacteria Spawn")]
     [SerializeField] GameObject reftoBacteriaSpawnPos;
-    [SerializeField] float bacteriaSpawnInterval = 1f;
+    [SerializeField] float bacteriaSpawnInterval = 0.01f;
     float bacteriaSpawnTimer = 0f;
     [SerializeField] int bacteriaCount = 200;
     [SerializeField] float bacteriaSpeed = 1.5f;
@@ -48,6 +48,11 @@ public class CellManager : MonoBehaviour
     [Header("Organism Death")]
     bool isOrganismDead = false;
     const float maxDeadTime = 20f;
+
+    [Header("Destination")]
+    [SerializeField] GameObject refToDestination;
+    float DestinationRadius = 2f;
+    int arrivedBacteriaCount = 0;
     public enum MapShape
     {
         Circle,
@@ -182,6 +187,19 @@ public class CellManager : MonoBehaviour
 
         SystemStability = 100f;
 
+
+        refToDestination.transform.localScale = new Vector3(DestinationRadius * 2f, DestinationRadius * 2f, 1f);
+
+
+        Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
+
+        for (int i = 0; i < bacteriaCount; i++)
+        {
+            CreateBacteriaCell(spawnPos);
+        }
+
+        bacteriaCount = 0;
+
     }
     /// <summary>
     /// ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,17 +208,17 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        bacteriaSpawnTimer += dt;
+        //bacteriaSpawnTimer += dt;
 
-        if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount>0)
-        {
-            bacteriaSpawnTimer -= bacteriaSpawnInterval;
+        //if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount>0)
+        //{
+        //    bacteriaSpawnTimer -= bacteriaSpawnInterval;
 
-            Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
-            CreateBacteriaCell(spawnPos);
-            bacteriaCount--;
-        }
-        if(bacteriaCount <= 0) bacteriaCount = 0;
+        //    Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
+        //    CreateBacteriaCell(spawnPos);
+        //    bacteriaCount--;
+        //}
+        //if(bacteriaCount <= 0) bacteriaCount = 0;
 
         // 0) Double buffer start
         for (int i = 0; i < cells.Count; i++)
@@ -318,6 +336,7 @@ public class CellManager : MonoBehaviour
 
 
         }
+        DestinationDetectoin();
         //ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
@@ -328,8 +347,10 @@ public class CellManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.V))
         {
-            int organismCount = CountOrganismNum();
-            Debug.Log($" {cells.Count}, {organismCount}");
+            //int organismCount = CountOrganismNum();
+            //Debug.Log($" {cells.Count}, {organismCount}");
+
+            Debug.Log(arrivedBacteriaCount);
         }
     }
 
@@ -471,7 +492,7 @@ public class CellManager : MonoBehaviour
             c.organismId = -1;
             c.role = CellRole.Bacteria;
 
-            c.cellRadius = 0.15f;
+            c.cellRadius = 0.1f;
             c.detectRadius = c.cellRadius * 13f;
 
             c.detected = true;
@@ -489,7 +510,7 @@ public class CellManager : MonoBehaviour
         clone.currentVelocity = Vector2.zero;
         clone.nextVelocity = Vector2.zero;
 
-        clone.cellRadius = 0.15f;
+        clone.cellRadius = 0.1f;
         clone.detectRadius = clone.cellRadius * 13f;
 
         clone.organismId = -1;
@@ -1559,6 +1580,28 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
     }
+
+    public void DestinationDetectoin()
+    {
+        Vector2 dest = refToDestination.transform.position;
+        for(int i=0; i<cells.Count; i++)
+        {
+            Cell bacteria = cells[i];
+
+            if (bacteria.isDead) continue;
+
+            Vector2 d = dest - bacteria.currentPos;
+
+            if(d.sqrMagnitude<DestinationRadius*DestinationRadius)
+            {
+                bacteria.isDead = true;
+                arrivedBacteriaCount++;
+            }
+
+        }
+    }
+
+
 
 
     public int CountOrganismNum()
