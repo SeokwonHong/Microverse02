@@ -10,6 +10,14 @@ public class BacteriaFieldManager : MonoBehaviour
     float[] exploreField;
     float[] exploreNext;
 
+    float[] homeField;
+    float[] homeNext;
+
+    [Header("Heading back home")]
+    [SerializeField] float homeDepositAmount = 0.6f;
+    [SerializeField] float homeWeight = 2f;
+    float homeMaxDeposit = 5f;
+
     float[] foodField;
     float[] foodNext;
 
@@ -28,7 +36,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Food")]
     [SerializeField] float foodDepositAmount = 0.8f;
-    float foodDecayPerSecond = 0.88f;
+    float foodDecayPerSecond = 0.001f;
     float foodDiffuseRate = 1f; //How much chemical spreads to neighbours. Like blurring.
 
 
@@ -71,9 +79,13 @@ public class BacteriaFieldManager : MonoBehaviour
         exploreField = new float[cellCount];
         exploreNext = new float[cellCount];
 
+        homeField = new float[cellCount];
+        homeNext = new float[cellCount];
+
         foodField = new float[cellCount];
         foodNext = new float[cellCount];
 
+        
         //GPU
         trailTexture = new Texture2D(chemoWidth, chemoHeight, TextureFormat.RGBA32, false);
         trailTexture.wrapMode = TextureWrapMode.Clamp;
@@ -123,6 +135,20 @@ public class BacteriaFieldManager : MonoBehaviour
             );
         }
     }
+
+    public void DepositHome(Vector2 worldPos, float amountMultiplier = 1f)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
+            homeField[idx] = Mathf.Min(
+                homeField[idx] + homeDepositAmount * amountMultiplier,
+                homeMaxDeposit
+            );
+        }
+    }
+
+
     public void DepositFood(Vector2 worldPos, float amountMultiplier = 1f)
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
@@ -159,6 +185,9 @@ public class BacteriaFieldManager : MonoBehaviour
 
             UpdateField(exploreField, exploreNext, 0f, chemoDecayPerSecond, fieldTickInterval);
             Swap(ref exploreField, ref exploreNext);
+
+            UpdateField(homeField, homeNext, 0f, chemoDecayPerSecond, fieldTickInterval);
+            Swap(ref homeField, ref homeNext);
 
             foodTickCounter++;
             if (foodTickCounter >= 2)
@@ -237,6 +266,31 @@ public class BacteriaFieldManager : MonoBehaviour
         float[] temp = a;
         a = b;
         b = temp;
+    }
+    // CellManager helper
+    public bool TryGetGridCell(Vector2 worldPos, out Vector2Int cell)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            cell = new Vector2Int(gx, gy);
+            return true;
+        }
+
+        cell = default;
+        return false;
+    }
+
+    public Vector2 GridToWorldCenter(Vector2Int cell)
+    {
+        float mapSize = mapRadius * 2f;
+
+        float px = (cell.x + 0.5f) / chemoWidth;
+        float py = (cell.y + 0.5f) / chemoHeight;
+
+        float worldX = (mapCentre.x - mapRadius) + px * mapSize;
+        float worldY = (mapCentre.y - mapRadius) + py * mapSize;
+
+        return new Vector2(worldX, worldY);
     }
 
     //GPU

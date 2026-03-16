@@ -53,6 +53,10 @@ public class CellManager : MonoBehaviour
     [SerializeField] GameObject refToDestination;
     float DestinationRadius = 2f;
     int arrivedBacteriaCount = 0;
+
+    const int maxPathMemory = 20;
+    const float memoryReachDistance = 0.35f;
+
     public enum MapShape
     {
         Circle,
@@ -94,7 +98,6 @@ public class CellManager : MonoBehaviour
         public int organismId; // -1 = indipendent cell
         public CellRole role; // Core / Shell / WhiteBlood
 
-        public bool detected;
         public bool isDead;
 
         // bacteria
@@ -109,6 +112,12 @@ public class CellManager : MonoBehaviour
         public float headingTimer;
         public float wanderAngle;
         public Vector2 cohesionDV;
+
+        public List<Vector2Int> pathMemory;
+        public int returnMemoryIndex;
+        public Vector2Int lastSavedCell;
+        public bool hasLastSavedCell;
+        public bool isReturningToNest;
     }
 
     class Organisms
@@ -226,7 +235,6 @@ public class CellManager : MonoBehaviour
             Cell c = cells[i];
             c.nextVelocity = c.currentVelocity; 
             c.nextPos = c.currentPos;
-            c.detected = false;
             c.isBacteriaAttachedToWBC = false;
 
             c.cohesionDV = Vector2.zero;
@@ -280,9 +288,14 @@ public class CellManager : MonoBehaviour
         ApplyCellOrganismEnergyDeath();
 
         //bactera rules
-        DepositOrganismField();
+
         DepositBacteriaField();
 
+        for (int i = 0; i < cells.Count; i++)
+        {
+            UpdateBacteriaPathMemory(i);
+
+        }
         bool updated = bacteriaFieldManager.TickField(Time.deltaTime);
         if (updated)
         {
@@ -290,11 +303,6 @@ public class CellManager : MonoBehaviour
         }
         ApplyBacteriaFieldSteering();
 
-        
-
-
-
-        ApplyCellWiggling();
         ApplyDragToCells();
        // ApplyEmitWBCFromOrganism();
 
@@ -336,7 +344,7 @@ public class CellManager : MonoBehaviour
 
 
         }
-        DestinationDetectoin();
+        DestinationDetection();
         //ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
@@ -495,9 +503,14 @@ public class CellManager : MonoBehaviour
             c.cellRadius = 0.1f;
             c.detectRadius = c.cellRadius * 13f;
 
-            c.detected = true;
-
             c.cohesionDV = Vector2.zero;
+
+            c.pathMemory ??= new List<Vector2Int>(32);
+            c.pathMemory.Clear();
+            c.returnMemoryIndex = -1;
+            c.hasLastSavedCell = false;
+            c.isReturningToNest = false;
+
 
             cells[idx] = c;
             return;
@@ -517,11 +530,16 @@ public class CellManager : MonoBehaviour
         clone.role = CellRole.Bacteria;
 
         clone.energy = 2f;
-        clone.detected = true;
+     
         clone.isDead = false;
         clone.isBacteriaAttachedToWBC = false;
 
         clone.cohesionDV = Vector2.zero;
+
+        clone.pathMemory = new List<Vector2Int>(32);
+        clone.returnMemoryIndex = -1;
+        clone.hasLastSavedCell = false;
+        clone.isReturningToNest = false;
 
         cells.Add(clone);
     }
@@ -656,45 +674,7 @@ public class CellManager : MonoBehaviour
     }
 
 
-    void ApplyOrganismTendency() //Organism movement, more likely tendency
-    {
-        float dt = Time.deltaTime;
-
-        for (int i = 0; i < organisms.Count; i++)
-        {
-            Organisms org = organisms[i];
-            if (org.isDead) continue;
-
-            int coreIdx = org.coreIndex;
-            if (coreIdx < 0) continue;
-
-            Cell core = cells[coreIdx];
-
-            if (org.heading.sqrMagnitude < 1e-6f)
-            {
-                org.heading = Random.insideUnitCircle.normalized;
-                org.wanderTimer = Random.Range(0.5f, 2.0f);
-            }
-
-            org.wanderTimer -= dt;
-            if (org.wanderTimer <= 0f)
-            {
-                Vector2 jitter = Random.insideUnitCircle * 0.25f;
-                org.heading = (org.heading + jitter).normalized;
-
-                org.wanderTimer = Random.Range(0.5f, 2.0f);
-            }
-
-            float speed = 30f;
-
-
-            core.nextVelocity += org.heading * speed * dt;
-            cells[coreIdx] = core;
-            organisms[i] = org;
-        }
-    }
-
-
+   
 
     void ApplyKeepOrganismShape()
     {
@@ -869,62 +849,7 @@ public class CellManager : MonoBehaviour
 
         organisms[orgId] = org;
     }
-    void ApplyCohesion(int aIndex, int bIndex)  //cell gathering method
-    {
-        float dt = Time.deltaTime;
-
-        // only if player involved (optional)
-        Cell A = cells[aIndex];
-        Cell B = cells[bIndex];
-        if (A.role != CellRole.Core && B.role != CellRole.Core) return;
-
-        Vector2 delta = B.nextPos - A.nextPos;
-        float d2 = delta.sqrMagnitude;
-        if (d2 < 1e-8f) return;
-
-        float cohesionRadius = 2.0f;
-        if (d2 > cohesionRadius * cohesionRadius) return;
-
-        float dist = Mathf.Sqrt(d2);
-        Vector2 dir = delta / dist;
-
-        float minDist = A.cellRadius + B.cellRadius;
-
-        // IMPORTANT: don't apply cohesion near contact
-        float start = minDist * 10f;       // tune
-        if (dist <= start) return;
-
-        // spring accel
-        float k = 1.2f;
-        float accel = k * (dist - start);
-
-        float maxAccel = 2f;
-        accel = Mathf.Min(accel, maxAccel);
-
-        Vector2 dv = dir * (accel * dt);
-
-        // per-cell cohesion dv cap (this is the key)
-        float maxCohesionDV = 0.3f; // tune (units/sec change per frame)
-        Vector2 aNew = A.cohesionDV + dv;
-        Vector2 bNew = B.cohesionDV - dv;
-
-        if (aNew.sqrMagnitude > maxCohesionDV * maxCohesionDV)
-            dv = Vector2.ClampMagnitude(dv, Mathf.Max(0f, maxCohesionDV - A.cohesionDV.magnitude));
-
-        if ((B.cohesionDV - dv).sqrMagnitude > maxCohesionDV * maxCohesionDV)
-            dv = Vector2.ClampMagnitude(dv, Mathf.Max(0f, maxCohesionDV - B.cohesionDV.magnitude));
-
-        // apply
-        A.nextVelocity += dv;
-        B.nextVelocity -= dv;
-
-        A.cohesionDV += dv;
-        B.cohesionDV -= dv;
-
-        cells[aIndex] = A;
-        cells[bIndex] = B;
-    }
-
+   
     void ApplyDragToCells()
     {
         float dt = Time.deltaTime;
@@ -943,208 +868,12 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
     }
-    void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
-    {
-        float dt = Time.deltaTime;
-        float k = 0f;     // spring strength
-        float c = 1.1f;     // damping
-        float maxPenetration = 0.35f;
-        float maxAccel = 900f;
-
-        // Loop through all cells and apply jelly only to the roles you want
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell target = cells[i];
-
-
-            if (target.role==CellRole.Core)
-            {
-                k = 5;
-            }
-            else
-            {
-                k = 50f;
-            }
-
-               // k = isPlayer ? 300f : 5f;
-
-            if (target.isDead) continue;
-
-            // Only push these roles
-            if (target.role != CellRole.Bacteria && target.role != CellRole.WhiteBlood && target.role != CellRole.Core) continue;
-
-
-            Vector2 totalAccel = Vector2.zero;
-
-            for (int o = 0; o < organisms.Count; o++)
-            {
-                var org = organisms[o];
-                if (org.isDead) continue;
-
-                // Optional: don’t push cells that are part of this organism
-                if (target.organismId == o) continue;
-
-                Cell core = cells[org.coreIndex];
-
-
-                float barrier=1f;
-                if(target.role==CellRole.WhiteBlood || target.role == CellRole.Bacteria)
-                {
-                    barrier = org.coreDistance + target.cellRadius;
-                }
-                else barrier= org.coreDistance + target.detectRadius;
-
-                Vector2 delta = target.nextPos - core.nextPos;
-                float d2 = delta.sqrMagnitude;
-                if (d2 < 1e-6f) continue;
-
-                float dist = Mathf.Sqrt(d2);
-
-                float penetration = barrier - dist;
-                //if (penetration > 0f) continue; // add this line if I don't want to apply shell cells jelly force when they're inside of core radisu
-                if (penetration <= 0f) continue;  // remove this line if I don't want to apply shell cells jelly force when they're inside of core radisu
-
-                if (penetration > maxPenetration) penetration = maxPenetration;
-
-                Vector2 n = delta / dist;
-
-                float v_n = Vector2.Dot(target.nextVelocity - core.nextVelocity, n);
-
-                float accelMag = (k * penetration) - (c * v_n);
-                if (accelMag <= 0f) continue;
-
-                totalAccel += n * accelMag;
-            }
-
-            // Clamp accel
-            float a2 = totalAccel.sqrMagnitude;
-            float maxA2 = maxAccel * maxAccel;
-            if (a2 > maxA2)
-                totalAccel = totalAccel * (maxAccel / Mathf.Sqrt(a2));
-
-            
-            target.nextVelocity += totalAccel * dt;
-
-            cells[i] = target;
-        }
-    }
-
-    void ApplyCellDetection(int a, int b)
-    {
-        Cell A = cells[a];
-        Cell B = cells[b];
-
-        if (A.role == CellRole.Bacteria && B.role != CellRole.Bacteria)
-        {
-            float r = A.detectRadius + B.cellRadius;
-            if ((A.nextPos - B.nextPos).sqrMagnitude <= r * r)
-            {
-                B.detected = true;
-                cells[b] = B;
-            }
-            else B.detected = false;
-        }
-        else if (B.role == CellRole.Bacteria && A.role != CellRole.Bacteria)
-        {
-            float r = B.detectRadius + A.cellRadius;
-            if ((B.nextPos - A.nextPos).sqrMagnitude <= r * r)
-            {
-                A.detected = true;
-                cells[a] = A;
-            }
-            
-        }
-    }
+   
+   
     #endregion
 
     #region Cell_Rules
 
-    void ApplyCellMovement()
-    {
-        float dt = Time.deltaTime;
-        float accel = 40f;
-
-        for(int i = 0;i < cells.Count;i++)
-        {
-            Cell c = cells[i];
-            if (c.isDead) continue;
-            if(c.role == CellRole.Shell) continue;
-
-            if(c.heading.sqrMagnitude <1e-6f)
-            {
-                c.heading = Random.insideUnitCircle.normalized;
-                c.headingTimer = Random.Range(0.6f, 1.4f);
-            }
-
-            c.headingTimer -= dt;
-
-            if(c.headingTimer <=0f)
-            {
-                Vector2 jitter = Random.insideUnitCircle * 0.5f;
-                c.heading = (c.heading +jitter).normalized;
-                c.headingTimer = Random.Range(0.6f, 1.4f);
-            }
-
-            c.nextVelocity += c.heading * accel * dt;
-            cells[i] = c;
-        }
-        
-    }
-
-
-
-    void ApplyCellWiggling()// cell tendency
-    {
-        float dt = Time.deltaTime;
-
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell c = cells[i];
-            if (c.isDead) continue;
-
-            Vector2 randomDir = Random.insideUnitCircle;
-            if (randomDir.sqrMagnitude < 1e-6f) continue;
-
-            float speed;
-
-
-            if (c.role == CellRole.WhiteBlood)
-            {
-                speed = 60f;
-            }
-
-            // ORGANISM WIGGLE
-            else if (c.organismId >= 0 && c.organismId < organisms.Count)
-            {
-                Organisms org = organisms[c.organismId];
-                float energy01 = Mathf.InverseLerp(0f, 10f, org.energy);
-                float baseSpeed = Mathf.Lerp(1f, 30f, energy01);
-
-                float t = Mathf.Clamp01(org.deadTimer / maxDeadTime);
-                speed = Mathf.Lerp(baseSpeed,0f,t);
-                
-
-                if (org.attackedByBacteria)
-                {
-                    speed = Mathf.Lerp(20f, 0f, t);
-                    org.coreDistance = org.defaultCoreDistance ;
-                }
-                else
-                {
-                    speed = Mathf.Lerp(10f, 0f, t);
-                    org.coreDistance = org.defaultCoreDistance * 1.1f;
-                }
-                organisms[c.organismId] = org;
-            }
-            else
-            {
-                continue;
-            }
-            c.nextVelocity += randomDir * speed * dt;
-
-            cells[i] = c;
-        }
-    }
 
 
     #endregion
@@ -1430,50 +1159,7 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    void ApplyWBCWandering()
-    {
-        float dt = Time.deltaTime;
-
-        float maxSpeed = 30f;
-        float drag = 2.0f;
-
-        float wanderCircleDist = 1.2f;   // how far ahead the circle is
-        float wanderCircleRadius = 0.9f; // how wide it can turn
-        float wanderJitter = 2.5f;       // how quickly angle changes (radians/sec)
-        float steerStrength = 20f;
-
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell w = cells[i];
-            if (w.role != CellRole.WhiteBlood) continue;
-            if (w.WBCInSight) continue;
-
-            // forward direction from velocity (fallback if almost stopped)
-            Vector2 forward = w.nextVelocity.sqrMagnitude > 0.001f
-                ? w.nextVelocity.normalized
-                : Random.insideUnitCircle.normalized;
-
-            // slowly vary the wander angle
-            w.wanderAngle += Random.Range(-1f, 1f) * wanderJitter * dt;
-
-            // point on a circle in front of the agent
-            Vector2 circleCenter = forward * wanderCircleDist;
-            Vector2 displacement = new Vector2(Mathf.Cos(w.wanderAngle), Mathf.Sin(w.wanderAngle)) * wanderCircleRadius;
-
-            Vector2 desiredDir = (circleCenter + displacement).normalized;
-            Vector2 desiredVel = desiredDir * maxSpeed;
-
-            Vector2 steer = (desiredVel - w.nextVelocity) * steerStrength;
-            w.nextVelocity += steer * dt;
-
-            // drag + clamp
-            w.nextVelocity *= Mathf.Exp(-drag * dt);
-            float speed = w.nextVelocity.magnitude;
-            if (speed > maxSpeed) w.nextVelocity *= (maxSpeed / speed);
-
-            cells[i] = w;
-        }
-    }
+  
     #endregion
 
     Vector2 Rotate(Vector2 v, float degrees)  // makes normalized vector2 with applied degrees
@@ -1487,28 +1173,7 @@ public class CellManager : MonoBehaviour
             v.x * sin + v.y * cos
         );
     }
-    void DepositOrganismField()
-    {
-        if (bacteriaFieldManager == null) return;
-
-        for (int i = 0; i < organisms.Count; i++)
-        {
-            Organisms org = organisms[i];
-            if (org.isDead) continue;
-
-            for (int m = 0; m < org.members.Count; m++)
-            {
-                int cellIdx = org.members[m];
-                if (cellIdx < 0 || cellIdx >= cells.Count) continue;
-
-                Cell c = cells[cellIdx];
-                if (c.isDead) continue;
-
-                Vector2 pos = c.currentPos;
-                bacteriaFieldManager.DepositFood(pos);
-            }
-        }
-    }
+    
     void DepositBacteriaField() // use the Deposit() funtion per bacteria
     {
         if (bacteriaFieldManager == null) return;
@@ -1519,7 +1184,14 @@ public class CellManager : MonoBehaviour
             if (c.isDead) continue;
             if (c.role != CellRole.Bacteria) continue;
 
-            bacteriaFieldManager.DepositTrail(c.currentPos);
+            if (c.isReturningToNest)
+            {
+                bacteriaFieldManager.DepositFood(c.currentPos, 1.2f);
+            }
+            else
+            {
+                bacteriaFieldManager.DepositTrail(c.currentPos, 1f);
+            }
         }
     }
     void ApplyBacteriaFieldSteering()
@@ -1527,7 +1199,7 @@ public class CellManager : MonoBehaviour
         if (bacteriaFieldManager == null) return;
 
         float dt = Time.deltaTime;
-        float turnRate = 2f;
+        float turnRate = 6f;
         float turnThreshold = 0.01f;
 
         for (int i = 0; i < cells.Count; i++)
@@ -1540,6 +1212,53 @@ public class CellManager : MonoBehaviour
                 ? c.nextVelocity.normalized
                 : Random.insideUnitCircle.normalized;
 
+            // ---------- RETURN MODE ----------
+            if (c.isReturningToNest)
+            {
+                if (c.pathMemory == null || c.pathMemory.Count == 0 || c.returnMemoryIndex < 0)
+                {
+                    c.isReturningToNest = false;
+                    c.returnMemoryIndex = -1;
+                    cells[i] = c;
+                    continue;
+                }
+
+                Vector2Int targetCell = c.pathMemory[c.returnMemoryIndex];
+                Vector2 targetWorld = bacteriaFieldManager.GridToWorldCenter(targetCell);
+
+                Vector2 toTarget = targetWorld - c.currentPos;
+                float d2 = toTarget.sqrMagnitude;
+
+                if (d2 <= memoryReachDistance * memoryReachDistance)
+                {
+                    c.returnMemoryIndex--;
+
+                    if (c.returnMemoryIndex < 0)
+                    {
+                        c.isReturningToNest = false;
+                        c.pathMemory.Clear();
+                        c.hasLastSavedCell = false;
+                        c.nextVelocity = Vector2.zero;
+                        cells[i] = c;
+                        continue;
+                    }
+
+                    targetCell = c.pathMemory[c.returnMemoryIndex];
+                    targetWorld = bacteriaFieldManager.GridToWorldCenter(targetCell);
+                    toTarget = targetWorld - c.currentPos;
+                }
+
+                Vector2 desiredDir = toTarget.sqrMagnitude > 0.0001f
+                    ? toTarget.normalized
+                    : forward;
+
+                Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
+                c.nextVelocity = newDir * bacteriaSpeed;
+                cells[i] = c;
+                continue;
+            }
+
+            // ---------- SEARCH MODE ----------
             Vector2 leftDir = Rotate(forward, -bacteriaFieldManager.SensorAngle);
             Vector2 rightDir = Rotate(forward, bacteriaFieldManager.SensorAngle);
 
@@ -1551,15 +1270,15 @@ public class CellManager : MonoBehaviour
             float leftValue = bacteriaFieldManager.Sample(leftPos);
             float rightValue = bacteriaFieldManager.Sample(rightPos);
 
-            Vector2 desiredDir = forward;
+            Vector2 desiredSearchDir = forward;
 
             if (leftValue > forwardValue + turnThreshold && leftValue > rightValue + turnThreshold)
             {
-                desiredDir = leftDir;
+                desiredSearchDir = leftDir;
             }
             else if (rightValue > forwardValue + turnThreshold && rightValue > leftValue + turnThreshold)
             {
-                desiredDir = rightDir;
+                desiredSearchDir = rightDir;
             }
             else
             {
@@ -1571,38 +1290,85 @@ public class CellManager : MonoBehaviour
                     c.headingTimer = Random.Range(0.2f, 0.6f);
                 }
 
-                desiredDir = Rotate(forward, c.wanderAngle);
+                desiredSearchDir = Rotate(forward, c.wanderAngle);
             }
 
-            Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
-            c.nextVelocity = newDir * bacteriaSpeed;
+            Vector2 searchDir = Vector2.Lerp(forward, desiredSearchDir, 2f * dt).normalized;
+            c.nextVelocity = searchDir * bacteriaSpeed;
 
             cells[i] = c;
         }
     }
 
-    public void DestinationDetectoin()
+    public void DestinationDetection()
     {
         Vector2 dest = refToDestination.transform.position;
-        for(int i=0; i<cells.Count; i++)
+
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell bacteria = cells[i];
 
             if (bacteria.isDead) continue;
+            if (bacteria.role != CellRole.Bacteria) continue;
+            if (bacteria.isReturningToNest) continue;
 
             Vector2 d = dest - bacteria.currentPos;
 
-            if(d.sqrMagnitude<DestinationRadius*DestinationRadius)
+            if (d.sqrMagnitude < DestinationRadius * DestinationRadius)
             {
-                bacteria.isDead = true;
-                arrivedBacteriaCount++;
-            }
+                bacteria.isReturningToNest = true;
+                bacteria.returnMemoryIndex = bacteria.pathMemory != null
+                    ? bacteria.pathMemory.Count - 1
+                    : -1;
 
+                arrivedBacteriaCount++;
+                cells[i] = bacteria;
+            }
         }
     }
 
 
+    void UpdateBacteriaPathMemory(int i)
+    {
+        if (bacteriaFieldManager == null) return;
 
+        Cell c = cells[i];
+        if (c.isDead) return;
+        if (c.role != CellRole.Bacteria) return;
+        if (c.isReturningToNest) return;
+
+        if (!bacteriaFieldManager.TryGetGridCell(c.currentPos, out Vector2Int currentCell))
+            return;
+
+        if (!c.hasLastSavedCell)
+        {
+            c.pathMemory.Add(currentCell);
+            c.lastSavedCell = currentCell;
+            c.hasLastSavedCell = true;
+            cells[i] = c;
+            return;
+        }
+
+        if (currentCell == c.lastSavedCell)
+            return;
+
+        // simple loop compression: A -> B -> A removes B
+        int count = c.pathMemory.Count;
+        if (count >= 2 && c.pathMemory[count - 2] == currentCell)
+        {
+            c.pathMemory.RemoveAt(count - 1);
+        }
+        else
+        {
+            c.pathMemory.Add(currentCell);
+
+            if (c.pathMemory.Count > maxPathMemory)
+                c.pathMemory.RemoveAt(0);
+        }
+
+        c.lastSavedCell = currentCell;
+        cells[i] = c;
+    }
 
     public int CountOrganismNum()
     {
