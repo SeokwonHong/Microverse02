@@ -78,11 +78,7 @@ public class CellManager : MonoBehaviour
     public float ReproductionEnergy = 0;
     public float SystemStability = 0;
 
-    public enum BacteriaMode
-    {
-        Searching,
-        Returning
-    }
+
     class Cell
     {
         public Vector2 currentPos;
@@ -112,8 +108,6 @@ public class CellManager : MonoBehaviour
         public float headingTimer;
         public float wanderAngle;
         public Vector2 cohesionDV;
-
-        public BacteriaMode mode;
     }
 
     class Organisms
@@ -341,7 +335,6 @@ public class CellManager : MonoBehaviour
 
         }
         DestinationDetectoin();
-        NestDetection();
         //ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
@@ -504,8 +497,6 @@ public class CellManager : MonoBehaviour
 
             c.cohesionDV = Vector2.zero;
 
-            c.mode = BacteriaMode.Searching;
-
             cells[idx] = c;
             return;
         }
@@ -529,8 +520,6 @@ public class CellManager : MonoBehaviour
         clone.isBacteriaAttachedToWBC = false;
 
         clone.cohesionDV = Vector2.zero;
-
-        clone.mode = BacteriaMode.Searching;
 
         cells.Add(clone);
     }
@@ -1363,14 +1352,7 @@ public class CellManager : MonoBehaviour
             if (c.isDead) continue;
             if (c.role != CellRole.Bacteria) continue;
 
-            if (c.mode == BacteriaMode.Searching)
-            {
-                bacteriaFieldManager.DepositTrail(c.currentPos, 0.35f);
-            }
-            else
-            {
-                bacteriaFieldManager.DepositDestination(c.currentPos, 1.0f);
-            }
+            bacteriaFieldManager.DepositTrail(c.currentPos);
         }
     }
     void ApplyBacteriaFieldSteering()
@@ -1380,7 +1362,6 @@ public class CellManager : MonoBehaviour
         float dt = Time.deltaTime;
         float turnRate = 2f;
         float turnThreshold = 0.01f;
-        Vector2 nestPos = reftoBacteriaSpawnPos.transform.position;
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -1399,24 +1380,9 @@ public class CellManager : MonoBehaviour
             Vector2 leftPos = c.currentPos + leftDir * bacteriaFieldManager.SensorDistance;
             Vector2 rightPos = c.currentPos + rightDir * bacteriaFieldManager.SensorDistance;
 
-            float forwardValue;
-            float leftValue;
-            float rightValue;
-
-            if (c.mode == BacteriaMode.Searching)
-            {
-                forwardValue = bacteriaFieldManager.SampleDestination(forwardPos);
-                leftValue = bacteriaFieldManager.SampleDestination(leftPos);
-                rightValue = bacteriaFieldManager.SampleDestination(rightPos);
-            }
-            else
-            {
-                Vector2 toNest = (nestPos - c.currentPos).normalized;
-
-                forwardValue = bacteriaFieldManager.Sample(forwardPos) + Vector2.Dot(forward, toNest) * 2f;
-                leftValue = bacteriaFieldManager.Sample(leftPos) + Vector2.Dot(leftDir, toNest) * 2f;
-                rightValue = bacteriaFieldManager.Sample(rightPos) + Vector2.Dot(rightDir, toNest) * 2f;
-            }
+            float forwardValue = bacteriaFieldManager.Sample(forwardPos);
+            float leftValue = bacteriaFieldManager.Sample(leftPos);
+            float rightValue = bacteriaFieldManager.Sample(rightPos);
 
             Vector2 desiredDir = forward;
 
@@ -1459,41 +1425,18 @@ public class CellManager : MonoBehaviour
 
             if (bacteria.isDead) continue;
             if (bacteria.role != CellRole.Bacteria) continue;
-            if (bacteria.mode == BacteriaMode.Returning) continue;
 
             Vector2 d = dest - bacteria.currentPos;
 
             if (d.sqrMagnitude < destRadiusSqr)
             {
-                bacteria.mode = BacteriaMode.Returning;
+                bacteria.isDead = true;
                 arrivedBacteriaCount++;
                 cells[i] = bacteria;
             }
         }
     }
-    void NestDetection()
-    {
-        Vector2 nest = reftoBacteriaSpawnPos.transform.position;
-        float nestRadius = 1.5f;
-        float nestRadiusSqr = nestRadius * nestRadius;
 
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell bacteria = cells[i];
-
-            if (bacteria.isDead) continue;
-            if (bacteria.role != CellRole.Bacteria) continue;
-            if (bacteria.mode != BacteriaMode.Returning) continue;
-
-            Vector2 d = nest - bacteria.currentPos;
-
-            if (d.sqrMagnitude < nestRadiusSqr)
-            {
-                bacteria.mode = BacteriaMode.Searching;
-                cells[i] = bacteria;
-            }
-        }
-    }
 
 
 

@@ -10,10 +10,6 @@ public class BacteriaFieldManager : MonoBehaviour
     float[] exploreField;
     float[] exploreNext;
 
-    float[] destinationField;
-    float[] destinationNext;
-
-
     [SerializeField] Renderer fieldRenderer;
 
     Texture2D trailTexture;
@@ -27,11 +23,6 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
     [SerializeField] float chemoDecayPerSecond = 0.2f;
 
-    [Header("Destination")]
-    [SerializeField] float destinationDepositAmount = 1.2f;
-    [SerializeField] float destinationDecayPerSecond = 0.35f;
-    [SerializeField] float destinationWeight = 2.5f;
-    [SerializeField] float destinationMaxDeposit = 3f;
 
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 6f; 
@@ -67,9 +58,6 @@ public class BacteriaFieldManager : MonoBehaviour
 
         exploreField = new float[cellCount];
         exploreNext = new float[cellCount];
-
-        destinationField = new float[cellCount];
-        destinationNext = new float[cellCount];
 
         //GPU
         trailTexture = new Texture2D(chemoWidth, chemoHeight, TextureFormat.RGBA32, false);
@@ -120,17 +108,7 @@ public class BacteriaFieldManager : MonoBehaviour
             );
         }
     }
-    public void DepositDestination(Vector2 worldPos, float amountMultiplier = 1f)
-    {
-        if (WorldToGrid(worldPos, out int gx, out int gy))
-        {
-            int idx = Index(gx, gy);
-            destinationField[idx] = Mathf.Min(
-                destinationField[idx] + destinationDepositAmount * amountMultiplier,
-                destinationMaxDeposit
-            );
-        }
-    }
+
     public float Sample(Vector2 worldPos) //taking the value out from the hash
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
@@ -138,17 +116,6 @@ public class BacteriaFieldManager : MonoBehaviour
             int idx = Index(gx, gy);
             float trail = exploreField[idx] * trailWeight;
             return trail;
-        }
-
-        return 0f;
-    }
-
-    public float SampleDestination(Vector2 worldPos)
-    {
-        if (WorldToGrid(worldPos, out int gx, out int gy))
-        {
-            int idx = Index(gx, gy);
-            return destinationField[idx] * destinationWeight;
         }
 
         return 0f;
@@ -166,8 +133,7 @@ public class BacteriaFieldManager : MonoBehaviour
             UpdateField(exploreField, exploreNext, 0f, chemoDecayPerSecond, fieldTickInterval);
             Swap(ref exploreField, ref exploreNext);
 
-            UpdateField(destinationField, destinationNext, 0f, destinationDecayPerSecond, fieldTickInterval);
-            Swap(ref destinationField, ref destinationNext);
+            
 
         }
 
