@@ -2182,7 +2182,7 @@ MonoBehaviour:
   chemoDepositAmount: 0.5
   chemoDecayPerSecond: 0.1
   targetDepositAmount: 1
-  targetDecayPerSecond: 0.2
+  targetDecayPerSecond: 0.1
   targetWeight: 2
   targetMaxDeposit: 4
   chemoSensorDistance: 0.6
@@ -3109,11 +3109,11 @@ PrefabInstance:
       objectReference: {fileID: 237737088}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapShape
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapWidth
-      value: 80
+      value: 160
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxSpeed
@@ -3121,7 +3121,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapHeight
-      value: 45
+      value: 90
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapRadius
