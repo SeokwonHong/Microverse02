@@ -262,7 +262,7 @@ public class CellManager : MonoBehaviour
 
                 if (cells[otherIndex].isDead) continue;
 
-                //ResolveOverlap(i, otherIndex);
+                ResolveOverlap(i, otherIndex);
                 ApplyCellPushing(i, otherIndex);
                 ApplyBacteriaAttackingOrganism(i, otherIndex);
             }
@@ -943,154 +943,10 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
     }
-    void ApplyOrganismJelly() //apply this to organisms instead of ApplyKeepDistance()?? 
-    {
-        float dt = Time.deltaTime;
-        float k = 0f;     // spring strength
-        float c = 1.1f;     // damping
-        float maxPenetration = 0.35f;
-        float maxAccel = 900f;
-
-        // Loop through all cells and apply jelly only to the roles you want
-        for (int i = 0; i < cells.Count; i++)
-        {
-            Cell target = cells[i];
-
-
-            if (target.role==CellRole.Core)
-            {
-                k = 5;
-            }
-            else
-            {
-                k = 50f;
-            }
-
-               // k = isPlayer ? 300f : 5f;
-
-            if (target.isDead) continue;
-
-            // Only push these roles
-            if (target.role != CellRole.Bacteria && target.role != CellRole.WhiteBlood && target.role != CellRole.Core) continue;
-
-
-            Vector2 totalAccel = Vector2.zero;
-
-            for (int o = 0; o < organisms.Count; o++)
-            {
-                var org = organisms[o];
-                if (org.isDead) continue;
-
-                // Optional: don’t push cells that are part of this organism
-                if (target.organismId == o) continue;
-
-                Cell core = cells[org.coreIndex];
-
-
-                float barrier=1f;
-                if(target.role==CellRole.WhiteBlood || target.role == CellRole.Bacteria)
-                {
-                    barrier = org.coreDistance + target.cellRadius;
-                }
-                else barrier= org.coreDistance + target.detectRadius;
-
-                Vector2 delta = target.nextPos - core.nextPos;
-                float d2 = delta.sqrMagnitude;
-                if (d2 < 1e-6f) continue;
-
-                float dist = Mathf.Sqrt(d2);
-
-                float penetration = barrier - dist;
-                //if (penetration > 0f) continue; // add this line if I don't want to apply shell cells jelly force when they're inside of core radisu
-                if (penetration <= 0f) continue;  // remove this line if I don't want to apply shell cells jelly force when they're inside of core radisu
-
-                if (penetration > maxPenetration) penetration = maxPenetration;
-
-                Vector2 n = delta / dist;
-
-                float v_n = Vector2.Dot(target.nextVelocity - core.nextVelocity, n);
-
-                float accelMag = (k * penetration) - (c * v_n);
-                if (accelMag <= 0f) continue;
-
-                totalAccel += n * accelMag;
-            }
-
-            // Clamp accel
-            float a2 = totalAccel.sqrMagnitude;
-            float maxA2 = maxAccel * maxAccel;
-            if (a2 > maxA2)
-                totalAccel = totalAccel * (maxAccel / Mathf.Sqrt(a2));
-
-            
-            target.nextVelocity += totalAccel * dt;
-
-            cells[i] = target;
-        }
-    }
-
-    void ApplyCellDetection(int a, int b)
-    {
-        Cell A = cells[a];
-        Cell B = cells[b];
-
-        if (A.role == CellRole.Bacteria && B.role != CellRole.Bacteria)
-        {
-            float r = A.detectRadius + B.cellRadius;
-            if ((A.nextPos - B.nextPos).sqrMagnitude <= r * r)
-            {
-                B.detected = true;
-                cells[b] = B;
-            }
-            else B.detected = false;
-        }
-        else if (B.role == CellRole.Bacteria && A.role != CellRole.Bacteria)
-        {
-            float r = B.detectRadius + A.cellRadius;
-            if ((B.nextPos - A.nextPos).sqrMagnitude <= r * r)
-            {
-                A.detected = true;
-                cells[a] = A;
-            }
-            
-        }
-    }
+    
     #endregion
 
     #region Cell_Rules
-
-    void ApplyCellMovement()
-    {
-        float dt = Time.deltaTime;
-        float accel = 40f;
-
-        for(int i = 0;i < cells.Count;i++)
-        {
-            Cell c = cells[i];
-            if (c.isDead) continue;
-            if(c.role == CellRole.Shell) continue;
-
-            if(c.heading.sqrMagnitude <1e-6f)
-            {
-                c.heading = Random.insideUnitCircle.normalized;
-                c.headingTimer = Random.Range(0.6f, 1.4f);
-            }
-
-            c.headingTimer -= dt;
-
-            if(c.headingTimer <=0f)
-            {
-                Vector2 jitter = Random.insideUnitCircle * 0.5f;
-                c.heading = (c.heading +jitter).normalized;
-                c.headingTimer = Random.Range(0.6f, 1.4f);
-            }
-
-            c.nextVelocity += c.heading * accel * dt;
-            cells[i] = c;
-        }
-        
-    }
-
 
 
     void ApplyCellWiggling()// cell tendency

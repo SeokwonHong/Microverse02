@@ -41,7 +41,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] float trailWeight = 1f;
     [SerializeField] float foodWeight = 2f;
 
-    float trailMaxDeposit = 1f;
+    float trailMaxDeposit = 2f;
     float foodMaxDeposit = 5f;
 
     float fieldTickTimer = 0f;
@@ -250,23 +250,26 @@ public class BacteriaFieldManager : MonoBehaviour
         {
             float v = exploreField[i];
 
-            float t = Mathf.Clamp01(v);
-            float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.6f));
+            // NORMALISE USING MAX (important)
+            float t = Mathf.Clamp01(v / trailMaxDeposit);
+
+            // smoother falloff (less noisy look)
+            float alpha = Mathf.Pow(t, 0.7f);
 
             Color c;
 
-            if (t < 0.96f)
+            if (t < 0.8f)
             {
-                c = Color.Lerp(weakColor, midColor, t / 0.96f);
+                c = Color.Lerp(weakColor, midColor, t / 0.8f);
             }
             else
             {
-                c = Color.Lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
+                c = Color.Lerp(midColor, strongColor, (t - 0.8f) / 0.3f);
             }
 
             c.a = alpha;
 
-            // ---- add food overlay (does not change bacteria colour)
+            // ---- food overlay
             float food = Mathf.Clamp01(foodField[i] * foodVisualStrength);
 
             if (food > 0f)
@@ -276,7 +279,6 @@ public class BacteriaFieldManager : MonoBehaviour
 
                 c = Color.Lerp(c, foodOverlay, food);
             }
-            // -------------------------------------
 
             trailPixels[i] = c;
         }
