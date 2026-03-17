@@ -1358,9 +1358,13 @@ public class CellManager : MonoBehaviour
         );
     }
 
-    void DepositBacteriaField() // use the Deposit() funtion per bacteria
+    void DepositBacteriaField()
     {
         if (bacteriaFieldManager == null) return;
+
+        Vector2 nestPos = refToNest.transform.position;
+        float searchDepositRadius = NestRadius * 15f;
+        float searchDepositRadiusSqr = searchDepositRadius * searchDepositRadius;
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -1368,16 +1372,21 @@ public class CellManager : MonoBehaviour
             if (c.isDead) continue;
             if (c.role != CellRole.Bacteria) continue;
 
-            if(c.bacteriaState==BacteriaState.Searching)
+            if (c.bacteriaState == BacteriaState.Searching)
             {
-                bacteriaFieldManager.DepositTrail(c.currentPos);
+                Vector2 d = c.currentPos - nestPos;
+                float d2 = d.sqrMagnitude;
+
+                if (d2 < searchDepositRadiusSqr)
+                {
+                    float t = 1f - Mathf.Clamp01(Mathf.Sqrt(d2) / searchDepositRadius);
+                    bacteriaFieldManager.DepositTrail(c.currentPos, t);
+                }
             }
             else if (c.bacteriaState == BacteriaState.HeadingHome)
             {
                 bacteriaFieldManager.DepositTarget(c.currentPos);
             }
-
-
         }
     }
     void ApplyBacteriaFieldSteering()
