@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Random = UnityEngine.Random;
-using System.Security.Cryptography;
 public class CellManager : MonoBehaviour
 {
     [Header("Defalut Settings")]
@@ -280,7 +279,6 @@ public class CellManager : MonoBehaviour
         ApplyCellOrganismEnergyDeath();
 
         //bactera rules
-        DepositOrganismField();
         DepositBacteriaField();
 
         bool updated = bacteriaFieldManager.TickField(Time.deltaTime);
@@ -1343,28 +1341,7 @@ public class CellManager : MonoBehaviour
             v.x * sin + v.y * cos
         );
     }
-    void DepositOrganismField()
-    {
-        if (bacteriaFieldManager == null) return;
 
-        for (int i = 0; i < organisms.Count; i++)
-        {
-            Organisms org = organisms[i];
-            if (org.isDead) continue;
-
-            for (int m = 0; m < org.members.Count; m++)
-            {
-                int cellIdx = org.members[m];
-                if (cellIdx < 0 || cellIdx >= cells.Count) continue;
-
-                Cell c = cells[cellIdx];
-                if (c.isDead) continue;
-
-                Vector2 pos = c.currentPos;
-                bacteriaFieldManager.DepositFood(pos);
-            }
-        }
-    }
     void DepositBacteriaField() // use the Deposit() funtion per bacteria
     {
         if (bacteriaFieldManager == null) return;
@@ -1440,20 +1417,23 @@ public class CellManager : MonoBehaviour
     public void DestinationDetectoin()
     {
         Vector2 dest = refToDestination.transform.position;
-        for(int i=0; i<cells.Count; i++)
+        float destRadiusSqr = DestinationRadius * DestinationRadius;
+
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell bacteria = cells[i];
 
             if (bacteria.isDead) continue;
+            if (bacteria.role != CellRole.Bacteria) continue;
 
             Vector2 d = dest - bacteria.currentPos;
 
-            if(d.sqrMagnitude<DestinationRadius*DestinationRadius)
+            if (d.sqrMagnitude < destRadiusSqr)
             {
                 bacteria.isDead = true;
                 arrivedBacteriaCount++;
+                cells[i] = bacteria;
             }
-
         }
     }
 
