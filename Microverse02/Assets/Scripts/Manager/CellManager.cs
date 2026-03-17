@@ -49,8 +49,10 @@ public class CellManager : MonoBehaviour
     const float maxDeadTime = 20f;
 
     [Header("Destination")]
+    [SerializeField] GameObject refToNest;
     [SerializeField] GameObject refToDestination;
-    float DestinationRadius = 2f;
+    float DestinationRadius = 10.5f;
+    float NestRadius = 3f;
     int arrivedBacteriaCount = 0;
     public enum MapShape
     {
@@ -77,6 +79,13 @@ public class CellManager : MonoBehaviour
     [Header("Game Values")]
     public float ReproductionEnergy = 0;
     public float SystemStability = 0;
+
+
+    enum BacteriaState
+    {
+        Searching,
+        HeadingHome
+    }
 
 
     class Cell
@@ -108,6 +117,8 @@ public class CellManager : MonoBehaviour
         public float headingTimer;
         public float wanderAngle;
         public Vector2 cohesionDV;
+
+        public BacteriaState bacteriaState;
     }
 
     class Organisms
@@ -188,16 +199,16 @@ public class CellManager : MonoBehaviour
 
 
         refToDestination.transform.localScale = new Vector3(DestinationRadius * 2f, DestinationRadius * 2f, 1f);
+        refToNest.transform.localScale = new Vector3(NestRadius*2f, NestRadius*2f,1f);
 
+        //Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
 
-        Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
+        //for (int i = 0; i < bacteriaCount; i++)
+        //{
+        //    CreateBacteriaCell(spawnPos);
+        //}
 
-        for (int i = 0; i < bacteriaCount; i++)
-        {
-            CreateBacteriaCell(spawnPos);
-        }
-
-        bacteriaCount = 0;
+        //bacteriaCount = 0;
 
     }
     /// <summary>
@@ -207,17 +218,17 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        //bacteriaSpawnTimer += dt;
+        bacteriaSpawnTimer += dt;
 
-        //if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount>0)
-        //{
-        //    bacteriaSpawnTimer -= bacteriaSpawnInterval;
+        if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount > 0)
+        {
+            bacteriaSpawnTimer -= bacteriaSpawnInterval;
 
-        //    Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
-        //    CreateBacteriaCell(spawnPos);
-        //    bacteriaCount--;
-        //}
-        //if(bacteriaCount <= 0) bacteriaCount = 0;
+            Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
+            CreateBacteriaCell(spawnPos);
+            bacteriaCount--;
+        }
+        if (bacteriaCount <= 0) bacteriaCount = 0;
 
         // 0) Double buffer start
         for (int i = 0; i < cells.Count; i++)
@@ -334,7 +345,9 @@ public class CellManager : MonoBehaviour
 
 
         }
-        DestinationDetectoin();
+        DestinationDetection();
+        NestDetection();
+
         //ApplyOrganismReproduction();
         ApplyOrganismDeath();
         UpdateDeadOrganisms();
@@ -497,6 +510,8 @@ public class CellManager : MonoBehaviour
 
             c.cohesionDV = Vector2.zero;
 
+            c.bacteriaState = BacteriaState.Searching;
+
             cells[idx] = c;
             return;
         }
@@ -520,6 +535,8 @@ public class CellManager : MonoBehaviour
         clone.isBacteriaAttachedToWBC = false;
 
         clone.cohesionDV = Vector2.zero;
+
+        clone.bacteriaState = BacteriaState.Searching;
 
         cells.Add(clone);
     }
@@ -1352,7 +1369,16 @@ public class CellManager : MonoBehaviour
             if (c.isDead) continue;
             if (c.role != CellRole.Bacteria) continue;
 
-            bacteriaFieldManager.DepositTrail(c.currentPos);
+            if(c.bacteriaState==BacteriaState.Searching)
+            {
+                bacteriaFieldManager.DepositTrail(c.currentPos);
+            }
+            else if (c.bacteriaState == BacteriaState.HeadingHome)
+            {
+                bacteriaFieldManager.DepositTarget(c.currentPos);
+            }
+
+
         }
     }
     void ApplyBacteriaFieldSteering()
@@ -1380,11 +1406,33 @@ public class CellManager : MonoBehaviour
             Vector2 leftPos = c.currentPos + leftDir * bacteriaFieldManager.SensorDistance;
             Vector2 rightPos = c.currentPos + rightDir * bacteriaFieldManager.SensorDistance;
 
-            float forwardValue = bacteriaFieldManager.Sample(forwardPos);
-            float leftValue = bacteriaFieldManager.Sample(leftPos);
-            float rightValue = bacteriaFieldManager.Sample(rightPos);
+            float forwardValue=0f;
+            float leftValue=0f;
+            float rightValue=0f;
 
-            Vector2 desiredDir = forward;
+            if(c.bacteriaState == BacteriaState.Searching)
+            {
+                forwardValue = bacteriaFieldManager.SampleHeadingHome(forwardPos);
+                leftValue = bacteriaFieldManager.SampleHeadingHome(leftPos);
+                rightValue = bacteriaFieldManager.SampleHeadingHome(rightPos);
+            }
+            else if (c.bacteriaState == BacteriaState.HeadingHome)
+            {
+                float forwardTrail = bacteriaFieldManager.SampleHeadingHome(forwardPos);
+                float leftTrail = bacteriaFieldManager.SampleHeadingHome(leftPos);
+                float rightTrail = bacteriaFieldManager.SampleHeadingHome(rightPos);
+
+                float forwardHome = bacteriaFieldManager.SampleHeadingHome(forwardPos);
+                float leftHome = bacteriaFieldManager.SampleHeadingHome(leftPos);
+                float rightHome = bacteriaFieldManager.SampleHeadingHome(rightPos);
+
+                forwardValue = Mathf.Max(forwardTrail, forwardHome);
+                leftValue = Mathf.Max(leftTrail, leftHome);
+                rightValue = Mathf.Max(rightTrail, rightHome);
+
+            }
+
+                Vector2 desiredDir = forward;
 
             if (leftValue > forwardValue + turnThreshold && leftValue > rightValue + turnThreshold)
             {
@@ -1414,7 +1462,45 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    public void DestinationDetectoin()
+    void NestDetection()
+    {
+        Vector2 nest = reftoBacteriaSpawnPos.transform.position;
+        float nestRadius = NestRadius;
+        float nestRadiusSqr = nestRadius * nestRadius;
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            Cell bacteria = cells[i];
+
+            if (bacteria.isDead) continue;
+            if (bacteria.role != CellRole.Bacteria) continue;
+            if (bacteria.bacteriaState != BacteriaState.HeadingHome) continue;
+
+            Vector2 d = bacteria.currentPos - nest;
+
+            if (d.sqrMagnitude < nestRadiusSqr)
+            {
+                bacteria.bacteriaState = BacteriaState.Searching;
+
+                Vector2 away;
+
+                if (d.sqrMagnitude > 0.000001f)
+                    away = d.normalized;
+                else
+                    away = Random.insideUnitCircle.normalized;
+
+                bacteria.currentPos = nest + away * (NestRadius + bacteria.cellRadius + 0.05f);
+                bacteria.nextPos = bacteria.currentPos;
+                bacteria.currentVelocity = away * bacteriaSpeed;
+                bacteria.nextVelocity = bacteria.currentVelocity;
+                bacteria.headingTimer = 0.2f;
+                bacteria.wanderAngle = 0f;
+                cells[i] = bacteria;
+            }
+        }
+    }
+
+    public void DestinationDetection()
     {
         Vector2 dest = refToDestination.transform.position;
         float destRadiusSqr = DestinationRadius * DestinationRadius;
@@ -1426,11 +1512,29 @@ public class CellManager : MonoBehaviour
             if (bacteria.isDead) continue;
             if (bacteria.role != CellRole.Bacteria) continue;
 
-            Vector2 d = dest - bacteria.currentPos;
+            Vector2 d = bacteria.currentPos - dest;
+            float d2 = d.sqrMagnitude;
 
-            if (d.sqrMagnitude < destRadiusSqr)
+            if (d2 < destRadiusSqr)
             {
-                bacteria.isDead = true;
+                if (bacteria.bacteriaState == BacteriaState.HeadingHome) continue;
+                bacteria.bacteriaState = BacteriaState.HeadingHome;
+
+
+                Vector2 away;
+
+                if (d2 > 0.000001f)
+                    away = d.normalized;
+                else
+                    away = Random.insideUnitCircle.normalized;
+
+                bacteria.currentPos = dest + away * (DestinationRadius + bacteria.cellRadius + 0.05f);
+                bacteria.nextPos = bacteria.currentPos;
+                bacteria.currentVelocity = away * bacteriaSpeed;
+                bacteria.nextVelocity = bacteria.currentVelocity;
+                bacteria.headingTimer = 0.2f;
+                bacteria.wanderAngle = 0f;
+
                 arrivedBacteriaCount++;
                 cells[i] = bacteria;
             }

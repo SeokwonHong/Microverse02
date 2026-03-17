@@ -10,6 +10,9 @@ public class BacteriaFieldManager : MonoBehaviour
     float[] exploreField;
     float[] exploreNext;
 
+    float[] headingHomeField;
+    float[] headingHomeNext;
+
     [SerializeField] Renderer fieldRenderer;
 
     Texture2D trailTexture;
@@ -22,7 +25,14 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
     [SerializeField] float chemoDecayPerSecond = 0.2f;
+    float trailMaxDeposit = 2f;
 
+
+    [Header("HeadingHome")]
+    [SerializeField] float targetDepositAmount = 1f;
+    [SerializeField] float targetDecayPerSecond = 0.01f;
+    [SerializeField] float targetWeight = 2f;
+    [SerializeField] float targetMaxDeposit = 3f;
 
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 6f; 
@@ -32,7 +42,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Sampling Weights")]
     [SerializeField] float trailWeight = 1f;
 
-    float trailMaxDeposit = 2f;
+    
 
 
     float fieldTickTimer = 0f;
@@ -58,6 +68,9 @@ public class BacteriaFieldManager : MonoBehaviour
 
         exploreField = new float[cellCount];
         exploreNext = new float[cellCount];
+
+        headingHomeField = new float[cellCount];
+        headingHomeNext = new float[cellCount];
 
         //GPU
         trailTexture = new Texture2D(chemoWidth, chemoHeight, TextureFormat.RGBA32, false);
@@ -109,13 +122,36 @@ public class BacteriaFieldManager : MonoBehaviour
         }
     }
 
-    public float Sample(Vector2 worldPos) //taking the value out from the hash
+    public void DepositTarget(Vector2 worldPos, float amountMultiplier = 1f)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
+            headingHomeField[idx] = Mathf.Min(
+                headingHomeField[idx] + targetDepositAmount * amountMultiplier,
+                targetMaxDeposit
+            );
+        }
+    }
+
+    public float SampleTrail(Vector2 worldPos) //taking the value out from the hash
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
             float trail = exploreField[idx] * trailWeight;
             return trail;
+        }
+
+        return 0f;
+    }
+
+    public float SampleHeadingHome(Vector2 worldPos)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
+            return headingHomeField[idx] * targetWeight;
         }
 
         return 0f;
@@ -133,7 +169,8 @@ public class BacteriaFieldManager : MonoBehaviour
             UpdateField(exploreField, exploreNext, 0f, chemoDecayPerSecond, fieldTickInterval);
             Swap(ref exploreField, ref exploreNext);
 
-            
+            UpdateField(headingHomeField, headingHomeNext, 0f, targetDecayPerSecond, fieldTickInterval);
+            Swap(ref headingHomeField, ref headingHomeNext);
 
         }
 
@@ -210,18 +247,49 @@ public class BacteriaFieldManager : MonoBehaviour
     //GPU
 
 
+    //public void UpdateTrailTexture()
+    //{
+    //    if (trailTexture == null) return;
+
+    //    for (int i = 0; i < CellCount; i++)
+    //    {
+    //        float explore = exploreField[i];
+    //        float home = headingHomeField[i];
+
+    //        float v = Mathf.Max(explore, home); // or explore + home
+
+    //        float t = Mathf.Clamp01(v / trailMaxDeposit);
+    //        float alpha = Mathf.Pow(t, 0.7f);
+
+    //        Color c;
+
+    //        if (t < 0.8f)
+    //        {
+    //            c = Color.Lerp(weakColor, midColor, t / 0.8f);
+    //        }
+    //        else
+    //        {
+    //            c = Color.Lerp(midColor, strongColor, (t - 0.8f) / 0.2f);
+    //        }
+
+    //        c.a = alpha;
+    //        trailPixels[i] = c;
+    //    }
+
+    //    trailTexture.SetPixels(trailPixels);
+    //    trailTexture.Apply(false);
+    //}
     public void UpdateTrailTexture()
     {
         if (trailTexture == null) return;
 
         for (int i = 0; i < CellCount; i++)
         {
-            float v = exploreField[i];
+            float explore = exploreField[i];
+            float home = headingHomeField[i];
 
-            // NORMALISE USING MAX (important)
-            float t = Mathf.Clamp01(v / trailMaxDeposit);
-
-            // smoother falloff (less noisy look)
+            // --- NORMAL TRAIL (red/orange)
+            float t = Mathf.Clamp01(explore / trailMaxDeposit);
             float alpha = Mathf.Pow(t, 0.7f);
 
             Color c;
@@ -237,6 +305,17 @@ public class BacteriaFieldManager : MonoBehaviour
 
             c.a = alpha;
 
+            // --- HOME TRAIL (green overlay)
+            if (home > 0f)
+            {
+                float ht = Mathf.Clamp01(home / targetMaxDeposit);
+
+                Color homeColor = Color.green;
+                homeColor.a = ht;
+
+                // blend green on top
+                c = Color.Lerp(c, homeColor, ht);
+            }
 
             trailPixels[i] = c;
         }
@@ -244,5 +323,4 @@ public class BacteriaFieldManager : MonoBehaviour
         trailTexture.SetPixels(trailPixels);
         trailTexture.Apply(false);
     }
-
 }
