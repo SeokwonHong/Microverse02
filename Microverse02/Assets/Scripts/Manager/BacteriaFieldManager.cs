@@ -25,7 +25,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
     [SerializeField] float chemoDecayPerSecond = 0.2f;
-    float trailMaxDeposit = 2f;
+    float trailMaxDeposit = 1f;
 
 
     [Header("HeadingHome")]

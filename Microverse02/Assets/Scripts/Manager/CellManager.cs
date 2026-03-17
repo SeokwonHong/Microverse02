@@ -10,8 +10,7 @@ public class CellManager : MonoBehaviour
     public int maxOrganismCount = 100;
 
     [Header("Bacteria Spawn")]
-    [SerializeField] GameObject reftoBacteriaSpawnPos;
-    [SerializeField] float bacteriaSpawnInterval = 0.01f;
+    [SerializeField] float bacteriaSpawnInterval = 0.3f;
     float bacteriaSpawnTimer = 0f;
     [SerializeField] int bacteriaCount = 200;
     [SerializeField] float bacteriaSpeed = 1.5f;
@@ -51,8 +50,8 @@ public class CellManager : MonoBehaviour
     [Header("Destination")]
     [SerializeField] GameObject refToNest;
     [SerializeField] GameObject refToDestination;
-    float DestinationRadius = 10.5f;
-    float NestRadius = 3f;
+    [SerializeField] float DestinationRadius = 10.5f;
+    [SerializeField] float NestRadius = 3f;
     int arrivedBacteriaCount = 0;
     public enum MapShape
     {
@@ -224,7 +223,7 @@ public class CellManager : MonoBehaviour
         {
             bacteriaSpawnTimer -= bacteriaSpawnInterval;
 
-            Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
+            Vector2 spawnPos = refToNest.transform.position;
             CreateBacteriaCell(spawnPos);
             bacteriaCount--;
         }
@@ -1410,29 +1409,21 @@ public class CellManager : MonoBehaviour
             float leftValue=0f;
             float rightValue=0f;
 
-            if(c.bacteriaState == BacteriaState.Searching)
-            {
-                forwardValue = bacteriaFieldManager.SampleHeadingHome(forwardPos);
-                leftValue = bacteriaFieldManager.SampleHeadingHome(leftPos);
-                rightValue = bacteriaFieldManager.SampleHeadingHome(rightPos);
-            }
-            else if (c.bacteriaState == BacteriaState.HeadingHome)
-            {
-                float forwardTrail = bacteriaFieldManager.SampleHeadingHome(forwardPos);
-                float leftTrail = bacteriaFieldManager.SampleHeadingHome(leftPos);
-                float rightTrail = bacteriaFieldManager.SampleHeadingHome(rightPos);
+            float forwardHome = bacteriaFieldManager.SampleHeadingHome(forwardPos);
+            float leftHome = bacteriaFieldManager.SampleHeadingHome(leftPos);
+            float rightHome = bacteriaFieldManager.SampleHeadingHome(rightPos);
 
-                float forwardHome = bacteriaFieldManager.SampleHeadingHome(forwardPos);
-                float leftHome = bacteriaFieldManager.SampleHeadingHome(leftPos);
-                float rightHome = bacteriaFieldManager.SampleHeadingHome(rightPos);
+            float forwardTrail = bacteriaFieldManager.SampleTrail(forwardPos);
+            float leftTrail = bacteriaFieldManager.SampleTrail(leftPos);
+            float rightTrail = bacteriaFieldManager.SampleTrail(rightPos);
 
-                forwardValue = Mathf.Max(forwardTrail, forwardHome);
-                leftValue = Mathf.Max(leftTrail, leftHome);
-                rightValue = Mathf.Max(rightTrail, rightHome);
+            forwardValue = forwardHome + forwardTrail;
+            leftValue = leftHome + leftTrail;
+            rightValue = rightHome + rightTrail;
 
-            }
 
-                Vector2 desiredDir = forward;
+
+            Vector2 desiredDir = forward;
 
             if (leftValue > forwardValue + turnThreshold && leftValue > rightValue + turnThreshold)
             {
@@ -1464,7 +1455,7 @@ public class CellManager : MonoBehaviour
 
     void NestDetection()
     {
-        Vector2 nest = reftoBacteriaSpawnPos.transform.position;
+        Vector2 nest = refToNest.transform.position;
         float nestRadius = NestRadius;
         float nestRadiusSqr = nestRadius * nestRadius;
 

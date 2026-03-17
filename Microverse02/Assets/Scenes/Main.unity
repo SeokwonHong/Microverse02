@@ -2097,11 +2097,11 @@ Transform:
   m_GameObject: {fileID: 1506931363}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -19.66, y: -0.6899986, z: 0}
   m_LocalScale: {x: 2.32, y: 2.32, z: 2.32}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 1921727453}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1506931365
 SpriteRenderer:
@@ -2179,13 +2179,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fieldRenderer: {fileID: 42457891}
-  chemoDepositAmount: 1
-  chemoDecayPerSecond: 0.05
+  chemoDepositAmount: 0.5
+  chemoDecayPerSecond: 0.1
   targetDepositAmount: 1
-  targetDecayPerSecond: 0.25
+  targetDecayPerSecond: 0.2
   targetWeight: 2
-  targetMaxDeposit: 5
-  chemoSensorDistance: 0.5
+  targetMaxDeposit: 4
+  chemoSensorDistance: 0.6
   trailWeight: 1
   fieldTickInterval: 0.033333335
   weakColor: {r: 0, g: 0, b: 0, a: 0}
@@ -2250,8 +2250,8 @@ Transform:
   m_GameObject: {fileID: 1719574720}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.39, y: 16.91, z: 0}
-  m_LocalScale: {x: 10.58, y: 10.58, z: 10.58}
+  m_LocalPosition: {x: 4.24, y: -19.73, z: 0}
+  m_LocalScale: {x: 1.8, y: 1.8, z: 1.8}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -2639,38 +2639,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1610983193}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1921727452
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1921727453}
-  m_Layer: 0
-  m_Name: Bacteria Spawn Position
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1921727453
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1921727452}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -39.36, y: -21.73, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1506931364}
-  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1979207149
 GameObject:
@@ -3141,7 +3109,7 @@ PrefabInstance:
       objectReference: {fileID: 237737088}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapShape
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapWidth
@@ -3160,12 +3128,20 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: refToNest
+      value: 
+      objectReference: {fileID: 1506931363}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: NestRadius
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: wallManager
       value: 
       objectReference: {fileID: 555529754}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 100
+      value: 1000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
@@ -3188,6 +3164,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1046270827}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: DestinationRadius
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeedStep
       value: 0.5
       objectReference: {fileID: 0}
@@ -3201,12 +3181,12 @@ PrefabInstance:
       objectReference: {fileID: 1569142227}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpawnInterval
-      value: 0.05
+      value: 0.001
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: reftoBacteriaSpawnPos
       value: 
-      objectReference: {fileID: 1921727452}
+      objectReference: {fileID: 1506931363}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxBacteriaSpeedMultiplier
       value: 20
@@ -3408,7 +3388,6 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 8777228302442434880}
   - {fileID: 5402479487759917563}
-  - {fileID: 1921727453}
   - {fileID: 555529755}
   - {fileID: 3526070332796062195}
   - {fileID: 1046270829}
@@ -3423,3 +3402,4 @@ SceneRoots:
   - {fileID: 249595535}
   - {fileID: 462489461}
   - {fileID: 1719574721}
+  - {fileID: 1506931364}
