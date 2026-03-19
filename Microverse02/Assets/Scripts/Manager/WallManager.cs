@@ -1,328 +1,427 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 
-[ExecuteAlways]
 public class WallManager : MonoBehaviour
 {
-    [Header("Grid")]
-    [SerializeField] int gridWidth = 400;
-    [SerializeField] int gridHeight = 400;
-    [SerializeField] float mapRadius = 50f;
-    [SerializeField] Vector2 mapCentre = Vector2.zero;
 
-    [Header("Visual")]
-    [SerializeField] Renderer wallRenderer;
-    [SerializeField] Color emptyColor = new Color(0f, 0f, 0f, 0f);
-    [SerializeField] Color wallColor = new Color(0f, 0f, 0f, 1f);
-    [SerializeField] FilterMode filterMode = FilterMode.Point;
+    [SerializeField] bool drawRuntimeWalls = true;
+    [SerializeField] Material wallMaterial;
 
-    [Header("Paint")]
-    [SerializeField] int defaultBrushRadius = 2;
+    readonly List<Vector2> cachedPointAPos = new List<Vector2>();
+    readonly List<Vector2> cachedPointBPos = new List<Vector2>();
 
-    byte[] wallField;
-    Color[] wallPixels;
-    Texture2D wallTexture;
+    float rebuildTimer;
 
-    public int Width => gridWidth;
-    public int Height => gridHeight;
-    public int CellCount => gridWidth * gridHeight;
+    [System.Serializable]
+    public class WallAuthoring
+    {
+        public Transform pointA;
+        public Transform pointB;
+        [Min(0.01f)] public float thickness = 0.35f;
+    }
+
+    public struct WallSegment
+    {
+        public Vector2 a;
+        public Vector2 b;
+        public float radius;
+
+        public WallSegment(Vector2 a, Vector2 b, float radius)
+        {
+            this.a = a;
+            this.b = b;
+            this.radius = radius;
+        }
+    }
+
+    [Header("Authoring")]
+    [SerializeField] List<WallAuthoring> authoredWalls = new List<WallAuthoring>();
+
+    [Header("Debug")]
+    [SerializeField] bool drawGizmos = true;
+    //[SerializeField] Color wallColor = new Color(1f, 0.85f, 0.2f, 1f);
+    //[SerializeField] Color wallFillColor = new Color(1f, 0.85f, 0.2f, 0.15f);
+
+    [Header("Hash")]
+    [SerializeField] float hashCellSize = 2f;
+
+    readonly List<WallSegment> runtimeWalls = new List<WallSegment>();
+    readonly Dictionary<Vector2Int, List<int>> wallHash = new Dictionary<Vector2Int, List<int>>();
+    readonly HashSet<int> queryDedup = new HashSet<int>();
+
+    List<GameObject> wallVisuals = new List<GameObject>();
+    public int WallCount => runtimeWalls.Count;
+    public IReadOnlyList<WallSegment> Walls => runtimeWalls;
 
     void Awake()
     {
-        EnsureInitialized();
+        BuildWalls();
+        BuildWallVisuals();
+        CacheWallPoints();
     }
 
-    void OnEnable()
+    private void Update()
     {
-        EnsureInitialized();
+        if (DidAnyWallPointMove())
+        {
+            BuildWalls();
+            BuildWallVisuals();
+            CacheWallPoints();
+        }
     }
-
 #if UNITY_EDITOR
     void OnValidate()
     {
-        EnsureInitialized();
-        RefreshTexture();
+        if (!Application.isPlaying)
+            BuildWalls();
     }
 #endif
 
-    void EnsureInitialized()
+    public void BuildWalls()
     {
-        if (gridWidth <= 0) gridWidth = 1;
-        if (gridHeight <= 0) gridHeight = 1;
+        runtimeWalls.Clear();
+        wallHash.Clear();
 
-        int count = CellCount;
-
-        if (wallField == null || wallField.Length != count)
-            wallField = new byte[count];
-
-        if (wallPixels == null || wallPixels.Length != count)
-            wallPixels = new Color[count];
-
-        if (wallTexture == null || wallTexture.width != gridWidth || wallTexture.height != gridHeight)
+        for (int i = 0; i < authoredWalls.Count; i++)
         {
-            wallTexture = new Texture2D(gridWidth, gridHeight, TextureFormat.RGBA32, false);
-            wallTexture.wrapMode = TextureWrapMode.Clamp;
-            wallTexture.filterMode = filterMode;
+            WallAuthoring w = authoredWalls[i];
+            if (w == null || w.pointA == null || w.pointB == null) continue;
+
+            Vector2 a = w.pointA.position;
+            Vector2 b = w.pointB.position;
+            float r = Mathf.Max(0.01f, w.thickness * 0.5f);
+
+            runtimeWalls.Add(new WallSegment(a, b, r));
         }
 
-        if (wallRenderer != null)
+        BuildHash();
+    }
+    void BuildWallVisuals()
+    {
+        if (!drawRuntimeWalls) return;
+
+        foreach (var v in wallVisuals)
+            if (v != null) Destroy(v);
+
+        wallVisuals.Clear();
+
+        for (int i = 0; i < runtimeWalls.Count; i++)
         {
-            wallRenderer.sharedMaterial.mainTexture = wallTexture;
-            wallRenderer.transform.position = new Vector3(mapCentre.x, mapCentre.y, 0f);
-            wallRenderer.transform.localScale = new Vector3(mapRadius * 2f, mapRadius * 2f, 1f);
+            WallSegment w = runtimeWalls[i];
+
+            Vector2 dir = w.b - w.a;
+            float length = dir.magnitude;
+            float thickness = w.radius * 2f;
+
+            Vector2 mid = (w.a + w.b) * 0.5f;
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            quad.transform.SetParent(transform);
+
+            quad.transform.position = new Vector3(mid.x, mid.y, 1f);
+            quad.transform.rotation = Quaternion.Euler(0, 0, angle);
+            quad.transform.localScale = new Vector3(length, thickness, 1f);
+
+            var col = quad.GetComponent<Collider>();
+            if (col != null) Destroy(col);
+
+            if (wallMaterial != null)
+                quad.GetComponent<MeshRenderer>().material = wallMaterial;
+
+            wallVisuals.Add(quad);
         }
     }
-
-    int Index(int x, int y)
+    void BuildHash()
     {
-        return x + y * gridWidth;
-    }
-
-    public bool WorldToGrid(Vector2 worldPos, out int gx, out int gy)
-    {
-        float mapSize = mapRadius * 2f;
-
-        float px = (worldPos.x - (mapCentre.x - mapRadius)) / mapSize;
-        float py = (worldPos.y - (mapCentre.y - mapRadius)) / mapSize;
-
-        gx = Mathf.FloorToInt(px * gridWidth);
-        gy = Mathf.FloorToInt(py * gridHeight);
-
-        bool inside = gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight;
-
-        if (!inside)
+        for (int i = 0; i < runtimeWalls.Count; i++)
         {
-            gx = -1;
-            gy = -1;
-        }
+            WallSegment w = runtimeWalls[i];
 
-        return inside;
-    }
+            float minX = Mathf.Min(w.a.x, w.b.x) - w.radius;
+            float maxX = Mathf.Max(w.a.x, w.b.x) + w.radius;
+            float minY = Mathf.Min(w.a.y, w.b.y) - w.radius;
+            float maxY = Mathf.Max(w.a.y, w.b.y) + w.radius;
 
-    public Vector2 GridToWorld(int gx, int gy)
-    {
-        float mapSize = mapRadius * 2f;
+            Vector2Int minCell = WorldToCell(new Vector2(minX, minY));
+            Vector2Int maxCell = WorldToCell(new Vector2(maxX, maxY));
 
-        float px = (gx + 0.5f) / gridWidth;
-        float py = (gy + 0.5f) / gridHeight;
-
-        float wx = (mapCentre.x - mapRadius) + px * mapSize;
-        float wy = (mapCentre.y - mapRadius) + py * mapSize;
-
-        return new Vector2(wx, wy);
-    }
-
-    public bool IsInsideGrid(int gx, int gy)
-    {
-        return gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight;
-    }
-
-    public bool IsWallCell(int gx, int gy)
-    {
-        EnsureInitialized();
-
-        if (!IsInsideGrid(gx, gy)) return true;
-        return wallField[Index(gx, gy)] != 0;
-    }
-
-    public bool IsWallAtWorld(Vector2 worldPos)
-    {
-        EnsureInitialized();
-
-        if (!WorldToGrid(worldPos, out int gx, out int gy))
-            return true;
-
-        return wallField[Index(gx, gy)] != 0;
-    }
-
-    public void SetWallCell(int gx, int gy, bool isWall)
-    {
-        EnsureInitialized();
-
-        if (!IsInsideGrid(gx, gy)) return;
-        wallField[Index(gx, gy)] = (byte)(isWall ? 1 : 0);
-    }
-
-    public void PaintWall(Vector2 worldPos, int brushRadius = -1)
-    {
-        PaintCircle(worldPos, brushRadius < 0 ? defaultBrushRadius : brushRadius, true);
-    }
-
-    public void EraseWall(Vector2 worldPos, int brushRadius = -1)
-    {
-        PaintCircle(worldPos, brushRadius < 0 ? defaultBrushRadius : brushRadius, false);
-    }
-
-    public void PaintCircle(Vector2 worldPos, int radius, bool isWall)
-    {
-        EnsureInitialized();
-
-        if (!WorldToGrid(worldPos, out int cx, out int cy)) return;
-
-        int r = Mathf.Max(0, radius);
-        int r2 = r * r;
-
-        for (int y = -r; y <= r; y++)
-        {
-            for (int x = -r; x <= r; x++)
+            for (int y = minCell.y; y <= maxCell.y; y++)
             {
-                if (x * x + y * y > r2) continue;
-
-                int gx = cx + x;
-                int gy = cy + y;
-
-                if (!IsInsideGrid(gx, gy)) continue;
-
-                wallField[Index(gx, gy)] = (byte)(isWall ? 1 : 0);
-            }
-        }
-    }
-
-    public void PaintLine(Vector2 worldA, Vector2 worldB, int brushRadius, bool isWall)
-    {
-        EnsureInitialized();
-
-        if (!WorldToGrid(worldA, out int ax, out int ay)) return;
-        if (!WorldToGrid(worldB, out int bx, out int by)) return;
-
-        int dx = Mathf.Abs(bx - ax);
-        int dy = Mathf.Abs(by - ay);
-        int sx = ax < bx ? 1 : -1;
-        int sy = ay < by ? 1 : -1;
-        int err = dx - dy;
-
-        int x = ax;
-        int y = ay;
-
-        while (true)
-        {
-            PaintCircle(GridToWorld(x, y), brushRadius, isWall);
-
-            if (x == bx && y == by) break;
-
-            int e2 = err * 2;
-
-            if (e2 > -dy)
-            {
-                err -= dy;
-                x += sx;
-            }
-
-            if (e2 < dx)
-            {
-                err += dx;
-                y += sy;
-            }
-        }
-    }
-
-    public void ClearAllWalls()
-    {
-        EnsureInitialized();
-
-        for (int i = 0; i < wallField.Length; i++)
-            wallField[i] = 0;
-
-        RefreshTexture();
-    }
-
-    public void FillAllWalls()
-    {
-        EnsureInitialized();
-
-        for (int i = 0; i < wallField.Length; i++)
-            wallField[i] = 1;
-
-        RefreshTexture();
-    }
-
-    public void RefreshTexture()
-    {
-        EnsureInitialized();
-        if (wallTexture == null) return;
-
-        for (int i = 0; i < CellCount; i++)
-        {
-            wallPixels[i] = wallField[i] != 0 ? wallColor : emptyColor;
-        }
-
-        wallTexture.SetPixels(wallPixels);
-        wallTexture.Apply(false);
-    }
-
-    public bool ResolveCircleCollision(ref Vector2 pos, ref Vector2 vel, float radius, float bounciness)
-    {
-        EnsureInitialized();
-
-        if (!WorldToGrid(pos, out int cx, out int cy))
-            return false;
-
-        int cellRadius = Mathf.CeilToInt((radius / (mapRadius * 2f)) * gridWidth) + 1;
-        bool hit = false;
-        Vector2 totalPush = Vector2.zero;
-
-        for (int y = cy - cellRadius; y <= cy + cellRadius; y++)
-        {
-            for (int x = cx - cellRadius; x <= cx + cellRadius; x++)
-            {
-                if (!IsWallCell(x, y)) continue;
-
-                Vector2 cellCenter = GridToWorld(x, y);
-
-                float cellSizeX = (mapRadius * 2f) / gridWidth;
-                float cellSizeY = (mapRadius * 2f) / gridHeight;
-                Vector2 half = new Vector2(cellSizeX * 0.5f, cellSizeY * 0.5f);
-
-                Vector2 closest = new Vector2(
-                    Mathf.Clamp(pos.x, cellCenter.x - half.x, cellCenter.x + half.x),
-                    Mathf.Clamp(pos.y, cellCenter.y - half.y, cellCenter.y + half.y)
-                );
-
-                Vector2 delta = pos - closest;
-                float d2 = delta.sqrMagnitude;
-
-                if (d2 >= radius * radius) continue;
-
-                float dist = Mathf.Sqrt(d2);
-                Vector2 n;
-
-                if (dist > 0.0001f)
+                for (int x = minCell.x; x <= maxCell.x; x++)
                 {
-                    n = delta / dist;
+                    Vector2Int key = new Vector2Int(x, y);
+
+                    if (!wallHash.TryGetValue(key, out List<int> list))
+                    {
+                        list = new List<int>(4);
+                        wallHash.Add(key, list);
+                    }
+
+                    list.Add(i);
                 }
+            }
+        }
+    }
+
+    Vector2Int WorldToCell(Vector2 p)
+    {
+        return new Vector2Int(
+            Mathf.FloorToInt(p.x / hashCellSize),
+            Mathf.FloorToInt(p.y / hashCellSize)
+        );
+    }
+
+    public void QueryNearbyWalls(Vector2 pos, float radius, List<int> results)
+    {
+        results.Clear();
+        queryDedup.Clear();
+
+        Vector2Int min = WorldToCell(pos - Vector2.one * radius);
+        Vector2Int max = WorldToCell(pos + Vector2.one * radius);
+
+        for (int y = min.y; y <= max.y; y++)
+        {
+            for (int x = min.x; x <= max.x; x++)
+            {
+                Vector2Int key = new Vector2Int(x, y);
+
+                if (!wallHash.TryGetValue(key, out List<int> list)) continue;
+
+                for (int i = 0; i < list.Count; i++)
+                {
+                    int wallIndex = list[i];
+                    if (queryDedup.Add(wallIndex))
+                        results.Add(wallIndex);
+                }
+            }
+        }
+    }
+
+    public bool ResolveCircleAgainstNearbyWalls(
+        ref Vector2 pos,
+        ref Vector2 vel,
+        float circleRadius,
+        float bounciness,
+        List<int> wallBuffer,
+        out Vector2 wallNormal)
+    {
+        wallNormal = Vector2.zero;
+        bool hitAny = false;
+
+        QueryNearbyWalls(pos, circleRadius + hashCellSize, wallBuffer);
+
+        for (int i = 0; i < wallBuffer.Count; i++)
+        {
+            WallSegment wall = runtimeWalls[wallBuffer[i]];
+
+            Vector2 closest = ClosestPointOnSegment(pos, wall.a, wall.b);
+            Vector2 delta = pos - closest;
+            float d2 = delta.sqrMagnitude;
+
+            float minDist = circleRadius + wall.radius;
+            float minDist2 = minDist * minDist;
+
+            if (d2 >= minDist2) continue;
+
+            Vector2 n;
+            float dist = Mathf.Sqrt(d2);
+
+            if (dist > 0.0001f)
+            {
+                n = delta / dist;
+            }
+            else
+            {
+                Vector2 line = wall.b - wall.a;
+                if (line.sqrMagnitude < 0.0001f)
+                    n = Vector2.up;
                 else
                 {
-                    n = (pos - cellCenter).sqrMagnitude > 0.0001f
-                        ? (pos - cellCenter).normalized
-                        : Vector2.up;
+                    line.Normalize();
+                    n = new Vector2(-line.y, line.x);
                 }
-
-                float penetration = radius - dist;
-                totalPush += n * penetration;
-                hit = true;
             }
-        }
 
-        if (hit)
-        {
-            pos += totalPush;
+            float penetration = minDist - dist;
+            pos += n * penetration;
 
-            Vector2 n = totalPush.sqrMagnitude > 0.0001f ? totalPush.normalized : Vector2.up;
             float vn = Vector2.Dot(vel, n);
-
             if (vn < 0f)
             {
                 vel = vel - 2f * vn * n;
                 vel *= bounciness;
             }
+
+            wallNormal = n;
+            hitAny = true;
         }
 
-        return hit;
+        return hitAny;
     }
 
-    void OnDrawGizmosSelected()
+    public static Vector2 ClosestPointOnSegment(Vector2 p, Vector2 a, Vector2 b)
     {
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireCube(mapCentre, new Vector3(mapRadius * 2f, mapRadius * 2f, 0f));
+        Vector2 ab = b - a;
+        float ab2 = ab.sqrMagnitude;
+
+        if (ab2 <= 0.000001f) return a;
+
+        float t = Vector2.Dot(p - a, ab) / ab2;
+        t = Mathf.Clamp01(t);
+        return a + ab * t;
+    }
+
+
+
+    List<WallSegment> GetEditorWalls()
+    {
+        List<WallSegment> list = new List<WallSegment>();
+
+        for (int i = 0; i < authoredWalls.Count; i++)
+        {
+            WallAuthoring w = authoredWalls[i];
+            if (w == null || w.pointA == null || w.pointB == null) continue;
+
+            list.Add(new WallSegment(
+                w.pointA.position,
+                w.pointB.position,
+                Mathf.Max(0.01f, w.thickness * 0.5f)
+            ));
+        }
+
+        return list;
+    }
+
+    void CacheWallPoints()
+    {
+        cachedPointAPos.Clear();
+        cachedPointBPos.Clear();
+
+        for (int i = 0; i < authoredWalls.Count; i++)
+        {
+            WallAuthoring w = authoredWalls[i];
+
+            if (w == null || w.pointA == null || w.pointB == null)
+            {
+                cachedPointAPos.Add(Vector2.zero);
+                cachedPointBPos.Add(Vector2.zero);
+                continue;
+            }
+
+            cachedPointAPos.Add(w.pointA.position);
+            cachedPointBPos.Add(w.pointB.position);
+        }
+    }
+
+    bool DidAnyWallPointMove()
+    {
+        if (authoredWalls.Count != cachedPointAPos.Count) return true;
+
+        for (int i = 0; i < authoredWalls.Count; i++)
+        {
+            WallAuthoring w = authoredWalls[i];
+            if (w == null || w.pointA == null || w.pointB == null) return true;
+
+            if ((Vector2)w.pointA.position != cachedPointAPos[i]) return true;
+            if ((Vector2)w.pointB.position != cachedPointBPos[i]) return true;
+        }
+
+        return false;
+    }
+
+    public void AddRuntimeWall(Vector2 a, Vector2 b, float thickness)
+    {
+        float radius = Mathf.Max(0.01f, thickness * 0.5f);
+
+        runtimeWalls.Add(new WallSegment(a, b, radius));
+
+        int wallIndex = runtimeWalls.Count - 1;
+        AddWallToHash(runtimeWalls[wallIndex], wallIndex);
+
+        if (drawRuntimeWalls)
+            CreateWallVisual(runtimeWalls[wallIndex]);
+    }
+
+    void AddWallToHash(WallSegment w, int wallIndex)
+    {
+        float minX = Mathf.Min(w.a.x, w.b.x) - w.radius;
+        float maxX = Mathf.Max(w.a.x, w.b.x) + w.radius;
+        float minY = Mathf.Min(w.a.y, w.b.y) - w.radius;
+        float maxY = Mathf.Max(w.a.y, w.b.y) + w.radius;
+
+        Vector2Int minCell = WorldToCell(new Vector2(minX, minY));
+        Vector2Int maxCell = WorldToCell(new Vector2(maxX, maxY));
+
+        for (int y = minCell.y; y <= maxCell.y; y++)
+        {
+            for (int x = minCell.x; x <= maxCell.x; x++)
+            {
+                Vector2Int key = new Vector2Int(x, y);
+
+                if (!wallHash.TryGetValue(key, out List<int> list))
+                {
+                    list = new List<int>(4);
+                    wallHash.Add(key, list);
+                }
+
+                list.Add(wallIndex);
+            }
+        }
+    }
+
+    void CreateWallVisual(WallSegment w)
+    {
+        Vector2 dir = w.b - w.a;
+        float length = dir.magnitude;
+        if (length <= 0.001f) return;
+
+        float thickness = w.radius * 2f;
+        Vector2 mid = (w.a + w.b) * 0.5f;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+        GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        quad.transform.SetParent(transform);
+        quad.transform.position = new Vector3(mid.x, mid.y, 1f);
+        quad.transform.rotation = Quaternion.Euler(0, 0, angle);
+        quad.transform.localScale = new Vector3(length, thickness, 1f);
+
+        var col = quad.GetComponent<Collider>();
+        if (col != null) Destroy(col);
+
+        if (wallMaterial != null)
+            quad.GetComponent<MeshRenderer>().material = wallMaterial;
+
+        wallVisuals.Add(quad);
+    }
+
+    void OnDrawGizmos()
+    {
+        if (!drawGizmos) return;
+
+        List<WallSegment> drawList = Application.isPlaying ? runtimeWalls : GetEditorWalls();
+        if (drawList == null) return;
+
+        Gizmos.color = Color.yellow;
+
+        for (int i = 0; i < drawList.Count; i++)
+        {
+            DrawWallGizmo(drawList[i]);
+        }
+    }
+
+    void DrawWallGizmo(WallSegment w)
+    {
+        Gizmos.DrawLine(w.a, w.b);
+
+        Gizmos.DrawWireSphere(w.a, w.radius);
+        Gizmos.DrawWireSphere(w.b, w.radius);
+
+        Vector2 dir = (w.b - w.a).normalized;
+        Vector2 normal = new Vector2(-dir.y, dir.x) * w.radius;
+
+        Gizmos.DrawLine(w.a + normal, w.b + normal);
+        Gizmos.DrawLine(w.a - normal, w.b - normal);
     }
 }
