@@ -4,7 +4,7 @@ using Vector2 = UnityEngine.Vector2;
 public class BacteriaFieldManager : MonoBehaviour
 {
     Vector2 mapCentre = Vector2.zero;
-    float mapRadius = 50f;
+    float mapRadius = 90f;
     
     [Header("Chemo Grid")]
     float[] exploreField;

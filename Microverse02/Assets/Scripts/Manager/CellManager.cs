@@ -196,9 +196,9 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        //bacteriaSpawnTimer += dt;
+        bacteriaSpawnTimer += dt;
 
-        //if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount>0)
+        //if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount > 0)
         //{
         //    bacteriaSpawnTimer -= bacteriaSpawnInterval;
 
@@ -206,7 +206,7 @@ public class CellManager : MonoBehaviour
         //    CreateBacteriaCell(spawnPos);
         //    bacteriaCount--;
         //}
-        //if(bacteriaCount <= 0) bacteriaCount = 0;
+        //if (bacteriaCount <= 0) bacteriaCount = 0;
 
         // 0) Double buffer start
         for (int i = 0; i < cells.Count; i++)

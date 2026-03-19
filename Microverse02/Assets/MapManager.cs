@@ -27,6 +27,10 @@ public class MapManager : MonoBehaviour
     [SerializeField] Color emptyColor = new Color(0.1f, 0.1f, 0.1f, 1f);
     [SerializeField] Color wallColor = Color.white;
 
+    [SerializeField] Color wallEdgeColor = new Color(0.55f, 0.55f, 0.55f, 1f);
+    [SerializeField] Color wallInnerColor = new Color(0.08f, 0.08f, 0.08f, 1f);
+    [SerializeField] int edgeWidthInCells = 6;
+
     [SerializeField, HideInInspector] byte[] wallField;
 
     Texture2D wallTexture;
@@ -150,15 +154,52 @@ public class MapManager : MonoBehaviour
     {
         EnsureInitialised();
 
-        for (int i = 0; i < wallField.Length; i++)
-            pixels[i] = wallField[i] == 1 ? wallColor : emptyColor;
+        for (int y = 0; y < gridHeight; y++)
+        {
+            for (int x = 0; x < gridWidth; x++)
+            {
+                int i = ToIndex(x, y);
+
+                if (wallField[i] == 0)
+                {
+                    pixels[i] = emptyColor;
+                    continue;
+                }
+
+                int distToEdge = DistanceToEmpty(x, y, edgeWidthInCells);
+                float t = Mathf.Clamp01(distToEdge / (float)edgeWidthInCells);
+
+                pixels[i] = Color.Lerp(wallEdgeColor, wallInnerColor, t);
+            }
+        }
 
         wallTexture.SetPixels(pixels);
         wallTexture.Apply();
 
         ApplyTextureToRenderer();
     }
+    int DistanceToEmpty(int centreX, int centreY, int maxDistance)
+    {
+        for (int r = 1; r <= maxDistance; r++)
+        {
+            for (int y = -r; y <= r; y++)
+            {
+                for (int x = -r; x <= r; x++)
+                {
+                    int cx = centreX + x;
+                    int cy = centreY + y;
 
+                    if (!InBounds(cx, cy))
+                        return r - 1;
+
+                    if (wallField[ToIndex(cx, cy)] == 0)
+                        return r - 1;
+                }
+            }
+        }
+
+        return maxDistance;
+    }
     public Vector2Int WorldToCell(Vector2 worldPos)
     {
         Vector2 min = mapCentre - mapSize * 0.5f;
