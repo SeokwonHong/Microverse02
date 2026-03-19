@@ -18,6 +18,26 @@ public class MapManagerEditor : Editor
 
         GUILayout.Space(8);
 
+        GUILayout.BeginHorizontal();
+
+        if (GUILayout.Button("Draw Mode"))
+        {
+            Undo.RecordObject(map, "Set Draw Mode");
+            map.SetPaintMode(MapManager.PaintMode.Draw);
+            EditorUtility.SetDirty(map);
+        }
+
+        if (GUILayout.Button("Erase Mode"))
+        {
+            Undo.RecordObject(map, "Set Erase Mode");
+            map.SetPaintMode(MapManager.PaintMode.Erase);
+            EditorUtility.SetDirty(map);
+        }
+
+        GUILayout.EndHorizontal();
+
+        GUILayout.Space(8);
+
         if (GUILayout.Button("Clear All"))
         {
             Undo.RecordObject(map, "Clear Map");
@@ -47,7 +67,7 @@ public class MapManagerEditor : Editor
 
         Vector3 hit = ray.GetPoint(enter);
 
-        Handles.color = e.shift ? Color.red : Color.green;
+        Handles.color = map.CurrentPaintMode == MapManager.PaintMode.Draw ? Color.green : Color.red;
         Handles.DrawWireDisc(hit, Vector3.forward, map.BrushRadiusWorld);
 
         if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) &&
@@ -55,10 +75,7 @@ public class MapManagerEditor : Editor
             !e.alt)
         {
             Undo.RecordObject(map, "Paint Map");
-
-            byte value = (byte)(e.shift ? 0 : 1);
-            map.PaintWorld(hit, map.BrushRadius, value);
-
+            map.PaintAtCurrentMode(hit, map.BrushRadius);
             EditorUtility.SetDirty(map);
             e.Use();
         }

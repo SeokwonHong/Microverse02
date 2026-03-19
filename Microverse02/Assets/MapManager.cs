@@ -3,6 +3,12 @@ using UnityEngine;
 [ExecuteAlways]
 public class MapManager : MonoBehaviour
 {
+    public enum PaintMode
+    {
+        Draw,
+        Erase
+    }
+
     [Header("Grid")]
     [SerializeField] int gridWidth = 256;
     [SerializeField] int gridHeight = 256;
@@ -11,10 +17,9 @@ public class MapManager : MonoBehaviour
     [SerializeField] Vector2 mapCentre = Vector2.zero;
     [SerializeField] Vector2 mapSize = new Vector2(50f, 50f);
 
-
-
     [Header("Paint")]
     [SerializeField] int brushRadius = 3;
+    [SerializeField] PaintMode paintMode = PaintMode.Draw;
 
     [Header("Visual")]
     [SerializeField] Renderer targetRenderer;
@@ -22,11 +27,7 @@ public class MapManager : MonoBehaviour
     [SerializeField] Color emptyColor = new Color(0.1f, 0.1f, 0.1f, 1f);
     [SerializeField] Color wallColor = Color.white;
 
-    
-
-
     [SerializeField, HideInInspector] byte[] wallField;
-
 
     Texture2D wallTexture;
     Color[] pixels;
@@ -42,6 +43,7 @@ public class MapManager : MonoBehaviour
 
     public Vector2 MapCentre => mapCentre;
     public Vector2 MapSize => mapSize;
+    public PaintMode CurrentPaintMode => paintMode;
 
     void OnEnable()
     {
@@ -79,8 +81,12 @@ public class MapManager : MonoBehaviour
             wallTexture.name = "MapTexture";
         }
 
-        
         ApplyTextureToRenderer();
+    }
+
+    public void SetPaintMode(PaintMode mode)
+    {
+        paintMode = mode;
     }
 
     public void PaintWorld(Vector2 worldPos, int radius, byte value)
@@ -105,6 +111,12 @@ public class MapManager : MonoBehaviour
         }
 
         RebuildTexture();
+    }
+
+    public void PaintAtCurrentMode(Vector2 worldPos, int radius)
+    {
+        byte value = paintMode == PaintMode.Draw ? (byte)1 : (byte)0;
+        PaintWorld(worldPos, radius, value);
     }
 
     public bool IsWallWorld(Vector2 worldPos)
@@ -144,7 +156,6 @@ public class MapManager : MonoBehaviour
         wallTexture.SetPixels(pixels);
         wallTexture.Apply();
 
-        
         ApplyTextureToRenderer();
     }
 
@@ -205,6 +216,7 @@ public class MapManager : MonoBehaviour
         mat.mainTextureScale = Vector2.one;
         mat.mainTextureOffset = Vector2.zero;
     }
+
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
