@@ -941,7 +941,6 @@ GameObject:
   - component: {fileID: 555529755}
   - component: {fileID: 555529754}
   - component: {fileID: 555529756}
-  - component: {fileID: 555529757}
   m_Layer: 0
   m_Name: WallManager
   m_TagString: Untagged
@@ -1005,25 +1004,6 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 8
   m_SortAtRoot: 0
---- !u!114 &555529757
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 555529753}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea5e3dfb94ed3d94fb3f80b335b27946, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  wallManager: {fileID: 555529754}
-  cam: {fileID: 519420031}
-  mapCentre: {x: 0, y: 0}
-  mapRadius: 50
-  wallThickness: 0.6
-  minSegmentDistance: 0.1
-  drawOnlyWhileHolding: 1
 --- !u!1001 &673330696
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2098,15 +2078,35 @@ MonoBehaviour:
   chemoDepositAmount: 0.94
   chemoDecayPerSecond: 0.07
   foodDepositAmount: 5
-  chemoSensorDistance: 0.5
+  drawDepositAmount: 15
+  drawDecayPerSecond: 0.0001
+  drawDiffuseRate: 0.3
+  chemoSensorDistance: 0.6
   trailWeight: 1
   foodWeight: 5
-  fieldTickInterval: 0.033333335
+  fieldTickInterval: 0.03333334
   weakColor: {r: 0, g: 0, b: 0, a: 0}
   midColor: {r: 0.7490196, g: 0.20784314, b: 0.20784314, a: 1}
   strongColor: {r: 1, g: 0.35686275, b: 0.20392157, a: 1}
   foodColor: {r: 1, g: 1, b: 1, a: 1}
   foodVisualStrength: 1
+  drawColor: {r: 0.4, g: 0.30980393, b: 0.1882353, a: 1}
+--- !u!114 &1569142230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1096715513}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9a7a3185bd31df45b65dd1ff5d09d1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bacteriaFieldManager: {fileID: 1569142227}
+  cam: {fileID: 519420031}
+  drawStrengthMultiplier: 10
+  stepSpacing: 0.5
 --- !u!1 &1610983192
 GameObject:
   m_ObjectHideFlags: 0
@@ -2156,7 +2156,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1719574721
 Transform:
   m_ObjectHideFlags: 0
@@ -3056,7 +3056,7 @@ PrefabInstance:
       objectReference: {fileID: 237737088}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapShape
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapWidth
@@ -3072,7 +3072,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapRadius
-      value: 20
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: wallManager
@@ -3177,6 +3177,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8034811381048981240, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1569142227}
+    - targetCorrespondingSourceObject: {fileID: 8034811381048981240, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1569142230}
   m_SourcePrefab: {fileID: 100100000, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
 --- !u!1001 &8440521327410845940
 PrefabInstance:

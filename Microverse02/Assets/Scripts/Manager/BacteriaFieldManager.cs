@@ -13,13 +13,19 @@ public class BacteriaFieldManager : MonoBehaviour
     float[] foodField;
     float[] foodNext;
 
+    float[] drawField;
+    float[] drawNext;
+
+   
+    
+
     [SerializeField] Renderer fieldRenderer;
 
     Texture2D trailTexture;
     Color[] trailPixels;
 
-    int chemoWidth = 512; 
-    int chemoHeight = 512;
+    int chemoWidth = 400; 
+    int chemoHeight = 400;
     int CellCount => chemoWidth * chemoHeight;
 
     [Header("Trail")]
@@ -31,6 +37,11 @@ public class BacteriaFieldManager : MonoBehaviour
     float foodDecayPerSecond = 0.88f;
     float foodDiffuseRate = 1f; //How much chemical spreads to neighbours. Like blurring.
 
+    [Header("Draw")]
+    [SerializeField] float drawDepositAmount = 3f;
+    [SerializeField] float drawDecayPerSecond = 0.3f;
+    [SerializeField] float drawDiffuseRate = 0f;
+ 
 
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 6f; 
@@ -43,6 +54,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     float trailMaxDeposit = 1f;
     float foodMaxDeposit = 5f;
+    float drawMaxDeposit = 30f;
 
     float fieldTickTimer = 0f;
     [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
@@ -55,6 +67,10 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Food Colours")]
     [SerializeField] Color foodColor = new Color(0.2f, 1f, 0.2f, 1f);
     [SerializeField] float foodVisualStrength = 1f;
+
+    [Header("Draw Colours")]
+    [SerializeField] Color drawColor = new Color(0.2f, 0.8f, 1f, 1f);
+    float drawVisualStrength = 1f;
 
     int foodTickCounter;
     //getter
@@ -74,6 +90,8 @@ public class BacteriaFieldManager : MonoBehaviour
         foodField = new float[cellCount];
         foodNext = new float[cellCount];
 
+        drawField = new float[cellCount];
+        drawNext = new float[cellCount];
         //GPU
         trailTexture = new Texture2D(chemoWidth, chemoHeight, TextureFormat.RGBA32, false);
         trailTexture.wrapMode = TextureWrapMode.Clamp;
@@ -87,6 +105,8 @@ public class BacteriaFieldManager : MonoBehaviour
             fieldRenderer.transform.position = new Vector3(mapCentre.x, mapCentre.y, 0f);
             fieldRenderer.transform.localScale = new Vector3(mapRadius * 2f, mapRadius * 2f, 1f);
         }
+
+        drawDiffuseRate = Mathf.Clamp01(drawDiffuseRate);
     }
     int Index(int x, int y)
     {
@@ -134,15 +154,29 @@ public class BacteriaFieldManager : MonoBehaviour
 );
         }
     }
+    public void DepositDraw(Vector2 worldPos, float amountMultiplier = 1f)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
+            drawField[idx] = Mathf.Min(
+                drawField[idx] + drawDepositAmount * amountMultiplier,
+                drawMaxDeposit
+            );
+        }
+    }
 
     public float Sample(Vector2 worldPos) //taking the value out from the hash
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
+
             float trail = exploreField[idx] * trailWeight;
             float food = foodField[idx] * foodWeight;
-            return trail + food;
+            float draw = drawField[idx];
+
+            return trail + food + draw;
         }
 
         return 0f;
@@ -159,6 +193,9 @@ public class BacteriaFieldManager : MonoBehaviour
 
             UpdateField(exploreField, exploreNext, 0f, chemoDecayPerSecond, fieldTickInterval);
             Swap(ref exploreField, ref exploreNext);
+
+            UpdateField(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
+            Swap(ref drawField, ref drawNext);
 
             foodTickCounter++;
             if (foodTickCounter >= 2)
@@ -192,13 +229,17 @@ public class BacteriaFieldManager : MonoBehaviour
 
                 float center = source[idx];
                 float sum =
-                    center +
+                    source[idx] +
                     source[idx - 1] +
                     source[idx + 1] +
                     source[rowUp + x] +
-                    source[rowDown + x];
+                    source[rowDown + x] +
+                    source[rowUp + x - 1] +
+                    source[rowUp + x + 1] +
+                    source[rowDown + x - 1] +
+                    source[rowDown + x + 1];
 
-                float value = Mathf.Lerp(center, sum * 0.2f, diffuseRate);
+                float value = Mathf.Lerp(center, sum /9f, diffuseRate);
 
                 target[idx] = Mathf.Max(0f, value - decay);
             }
@@ -248,35 +289,48 @@ public class BacteriaFieldManager : MonoBehaviour
 
         for (int i = 0; i < CellCount; i++)
         {
-            float v = exploreField[i];
+            Color c = new Color(0f, 0f, 0f, 0f);
 
-            float t = Mathf.Clamp01(v);
-            float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.6f));
-
-            Color c;
-
-            if (t < 0.96f)
+            // 1. draw field first
+            float draw = Mathf.Clamp01(drawField[i] * drawVisualStrength);
+            if (draw > 0f)
             {
-                c = Color.Lerp(weakColor, midColor, t / 0.96f);
-            }
-            else
-            {
-                c = Color.Lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
+                Color drawOverlay = drawColor;
+                drawOverlay.a = draw;
+                c = Color.Lerp(c, drawOverlay, draw);
             }
 
-            c.a = alpha;
-
-            // ---- add food overlay (does not change bacteria colour)
+            // 2. food on top of draw
             float food = Mathf.Clamp01(foodField[i] * foodVisualStrength);
-
             if (food > 0f)
             {
                 Color foodOverlay = foodColor;
                 foodOverlay.a = food;
-
                 c = Color.Lerp(c, foodOverlay, food);
             }
-            // -------------------------------------
+
+            // 3. bacteria trail last, so it appears on top
+            float v = exploreField[i];
+            float t = Mathf.Clamp01(v);
+            float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.6f));
+
+            if (t > 0f)
+            {
+                Color trailColor;
+
+                if (t < 0.96f)
+                {
+                    trailColor = Color.Lerp(weakColor, midColor, t / 0.96f);
+                }
+                else
+                {
+                    trailColor = Color.Lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
+                }
+
+                trailColor.a = alpha;
+
+                c = Color.Lerp(c, trailColor, alpha);
+            }
 
             trailPixels[i] = c;
         }
