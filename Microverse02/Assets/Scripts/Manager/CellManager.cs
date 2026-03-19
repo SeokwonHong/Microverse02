@@ -38,9 +38,8 @@ public class CellManager : MonoBehaviour
     readonly List<int> neighbourBuffer = new List<int>(128);
     readonly List<int> nearestBacteriaBuffer = new List<int>(128);
 
-    [Header("Wall")]
-    [SerializeField] WallManager wallManager;
-    readonly List<int> wallBuffer = new List<int>(32);
+    [Header("Map")]
+    [SerializeField] MapManager mapManager;
 
     [Header("Bacterias Pooling")]
     readonly List<int> deadBacteriaPool = new List<int>(128);
@@ -308,16 +307,10 @@ public class CellManager : MonoBehaviour
 
             c.nextPos += c.nextVelocity * dt;
 
-            if (wallManager != null)
+            if (mapManager != null && mapManager.IsWallWorld(c.nextPos))
             {
-                wallManager.ResolveCircleAgainstNearbyWalls(
-                    ref c.nextPos,
-                    ref c.nextVelocity,
-                    c.cellRadius,
-                    wallBounciness,
-                    wallBuffer,
-                    out _
-                );
+                c.nextPos = c.currentPos;
+                c.nextVelocity *= -wallBounciness;
             }
 
             cells[i] = c;

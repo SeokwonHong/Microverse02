@@ -48,7 +48,7 @@ public class MapManagerEditor : Editor
         Vector3 hit = ray.GetPoint(enter);
 
         Handles.color = e.shift ? Color.red : Color.green;
-        Handles.DrawWireDisc(hit, Vector3.forward, map.BrushRadius * 0.1f);
+        Handles.DrawWireDisc(hit, Vector3.forward, map.BrushRadiusWorld);
 
         if ((e.type == EventType.MouseDown || e.type == EventType.MouseDrag) &&
             e.button == 0 &&

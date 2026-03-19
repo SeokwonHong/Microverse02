@@ -11,16 +11,22 @@ public class MapManager : MonoBehaviour
     [SerializeField] Vector2 mapCentre = Vector2.zero;
     [SerializeField] Vector2 mapSize = new Vector2(50f, 50f);
 
+
+
     [Header("Paint")]
     [SerializeField] int brushRadius = 3;
 
     [Header("Visual")]
     [SerializeField] Renderer targetRenderer;
     [SerializeField] FilterMode filterMode = FilterMode.Point;
-    [SerializeField] Color emptyColor = new Color(0f, 0f, 0f, 0f);
+    [SerializeField] Color emptyColor = new Color(0.1f, 0.1f, 0.1f, 1f);
     [SerializeField] Color wallColor = Color.white;
 
+    
+
+
     [SerializeField, HideInInspector] byte[] wallField;
+
 
     Texture2D wallTexture;
     Color[] pixels;
@@ -30,9 +36,14 @@ public class MapManager : MonoBehaviour
     public int CellCount => gridWidth * gridHeight;
     public int BrushRadius => brushRadius;
 
+    public float CellWidth => mapSize.x / gridWidth;
+    public float CellHeight => mapSize.y / gridHeight;
+    public float BrushRadiusWorld => Mathf.Max(CellWidth, CellHeight) * brushRadius;
+
     void OnEnable()
     {
         EnsureInitialised();
+        SyncRendererToMap();
         RebuildTexture();
     }
 
@@ -43,6 +54,7 @@ public class MapManager : MonoBehaviour
         if (brushRadius < 1) brushRadius = 1;
 
         EnsureInitialised();
+        SyncRendererToMap();
         RebuildTexture();
     }
 
@@ -64,8 +76,8 @@ public class MapManager : MonoBehaviour
             wallTexture.name = "MapTexture";
         }
 
-        if (targetRenderer != null)
-            targetRenderer.sharedMaterial.mainTexture = wallTexture;
+        
+        ApplyTextureToRenderer();
     }
 
     public void PaintWorld(Vector2 worldPos, int radius, byte value)
@@ -129,8 +141,8 @@ public class MapManager : MonoBehaviour
         wallTexture.SetPixels(pixels);
         wallTexture.Apply();
 
-        if (targetRenderer != null)
-            targetRenderer.sharedMaterial.mainTexture = wallTexture;
+        
+        ApplyTextureToRenderer();
     }
 
     public Vector2Int WorldToCell(Vector2 worldPos)
@@ -170,6 +182,26 @@ public class MapManager : MonoBehaviour
         return y * gridWidth + x;
     }
 
+    void SyncRendererToMap()
+    {
+        if (targetRenderer == null) return;
+
+        Transform t = targetRenderer.transform;
+        t.position = new Vector3(mapCentre.x, mapCentre.y, 0f);
+        t.localScale = new Vector3(mapSize.x, mapSize.y, 1f);
+    }
+
+    void ApplyTextureToRenderer()
+    {
+        if (targetRenderer == null) return;
+
+        Material mat = Application.isPlaying ? targetRenderer.material : targetRenderer.sharedMaterial;
+        if (mat == null) return;
+
+        mat.mainTexture = wallTexture;
+        mat.mainTextureScale = Vector2.one;
+        mat.mainTextureOffset = Vector2.zero;
+    }
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
