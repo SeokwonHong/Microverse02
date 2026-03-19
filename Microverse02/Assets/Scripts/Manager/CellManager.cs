@@ -26,9 +26,6 @@ public class CellManager : MonoBehaviour
     [SerializeField] float mapRadius = 25f;
     [SerializeField] GameObject refToCircleBg;
 
-    [SerializeField] float mapWidth = 50f;
-    [SerializeField] float mapHeight = 50f;
-    [SerializeField] GameObject refToRectengleBg;
 
     [SerializeField] float wallBounciness = 0.5f;
 
@@ -141,16 +138,9 @@ public class CellManager : MonoBehaviour
             if (refToCircleBg != null)
                 refToCircleBg.transform.localScale =
                     new Vector3(mapRadius * 2f, mapRadius * 2f, 1f);
-
-            if (refToRectengleBg != null)
-                refToRectengleBg.SetActive(false);
         }
         else
         {
-            if (refToRectengleBg != null)
-                refToRectengleBg.transform.localScale =
-                    new Vector3(mapWidth, mapHeight, 1f);
-
             if (refToCircleBg != null)
                 refToCircleBg.SetActive(false);
         }
@@ -166,13 +156,12 @@ public class CellManager : MonoBehaviour
         }
         else
         {
-            float halfW = mapWidth * 0.5f;
-            float halfH = mapHeight * 0.5f;
-
-            minX = mapCentre.x - halfW;
-            maxX = mapCentre.x + halfW;
-            minY = mapCentre.y - halfH;
-            maxY = mapCentre.y + halfH;
+            float halfW = mapManager.MapSize.x * 0.5f;
+            float halfH = mapManager.MapSize.y * 0.5f;
+            minX = mapManager.MapCentre.x - halfW;
+            maxX = mapManager.MapCentre.x + halfW;
+            minY = mapManager.MapCentre.y - halfH;
+            maxY = mapManager.MapCentre.y + halfH;
         }
 
         for (int i = 0; i < firstOrganismCount; i++)
@@ -401,18 +390,23 @@ public class CellManager : MonoBehaviour
 
     void ApplyRectangleBoundary(int i)
     {
+        if (mapManager == null) return;
+
         Cell c = cells[i];
 
         Vector2 p = c.nextPos;
         Vector2 v = c.nextVelocity;
 
-        float halfWidth = mapWidth * 0.5f;
-        float halfHeight = mapHeight * 0.5f;
+        Vector2 centre = mapManager.MapCentre;
+        Vector2 size = mapManager.MapSize;
 
-        float minX = mapCentre.x - halfWidth + c.cellRadius;
-        float maxX = mapCentre.x + halfWidth - c.cellRadius;
-        float minY = mapCentre.y - halfHeight + c.cellRadius;
-        float maxY = mapCentre.y + halfHeight - c.cellRadius;
+        float halfWidth = size.x * 0.5f;
+        float halfHeight = size.y * 0.5f;
+
+        float minX = centre.x - halfWidth + c.cellRadius;
+        float maxX = centre.x + halfWidth - c.cellRadius;
+        float minY = centre.y - halfHeight + c.cellRadius;
+        float maxY = centre.y + halfHeight - c.cellRadius;
 
         bool hitX = false;
         bool hitY = false;

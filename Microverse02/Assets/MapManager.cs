@@ -40,6 +40,9 @@ public class MapManager : MonoBehaviour
     public float CellHeight => mapSize.y / gridHeight;
     public float BrushRadiusWorld => Mathf.Max(CellWidth, CellHeight) * brushRadius;
 
+    public Vector2 MapCentre => mapCentre;
+    public Vector2 MapSize => mapSize;
+
     void OnEnable()
     {
         EnsureInitialised();
