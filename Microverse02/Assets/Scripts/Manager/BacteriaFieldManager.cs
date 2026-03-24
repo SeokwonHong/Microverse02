@@ -433,13 +433,13 @@ public class BacteriaFieldManager : MonoBehaviour
             {
                 float4 trailColor;
 
-                if (t < 0.96f)
+                if (t < 0.975f)
                 {
-                    trailColor = math.lerp(weakColor, midColor, t / 0.96f);
+                    trailColor = math.lerp(weakColor, midColor, t / 0.975f);
                 }
                 else
                 {
-                    trailColor = math.lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
+                    trailColor = math.lerp(midColor, strongColor, (t - 0.975f) / 0.05f);
                 }
 
                 trailColor.w = alpha;

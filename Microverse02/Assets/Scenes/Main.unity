@@ -1908,8 +1908,8 @@ MonoBehaviour:
   chemoDecayPerSecond: 0.007
   foodDepositAmount: 5
   drawDepositAmount: 5
-  drawDecayPerSecond: 0.001
-  drawDiffuseRate: 0.1
+  drawDecayPerSecond: 0.035
+  drawDiffuseRate: 0.3
   chemoSensorDistance: 0.8
   trailWeight: 1
   foodWeight: 5
@@ -2707,11 +2707,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 1500
+      value: 1300
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
-      value: 2
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: refToCircleBg
@@ -2754,12 +2754,20 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1921727452}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: drawChemicalSpeedBoost
+      value: 6.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxBacteriaSpeedMultiplier
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: minBacteriaSpeedMultiplier
       value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: drawChemicalSpeedSensitivity
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 9041897232896126861, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: m_LocalPosition.x
