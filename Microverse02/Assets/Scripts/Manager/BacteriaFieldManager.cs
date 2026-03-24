@@ -1,31 +1,18 @@
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Mathematics;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 
 public class BacteriaFieldManager : MonoBehaviour
 {
     [SerializeField] MapManager mapManager;
-
-    [Header("Chemo Grid")]
-    float[] exploreField;
-    float[] exploreNext;
-
-    float[] foodField;
-    float[] foodNext;
-
-    float[] drawField;
-    float[] drawNext;
-
-   
-    
-
     [SerializeField] Renderer fieldRenderer;
 
-    Texture2D trailTexture;
-    Color[] trailPixels;
-
-    int chemoWidth = 400; 
+    //Grid
+    int chemoWidth = 400;
     int chemoHeight = 400;
-    int CellCount => chemoWidth * chemoHeight;
 
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
@@ -40,22 +27,18 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] float drawDepositAmount = 3f;
     [SerializeField] float drawDecayPerSecond = 0.3f;
     [SerializeField] float drawDiffuseRate = 0f;
- 
+
 
     [Header("Sensors")]
-    [SerializeField] float chemoSensorDistance = 6f; 
-    float chemoSensorAngle = 35f; 
+    [SerializeField] float chemoSensorDistance = 6f;
+    float chemoSensorAngle = 35f;
     float chemoSteerStrength = 5f;
 
     [Header("Sampling Weights")]
     [SerializeField] float trailWeight = 1f;
     [SerializeField] float foodWeight = 2f;
 
-    float trailMaxDeposit = 1f;
-    float foodMaxDeposit = 5f;
-    float drawMaxDeposit = 5f;
-
-    float fieldTickTimer = 0f;
+    [Header("Tick")]
     [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
 
     [Header("Trail Colours")]
@@ -71,7 +54,30 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] Color drawColor = new Color(0.2f, 0.8f, 1f, 1f);
     float drawVisualStrength = 1f;
 
+    float trailMaxDeposit = 1f;
+    float foodMaxDeposit = 5f;
+    float drawMaxDeposit = 5f;
+
+    Texture2D trailTexture;
+
+
+    [Header("Chemo Grid")]
+    NativeArray<float> exploreField;
+    NativeArray<float> exploreNext;
+
+    NativeArray<float> foodField;
+    NativeArray<float> foodNext;
+
+    NativeArray<float> drawField;
+    NativeArray<float> drawNext;
+
+    NativeArray<Color32> trailPixels;
+
+    float fieldTickTimer = 0f;
     int foodTickCounter;
+
+    int CellCount => chemoWidth * chemoHeight;
+
     //getter
     public float SensorDistance => chemoSensorDistance;
     public float SensorAngle => chemoSensorAngle;
@@ -85,32 +91,74 @@ public class BacteriaFieldManager : MonoBehaviour
         if (mapManager == null)
             mapManager = FindAnyObjectByType<MapManager>();
 
-        int cellCount =chemoWidth * chemoHeight;
+        if (mapManager == null)
+        {
+            Debug.LogError("BacteriaFieldManager: MapManager not found.");
+            enabled = false;
+            return;
+        }
 
-        exploreField = new float[cellCount];
-        exploreNext = new float[cellCount];
+        AllocateArrays();
+        CreateTexture();
+        SyncRenderer();
+        drawDiffuseRate = Mathf.Clamp01(drawDiffuseRate);
+    }
+    void OnDestroy()
+    {
+        DisposeArrays();
+    }
 
-        foodField = new float[cellCount];
-        foodNext = new float[cellCount];
+    void OnDisable()
+    {
+        if (trailTexture != null && fieldRenderer != null && fieldRenderer.material != null)
+            fieldRenderer.material.mainTexture = null;
+    }
 
-        drawField = new float[cellCount];
-        drawNext = new float[cellCount];
-        //GPU
+    void AllocateArrays()
+    {
+        int count = CellCount;
+
+        exploreField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        exploreNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+        foodField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        foodNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+        drawField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        drawNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+        trailPixels = new NativeArray<Color32>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+    }
+
+    void DisposeArrays()
+    {
+        if (exploreField.IsCreated) exploreField.Dispose();
+        if (exploreNext.IsCreated) exploreNext.Dispose();
+
+        if (foodField.IsCreated) foodField.Dispose();
+        if (foodNext.IsCreated) foodNext.Dispose();
+
+        if (drawField.IsCreated) drawField.Dispose();
+        if (drawNext.IsCreated) drawNext.Dispose();
+
+        if (trailPixels.IsCreated) trailPixels.Dispose();
+    }
+
+    void CreateTexture()
+    {
         trailTexture = new Texture2D(chemoWidth, chemoHeight, TextureFormat.RGBA32, false);
         trailTexture.wrapMode = TextureWrapMode.Clamp;
         trailTexture.filterMode = FilterMode.Point;
-
-        trailPixels = new Color[CellCount];
-
-        if (fieldRenderer != null)
-        {
-            fieldRenderer.material.mainTexture = trailTexture;
-            fieldRenderer.transform.position = new Vector3(MapCentre.x, MapCentre.y, 0f);
-            fieldRenderer.transform.localScale = new Vector3(MapSize.x, MapSize.y, 1f);
-        }
-
-        drawDiffuseRate = Mathf.Clamp01(drawDiffuseRate);
     }
+    void SyncRenderer()
+    {
+        if (fieldRenderer == null) return;
+
+        fieldRenderer.material.mainTexture = trailTexture;
+        fieldRenderer.transform.position = new Vector3(MapCentre.x, MapCentre.y, 0f);
+        fieldRenderer.transform.localScale = new Vector3(MapSize.x, MapSize.y, 1f);
+    }
+
     int Index(int x, int y)
     {
         return x + y * chemoWidth;
@@ -138,6 +186,8 @@ public class BacteriaFieldManager : MonoBehaviour
     }
     public void DepositTrail(Vector2 worldPos, float amountMultiplier = 1f) //put chemecals insdie of the space
     {
+        if (!exploreField.IsCreated) return;
+
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
@@ -149,6 +199,8 @@ public class BacteriaFieldManager : MonoBehaviour
     }
     public void DepositFood(Vector2 worldPos, float amountMultiplier = 1f)
     {
+        if (!exploreField.IsCreated) return;
+
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
@@ -160,6 +212,8 @@ public class BacteriaFieldManager : MonoBehaviour
     }
     public void DepositDraw(Vector2 worldPos, float amountMultiplier = 1f)
     {
+        if (!exploreField.IsCreated) return;
+
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
@@ -185,6 +239,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
         return 0f;
     }
+
     public bool TickField(float dt) //update pretty much
     {
         bool updated = false;
@@ -195,17 +250,17 @@ public class BacteriaFieldManager : MonoBehaviour
             fieldTickTimer -= fieldTickInterval;
             updated = true;
 
-            UpdateField(exploreField, exploreNext, 0f, chemoDecayPerSecond, fieldTickInterval);
+            RunFieldUpdate(exploreField, exploreNext, 0f, chemoDecayPerSecond, fieldTickInterval);
             Swap(ref exploreField, ref exploreNext);
 
-            UpdateField(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
+            RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
 
             foodTickCounter++;
             if (foodTickCounter >= 2)
             {
                 foodTickCounter = 0;
-                UpdateField(foodField, foodNext, foodDiffuseRate, foodDecayPerSecond, fieldTickInterval * 2f);
+                RunFieldUpdate(foodField, foodNext, foodDiffuseRate, foodDecayPerSecond, fieldTickInterval * 2f);
                 Swap(ref foodField, ref foodNext);
             }
         }
@@ -213,134 +268,179 @@ public class BacteriaFieldManager : MonoBehaviour
         return updated;
     }
 
-
-    void UpdateField(float[] source, float[] target, float diffuseRate, float decayPerSecond, float dt)
+    void RunFieldUpdate(NativeArray<float> source, NativeArray<float> target, float diffuseRate, float decayPerSecond, float dt)
     {
-        float decay = decayPerSecond * dt;
-
-        int maxX = chemoWidth - 1;
-        int maxY = chemoHeight - 1;
-
-        for (int y = 1; y < maxY; y++)
+        var job = new UpdateFieldJob
         {
-            int row = y * chemoWidth;
-            int rowUp = (y - 1) * chemoWidth;
-            int rowDown = (y + 1) * chemoWidth;
+            source = source,
+            target = target,
+            width = chemoWidth,
+            height = chemoHeight,
+            diffuseRate = diffuseRate,
+            decay = decayPerSecond * dt
+        };
 
-            for (int x = 1; x < maxX; x++)
-            {
-                int idx = row + x;
-
-                float center = source[idx];
-                float sum =
-                    source[idx] +
-                    source[idx - 1] +
-                    source[idx + 1] +
-                    source[rowUp + x] +
-                    source[rowDown + x] +
-                    source[rowUp + x - 1] +
-                    source[rowUp + x + 1] +
-                    source[rowDown + x - 1] +
-                    source[rowDown + x + 1];
-
-                float value = Mathf.Lerp(center, sum /9f, diffuseRate);
-
-                target[idx] = Mathf.Max(0f, value - decay);
-            }
-        }
-
-        for (int x = 0; x < chemoWidth; x++)
-        {
-            UpdateEdgeCell(source, target, x, 0, diffuseRate, decay);
-            UpdateEdgeCell(source, target, x, maxY, diffuseRate, decay);
-        }
-
-        for (int y = 1; y < maxY; y++)
-        {
-            UpdateEdgeCell(source, target, 0, y, diffuseRate, decay);
-            UpdateEdgeCell(source, target, maxX, y, diffuseRate, decay);
-        }
+        JobHandle handle = job.Schedule(CellCount, 128);
+        handle.Complete();
     }
-    void UpdateEdgeCell(float[] source, float[] target, int x, int y, float diffuseRate, float decay)
+    void Swap(ref NativeArray<float> a, ref NativeArray<float> b) //for double buffering
     {
-        float center = source[Index(x, y)];
-        float sum = center;
-        int count = 1;
-
-        if (x > 0) { sum += source[Index(x - 1, y)]; count++; }
-        if (x < chemoWidth - 1) { sum += source[Index(x + 1, y)]; count++; }
-        if (y > 0) { sum += source[Index(x, y - 1)]; count++; }
-        if (y < chemoHeight - 1) { sum += source[Index(x, y + 1)]; count++; }
-
-        float value = Mathf.Lerp(center, sum / count, diffuseRate);
-
-        target[Index(x, y)] = Mathf.Max(0f, value - decay);
-    }
-
-    void Swap(ref float[] a, ref float[] b) //for double buffering
-    {
-        float[] temp = a;
+        NativeArray<float> temp = a;
         a = b;
         b = temp;
     }
 
-    //GPU
-
-
     public void UpdateTrailTexture()
     {
-        if (trailTexture == null) return;
+        if (trailTexture == null || !trailPixels.IsCreated) return;
 
-        for (int i = 0; i < CellCount; i++)
+        var job = new BuildPixelsJob
         {
-            Color c = new Color(0f, 0f, 0f, 0f);
+            exploreField = exploreField,
+            foodField = foodField,
+            drawField = drawField,
+            pixels = trailPixels,
 
-            // 1. draw field first
-            float draw = Mathf.Clamp01(drawField[i] * drawVisualStrength);
+            weakColor = ToFloat4(weakColor),
+            midColor = ToFloat4(midColor),
+            strongColor = ToFloat4(strongColor),
+            foodColor = ToFloat4(foodColor),
+            drawColor = ToFloat4(drawColor),
+
+            foodVisualStrength = foodVisualStrength,
+            drawVisualStrength = drawVisualStrength
+        };
+
+        JobHandle handle = job.Schedule(CellCount, 128);
+        handle.Complete();
+
+        trailTexture.SetPixelData(trailPixels, 0);
+        trailTexture.Apply(false);
+    }
+    static float4 ToFloat4(Color c)
+    {
+        return new float4(c.r, c.g, c.b, c.a);
+    }
+
+    [BurstCompile]
+    struct UpdateFieldJob : IJobParallelFor
+    {
+        [ReadOnly] public NativeArray<float> source;
+        [WriteOnly] public NativeArray<float> target;
+
+        public int width;
+        public int height;
+        public float diffuseRate;
+        public float decay;
+
+        public void Execute(int index)
+        {
+            int x = index % width;
+            int y = index / width;
+
+            float center = source[index];
+            float sum = 0f;
+            int count = 0;
+
+            for (int oy = -1; oy <= 1; oy++)
+            {
+                int ny = y + oy;
+                if (ny < 0 || ny >= height) continue;
+
+                int row = ny * width;
+
+                for (int ox = -1; ox <= 1; ox++)
+                {
+                    int nx = x + ox;
+                    if (nx < 0 || nx >= width) continue;
+
+                    sum += source[row + nx];
+                    count++;
+                }
+            }
+
+            float avg = sum / count;
+            float value = math.lerp(center, avg, diffuseRate);
+            target[index] = math.max(0f, value - decay);
+        }
+    }
+
+    [BurstCompile]
+    struct BuildPixelsJob : IJobParallelFor
+    {
+        [ReadOnly] public NativeArray<float> exploreField;
+        [ReadOnly] public NativeArray<float> foodField;
+        [ReadOnly] public NativeArray<float> drawField;
+
+        [WriteOnly] public NativeArray<Color32> pixels;
+
+        public float4 weakColor;
+        public float4 midColor;
+        public float4 strongColor;
+        public float4 foodColor;
+        public float4 drawColor;
+
+        public float foodVisualStrength;
+        public float drawVisualStrength;
+
+        public void Execute(int index)
+        {
+            float4 c = new float4(0f, 0f, 0f, 0f);
+
+            float draw = math.saturate(drawField[index] * drawVisualStrength);
             if (draw > 0f)
             {
-                Color drawOverlay = drawColor;
-                drawOverlay.a = draw;
-                c = Color.Lerp(c, drawOverlay, draw);
-            }
-             
-            // 2. food on top of draw
-            float food = Mathf.Clamp01(foodField[i] * foodVisualStrength);
-            if (food > 0f)
-            {
-                Color foodOverlay = foodColor;
-                foodOverlay.a = food;
-                c = Color.Lerp(c, foodOverlay, food);
+                float4 drawOverlay = drawColor;
+                drawOverlay.w = draw;
+                c = math.lerp(c, drawOverlay, draw);
             }
 
-            // 3. bacteria trail last, so it appears on top
-            float v = exploreField[i];
-            float t = Mathf.Clamp01(v);
-            float alpha = Mathf.Clamp01(Mathf.Pow(t, 0.6f));
+            float food = math.saturate(foodField[index] * foodVisualStrength);
+            if (food > 0f)
+            {
+                float4 foodOverlay = foodColor;
+                foodOverlay.w = food;
+                c = math.lerp(c, foodOverlay, food);
+            }
+
+            float t = math.saturate(exploreField[index]);
+            float alpha = math.saturate(math.pow(t, 0.6f));
 
             if (t > 0f)
             {
-                Color trailColor;
+                float4 trailColor;
 
                 if (t < 0.96f)
                 {
-                    trailColor = Color.Lerp(weakColor, midColor, t / 0.96f);
+                    trailColor = math.lerp(weakColor, midColor, t / 0.96f);
                 }
                 else
                 {
-                    trailColor = Color.Lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
+                    trailColor = math.lerp(midColor, strongColor, (t - 0.96f) / 0.05f);
                 }
 
-                trailColor.a = alpha;
-
-                c = Color.Lerp(c, trailColor, alpha);
+                trailColor.w = alpha;
+                c = math.lerp(c, trailColor, alpha);
             }
 
-            trailPixels[i] = c;
+            pixels[index] = Float4ToColor32(c);
         }
 
-        trailTexture.SetPixels(trailPixels);
-        trailTexture.Apply(false);
-    }
+        static Color32 Float4ToColor32(float4 c)
+        {
+            c = math.saturate(c);
 
+            return new Color32(
+                (byte)math.round(c.x * 255f),
+                (byte)math.round(c.y * 255f),
+                (byte)math.round(c.z * 255f),
+                (byte)math.round(c.w * 255f)
+            );
+        }
+    }
 }
+
+
+  
+   
+
