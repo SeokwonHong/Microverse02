@@ -3,9 +3,8 @@ using Vector2 = UnityEngine.Vector2;
 
 public class BacteriaFieldManager : MonoBehaviour
 {
-    Vector2 mapCentre = Vector2.zero;
-    float mapRadius = 90f;
-    
+    [SerializeField] MapManager mapManager;
+
     [Header("Chemo Grid")]
     float[] exploreField;
     float[] exploreNext;
@@ -54,7 +53,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     float trailMaxDeposit = 1f;
     float foodMaxDeposit = 5f;
-    float drawMaxDeposit = 30f;
+    float drawMaxDeposit = 5f;
 
     float fieldTickTimer = 0f;
     [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
@@ -78,10 +77,14 @@ public class BacteriaFieldManager : MonoBehaviour
     public float SensorAngle => chemoSensorAngle;
     public float SteerStrength => chemoSteerStrength;
 
-
+    Vector2 MapCentre => mapManager.MapCentre;
+    Vector2 MapSize => mapManager.MapSize;
 
     private void Awake()
     {
+        if (mapManager == null)
+            mapManager = FindAnyObjectByType<MapManager>();
+
         int cellCount =chemoWidth * chemoHeight;
 
         exploreField = new float[cellCount];
@@ -102,8 +105,8 @@ public class BacteriaFieldManager : MonoBehaviour
         if (fieldRenderer != null)
         {
             fieldRenderer.material.mainTexture = trailTexture;
-            fieldRenderer.transform.position = new Vector3(mapCentre.x, mapCentre.y, 0f);
-            fieldRenderer.transform.localScale = new Vector3(mapRadius * 2f, mapRadius * 2f, 1f);
+            fieldRenderer.transform.position = new Vector3(MapCentre.x, MapCentre.y, 0f);
+            fieldRenderer.transform.localScale = new Vector3(MapSize.x, MapSize.y, 1f);
         }
 
         drawDiffuseRate = Mathf.Clamp01(drawDiffuseRate);
@@ -113,17 +116,18 @@ public class BacteriaFieldManager : MonoBehaviour
         return x + y * chemoWidth;
     }
 
-    bool WorldToGrid(Vector2 worldPos, out int gx, out int gy) //check if bacteria's inside of array map + return with cordinate of a bacteria
+    bool WorldToGrid(Vector2 worldPos, out int gx, out int gy)
     {
-        float mapSize = mapRadius * 2f;
+        Vector2 halfSize = MapSize * 0.5f;
 
-        float px = (worldPos.x - (mapCentre.x - mapRadius)) / mapSize;
-        float py = (worldPos.y - (mapCentre.y - mapRadius)) / mapSize;
+        float px = (worldPos.x - (MapCentre.x - halfSize.x)) / MapSize.x;
+        float py = (worldPos.y - (MapCentre.y - halfSize.y)) / MapSize.y;
 
         gx = Mathf.FloorToInt(px * chemoWidth);
-        gy = Mathf.FloorToInt(py*chemoHeight);
+        gy = Mathf.FloorToInt(py * chemoHeight);
 
         bool inside = gx >= 0 && gx < chemoWidth && gy >= 0 && gy < chemoHeight;
+
         if (!inside)
         {
             gx = -1;
@@ -299,7 +303,7 @@ public class BacteriaFieldManager : MonoBehaviour
                 drawOverlay.a = draw;
                 c = Color.Lerp(c, drawOverlay, draw);
             }
-
+             
             // 2. food on top of draw
             float food = Mathf.Clamp01(foodField[i] * foodVisualStrength);
             if (food > 0f)

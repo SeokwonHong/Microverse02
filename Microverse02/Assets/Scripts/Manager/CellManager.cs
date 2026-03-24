@@ -18,15 +18,8 @@ public class CellManager : MonoBehaviour
     [SerializeField] float bacteriaSpeed = 1.5f;
 
     [Header("Map generation")]
-    [SerializeField] MapShape mapShape = MapShape.Circle;
-
     Vector2 mapCentre = Vector2.zero;
     [SerializeField] BacteriaFieldManager bacteriaFieldManager;
-
-    [SerializeField] float mapRadius = 25f;
-    [SerializeField] GameObject refToCircleBg;
-
-
     [SerializeField] float wallBounciness = 0.5f;
 
     [Header("Spatial Hash")]
@@ -49,11 +42,7 @@ public class CellManager : MonoBehaviour
     [SerializeField] GameObject refToDestination;
     float DestinationRadius = 2f;
     int arrivedBacteriaCount = 0;
-    public enum MapShape
-    {
-        Circle,
-        Rectangle
-    }
+
     //GPU instancing
     public enum CellRole { Bacteria, Core, Shell, WhiteBlood}
 
@@ -133,36 +122,18 @@ public class CellManager : MonoBehaviour
     {
         spatialHash = new SpatialHash(BoxSize);
 
-        if (mapShape == MapShape.Circle)
-        {
-            if (refToCircleBg != null)
-                refToCircleBg.transform.localScale =
-                    new Vector3(mapRadius * 2f, mapRadius * 2f, 1f);
-        }
-        else
-        {
-            if (refToCircleBg != null)
-                refToCircleBg.SetActive(false);
-        }
+
 
         float minX, maxX, minY, maxY;
 
-        if (mapShape == MapShape.Circle)
-        {
-            minX = mapCentre.x - mapRadius;
-            maxX = mapCentre.x + mapRadius;
-            minY = mapCentre.y - mapRadius;
-            maxY = mapCentre.y + mapRadius;
-        }
-        else
-        {
+        
             float halfW = mapManager.MapSize.x * 0.5f;
             float halfH = mapManager.MapSize.y * 0.5f;
             minX = mapManager.MapCentre.x - halfW;
             maxX = mapManager.MapCentre.x + halfW;
             minY = mapManager.MapCentre.y - halfH;
             maxY = mapManager.MapCentre.y + halfH;
-        }
+        
 
         for (int i = 0; i < firstOrganismCount; i++)
         {
@@ -303,7 +274,8 @@ public class CellManager : MonoBehaviour
             }
 
             cells[i] = c;
-            ApplyMapBoundary(i);
+           
+            ApplyRectangleBoundary(i);
             c =cells[i];
 
             if(!IsFinite(c.nextPos)||!IsFinite(c.nextVelocity))
@@ -348,45 +320,7 @@ public class CellManager : MonoBehaviour
 
     #region Map
 
-    void ApplyMapBoundary(int i)
-    {
-        switch (mapShape)
-        {
-            case MapShape.Circle:
-                ApplyCircleBoundary(i);
-                break;
 
-            case MapShape.Rectangle:
-                ApplyRectangleBoundary(i);
-                break;
-        }
-    }
-    void ApplyCircleBoundary(int i)
-    {
-        Cell c = cells[i];
-
-        Vector2 p = c.nextPos;
-        Vector2 v = c.nextVelocity;
-
-        Vector2 to = p - mapCentre;
-        float dist = to.magnitude;
-
-        float allowed = mapRadius - c.cellRadius;
-        if (dist <= allowed || dist < 1e-6f) return;
-
-        Vector2 n = to / dist;
-        c.nextPos = mapCentre + n * allowed;
-
-        float vn = Vector2.Dot(v, n);
-        if (vn > 0f)
-        {
-            v = v - 2f * vn * n;
-            v *= wallBounciness;
-            c.nextVelocity = v;
-
-        }
-        cells[i] = c;
-    }
 
     void ApplyRectangleBoundary(int i)
     {
