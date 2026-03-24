@@ -43,6 +43,9 @@ public class CellManager : MonoBehaviour
     float DestinationRadius = 2f;
     int arrivedBacteriaCount = 0;
 
+    [SerializeField] float drawChemicalSpeedBoost = 5f;
+    [SerializeField] float drawChemicalSpeedSensitivity = 1f;
+
     //GPU instancing
     public enum CellRole { Bacteria, Core, Shell, WhiteBlood}
 
@@ -413,7 +416,7 @@ public class CellManager : MonoBehaviour
             c.organismId = -1;
             c.role = CellRole.Bacteria;
 
-            c.cellRadius = 0.1f;
+            c.cellRadius = 0.15f;
             c.detectRadius = c.cellRadius * 13f;
 
             c.detected = true;
@@ -431,7 +434,7 @@ public class CellManager : MonoBehaviour
         clone.currentVelocity = Vector2.zero;
         clone.nextVelocity = Vector2.zero;
 
-        clone.cellRadius = 0.1f;
+        clone.cellRadius = 0.15f;
         clone.detectRadius = clone.cellRadius * 13f;
 
         clone.organismId = -1;
@@ -1496,7 +1499,12 @@ public class CellManager : MonoBehaviour
             }
 
             Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
-            c.nextVelocity = newDir * bacteriaSpeed;
+
+            float drawValue = bacteriaFieldManager.SampleDraw(c.currentPos);
+            float draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
+            float speed = bacteriaSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
+
+            c.nextVelocity = newDir * speed;
 
             cells[i] = c;
         }

@@ -253,6 +253,16 @@ public class BacteriaFieldManager : MonoBehaviour
         return 0f;
     }
 
+    public float SampleDraw(Vector2 worldPos)
+    {
+        int x, y;
+        if (!WorldToGrid(worldPos, out x, out y))
+            return 0f;
+
+        int index = x + y * chemoWidth;
+        return drawField[index];
+    }
+
     public bool TickField(float dt) //update pretty much
     {
         bool updated = false;
