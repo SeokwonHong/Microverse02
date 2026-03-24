@@ -52,7 +52,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Draw Colours")]
     [SerializeField] Color drawColor = new Color(0.2f, 0.8f, 1f, 1f);
-    float drawVisualStrength = 1f;
+    float drawVisualStrength = 3f;
 
     float trailMaxDeposit = 1f;
     float foodMaxDeposit = 5f;
@@ -82,6 +82,8 @@ public class BacteriaFieldManager : MonoBehaviour
     public float SensorDistance => chemoSensorDistance;
     public float SensorAngle => chemoSensorAngle;
     public float SteerStrength => chemoSteerStrength;
+    public MapManager MapManager => mapManager;
+
 
     Vector2 MapCentre => mapManager.MapCentre;
     Vector2 MapSize => mapManager.MapSize;
@@ -212,7 +214,11 @@ public class BacteriaFieldManager : MonoBehaviour
     }
     public void DepositDraw(Vector2 worldPos, float amountMultiplier = 1f)
     {
-        if (!exploreField.IsCreated) return;
+        if (!drawField.IsCreated) return;
+        if (mapManager == null) return;
+
+        if (mapManager.IsWallWorld(worldPos))
+            return;
 
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {

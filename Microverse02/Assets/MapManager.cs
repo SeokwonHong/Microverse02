@@ -31,6 +31,9 @@ public class MapManager : MonoBehaviour
     [SerializeField] Color wallInnerColor = new Color(0.08f, 0.08f, 0.08f, 1f);
     [SerializeField] int edgeWidthInCells = 6;
 
+    [Header("bg")]
+    [SerializeField] GameObject refToBg;
+
     [SerializeField, HideInInspector] byte[] wallField;
 
     Texture2D wallTexture;
@@ -51,6 +54,9 @@ public class MapManager : MonoBehaviour
 
     void OnEnable()
     {
+        refToBg.transform.localScale = mapSize;
+
+
         EnsureInitialised();
         SyncRendererToMap();
         RebuildTexture();
@@ -58,9 +64,11 @@ public class MapManager : MonoBehaviour
 
     void OnValidate()
     {
-        if (gridWidth < 1) gridWidth = 1;
-        if (gridHeight < 1) gridHeight = 1;
         if (brushRadius < 1) brushRadius = 1;
+
+        float safeHeight = Mathf.Max(0.0001f, mapSize.y);
+        float aspect = mapSize.x / safeHeight;
+        gridHeight = Mathf.Max(1, Mathf.RoundToInt(gridWidth / aspect));
 
         EnsureInitialised();
         SyncRendererToMap();

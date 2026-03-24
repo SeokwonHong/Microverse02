@@ -44,6 +44,11 @@ public class ChenimalDraw : MonoBehaviour
             {
                 float t = i / (float)steps;
                 Vector2 p = Vector2.Lerp(previousWorldPos, mouseWorld, t);
+
+                if (bacteriaFieldManager.MapManager != null &&
+                    bacteriaFieldManager.MapManager.IsWallWorld(p))
+                    continue;
+
                 bacteriaFieldManager.DepositDraw(p, drawStrengthMultiplier);
             }
 
