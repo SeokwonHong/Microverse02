@@ -12,7 +12,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     //Grid
     int chemoWidth = 400;
-    int chemoHeight = 400;
+    int chemoHeight;
 
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
@@ -99,10 +99,11 @@ public class BacteriaFieldManager : MonoBehaviour
             enabled = false;
             return;
         }
-
+        SyncGridToMapAspect();
         AllocateArrays();
         CreateTexture();
         SyncRenderer();
+        
         drawDiffuseRate = Mathf.Clamp01(drawDiffuseRate);
     }
     void OnDestroy()
@@ -116,6 +117,12 @@ public class BacteriaFieldManager : MonoBehaviour
             fieldRenderer.material.mainTexture = null;
     }
 
+    void SyncGridToMapAspect()
+    {
+        float safeHeight = Mathf.Max(0.0001f, MapSize.y);
+        float aspect = MapSize.x / safeHeight;
+        chemoHeight = Mathf.Max(1, Mathf.RoundToInt(chemoWidth / aspect));
+    }
     void AllocateArrays()
     {
         int count = CellCount;
@@ -201,7 +208,7 @@ public class BacteriaFieldManager : MonoBehaviour
     }
     public void DepositFood(Vector2 worldPos, float amountMultiplier = 1f)
     {
-        if (!exploreField.IsCreated) return;
+        if (!foodField.IsCreated) return;
 
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {

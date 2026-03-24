@@ -33,7 +33,7 @@ public class CameraPosition : MonoBehaviour
     {
         float scroll = Input.mouseScrollDelta.y;
         if (scroll == 0) return;
-        cam.orthographicSize -= scroll * 0.5f;
+        cam.orthographicSize -= scroll * 1.5f;
 
         if(cam.orthographicSize<minZoom)
         {
