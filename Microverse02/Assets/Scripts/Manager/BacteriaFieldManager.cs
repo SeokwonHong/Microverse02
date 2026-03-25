@@ -34,6 +34,10 @@ public class BacteriaFieldManager : MonoBehaviour
     float chemoSensorAngle = 35f;
     float chemoSteerStrength = 5f;
 
+    public float trailMaxDeposit;
+    float foodMaxDeposit = 5f;
+    [SerializeField] float drawMaxDeposit = 5f;
+
     [Header("Sampling Weights")]
     [SerializeField] float trailWeight = 1f;
     [SerializeField] float foodWeight = 2f;
@@ -54,9 +58,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] Color drawColor = new Color(0.2f, 0.8f, 1f, 1f);
     float drawVisualStrength = 3f;
 
-    float trailMaxDeposit = 1f;
-    float foodMaxDeposit = 5f;
-    float drawMaxDeposit = 5f;
+    
 
     Texture2D trailTexture;
 
@@ -331,7 +333,8 @@ public class BacteriaFieldManager : MonoBehaviour
             drawColor = ToFloat4(drawColor),
 
             foodVisualStrength = foodVisualStrength,
-            drawVisualStrength = drawVisualStrength
+            drawVisualStrength = drawVisualStrength,
+            trailMaxDeposit = trailMaxDeposit
         };
 
         JobHandle handle = job.Schedule(CellCount, 128);
@@ -405,6 +408,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
         public float foodVisualStrength;
         public float drawVisualStrength;
+        public float trailMaxDeposit;
 
         public void Execute(int index)
         {
@@ -426,24 +430,30 @@ public class BacteriaFieldManager : MonoBehaviour
                 c = math.lerp(c, foodOverlay, food);
             }
 
-            float t = math.saturate(exploreField[index]);
-            float alpha = math.saturate(math.pow(t, 0.6f));
+            float raw = exploreField[index] / math.max(0.0001f, trailMaxDeposit);
+            float t = math.saturate(raw);
+            float shapedT = math.pow(t, 1.35f);
+
+            float trailAlpha = math.saturate(math.pow(t, 0.85f));
 
             if (t > 0f)
             {
-                float4 trailColor;
+                float3 trailRgb;
 
-                if (t < 0.975f)
+                if (shapedT < 0.65f)
                 {
-                    trailColor = math.lerp(weakColor, midColor, t / 0.975f);
+                    float k = shapedT / 0.65f;
+                    trailRgb = math.lerp(weakColor.xyz, midColor.xyz, k);
                 }
                 else
                 {
-                    trailColor = math.lerp(midColor, strongColor, (t - 0.975f) / 0.05f);
+                    float k = (shapedT - 0.65f) / 0.35f;
+                    trailRgb = math.lerp(midColor.xyz, strongColor.xyz, k);
                 }
 
-                trailColor.w = alpha;
-                c = math.lerp(c, trailColor, alpha);
+                // Put trail colour on top without using its colour as the blend weight.
+                c.xyz = math.lerp(c.xyz, trailRgb, trailAlpha);
+                c.w = math.max(c.w, trailAlpha);
             }
 
             pixels[index] = Float4ToColor32(c);
