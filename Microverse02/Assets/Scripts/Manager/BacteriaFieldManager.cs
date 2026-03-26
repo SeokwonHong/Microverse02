@@ -47,6 +47,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Trail Colours")]
     [SerializeField] Color weakColor = new Color(0.4f, 0f, 0f, 0f);
+    [SerializeField] Color midColor = new Color(1f, 0.3f, 0.05f, 1f);
     [SerializeField] Color strongColor = new Color(1f, 1f, 0.6f, 1f);
 
     [Header("Food Colours")]
@@ -326,6 +327,7 @@ public class BacteriaFieldManager : MonoBehaviour
             pixels = trailPixels,
 
             weakColor = ToFloat4(weakColor),
+            midColor = ToFloat4(midColor),
             strongColor = ToFloat4(strongColor),
             foodColor = ToFloat4(foodColor),
             drawColor = ToFloat4(drawColor),
@@ -399,6 +401,7 @@ public class BacteriaFieldManager : MonoBehaviour
         [WriteOnly] public NativeArray<Color32> pixels;
 
         public float4 weakColor;
+        public float4 midColor;
         public float4 strongColor;
         public float4 foodColor;
         public float4 drawColor;
@@ -427,13 +430,28 @@ public class BacteriaFieldManager : MonoBehaviour
                 c = math.lerp(c, foodOverlay, food);
             }
 
-            float raw = exploreField[index];
-            if (raw > 0f)
-            {
-                float t = math.saturate(raw * 0.5f);
-                float3 trailRgb = math.lerp(weakColor.xyz, strongColor.xyz, t);
-                float trailAlpha = t;
+            float raw = exploreField[index] / math.max(0.0001f, trailMaxDeposit);
+            float t = math.saturate(raw);
+            float shapedT = math.pow(t, 1.35f);
 
+            float trailAlpha = math.saturate(math.pow(t, 0.85f));
+
+            if (t > 0f)
+            {
+                float3 trailRgb;
+
+                if (shapedT < 0.65f)
+                {
+                    float k = shapedT / 0.65f;
+                    trailRgb = math.lerp(weakColor.xyz, midColor.xyz, k);
+                }
+                else
+                {
+                    float k = (shapedT - 0.65f) / 0.35f;
+                    trailRgb = math.lerp(midColor.xyz, strongColor.xyz, k);
+                }
+
+                // Put trail colour on top without using its colour as the blend weight.
                 c.xyz = math.lerp(c.xyz, trailRgb, trailAlpha);
                 c.w = math.max(c.w, trailAlpha);
             }
