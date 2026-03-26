@@ -416,7 +416,7 @@ public class CellManager : MonoBehaviour
             c.organismId = -1;
             c.role = CellRole.Bacteria;
 
-            c.cellRadius = 0.15f;
+            c.cellRadius = 0.3f;
             c.detectRadius = c.cellRadius * 13f;
 
             c.detected = true;
@@ -434,7 +434,7 @@ public class CellManager : MonoBehaviour
         clone.currentVelocity = Vector2.zero;
         clone.nextVelocity = Vector2.zero;
 
-        clone.cellRadius = 0.15f;
+        clone.cellRadius = 0.3f;
         clone.detectRadius = clone.cellRadius * 13f;
 
         clone.organismId = -1;

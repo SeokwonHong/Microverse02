@@ -54,7 +54,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] Color drawColor = new Color(0.2f, 0.8f, 1f, 1f);
     float drawVisualStrength = 3f;
 
-    float trailMaxDeposit = 1f;
+    public float trailMaxDeposit = 1f;
     float foodMaxDeposit = 5f;
     float drawMaxDeposit = 5f;
 
@@ -331,7 +331,9 @@ public class BacteriaFieldManager : MonoBehaviour
             drawColor = ToFloat4(drawColor),
 
             foodVisualStrength = foodVisualStrength,
-            drawVisualStrength = drawVisualStrength
+            drawVisualStrength = drawVisualStrength,
+            chemoDepositAmount = chemoDepositAmount,
+            trailMaxDeposit = trailMaxDeposit
         };
 
         JobHandle handle = job.Schedule(CellCount, 128);
@@ -403,6 +405,9 @@ public class BacteriaFieldManager : MonoBehaviour
         public float4 foodColor;
         public float4 drawColor;
 
+        public float chemoDepositAmount;
+        public float trailMaxDeposit;
+
         public float foodVisualStrength;
         public float drawVisualStrength;
 
@@ -426,24 +431,31 @@ public class BacteriaFieldManager : MonoBehaviour
                 c = math.lerp(c, foodOverlay, food);
             }
 
-            float t = math.saturate(exploreField[index]);
-            float alpha = math.saturate(math.pow(t, 0.6f));
+            float v = exploreField[index];
 
-            if (t > 0f)
+            if (v > 0f)
             {
                 float4 trailColor;
 
-                if (t < 0.975f)
+                float midValue = math.max(0.0001f, chemoDepositAmount);
+                float maxValue = math.max(midValue, trailMaxDeposit);
+
+                if (v <= midValue)
                 {
-                    trailColor = math.lerp(weakColor, midColor, t / 0.975f);
+                    float k = math.saturate(v / midValue);
+                    trailColor = math.lerp(weakColor, midColor, k);
                 }
                 else
                 {
-                    trailColor = math.lerp(midColor, strongColor, (t - 0.975f) / 0.05f);
+                    float range = math.max(0.0001f, maxValue - midValue);
+                    float k = math.saturate((v - midValue) / range);
+                    trailColor = math.lerp(midColor, strongColor, k);
                 }
 
+                float alpha = math.saturate(math.pow(v / math.max(0.0001f, maxValue), 0.6f));
                 trailColor.w = alpha;
-                c = math.lerp(c, trailColor, alpha);
+
+                c = trailColor;
             }
 
             pixels[index] = Float4ToColor32(c);
