@@ -13,7 +13,7 @@ public class CellManager : MonoBehaviour
     [Header("Bacteria Spawn")]
     [SerializeField] GameObject reftoBacteriaSpawnPos1;
     [SerializeField] GameObject reftoBacteriaSpawnPos2;
-    [SerializeField] float bacteriaSpawnInterval = 0.01f;
+    [SerializeField] float bacteriaSpawnInterval = 0.001f;
     float bacteriaSpawnTimer = 0f;
     [SerializeField] int bacteriaCount = 200;
     [SerializeField] float bacteriaSpeed = 1.5f;
