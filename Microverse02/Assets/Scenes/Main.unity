@@ -1907,7 +1907,7 @@ MonoBehaviour:
   chemoDepositAmount: 0.45
   chemoDecayPerSecond: 0.07
   foodDepositAmount: 5
-  drawDepositAmount: 10
+  drawDepositAmount: 15
   drawDecayPerSecond: 0.035
   drawDiffuseRate: 0.3
   chemoSensorDistance: 4.5
@@ -2739,7 +2739,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 4000
+      value: 2000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
@@ -2771,7 +2771,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: firstOrganismCount
-      value: 0
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaFieldManager

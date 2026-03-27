@@ -56,7 +56,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     public float trailMaxDeposit = 1f;
     float foodMaxDeposit = 5f;
-    float drawMaxDeposit = 5f;
+    float drawMaxDeposit = 15f;
 
     Texture2D trailTexture;
 
