@@ -11,7 +11,8 @@ public class CellManager : MonoBehaviour
     public int maxOrganismCount = 100;
 
     [Header("Bacteria Spawn")]
-    [SerializeField] GameObject reftoBacteriaSpawnPos;
+    [SerializeField] GameObject reftoBacteriaSpawnPos1;
+    [SerializeField] GameObject reftoBacteriaSpawnPos2;
     [SerializeField] float bacteriaSpawnInterval = 0.01f;
     float bacteriaSpawnTimer = 0f;
     [SerializeField] int bacteriaCount = 200;
@@ -153,14 +154,15 @@ public class CellManager : MonoBehaviour
         refToDestination.transform.localScale = new Vector3(DestinationRadius * 2f, DestinationRadius * 2f, 1f);
 
 
-        Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
+        Vector2 spawnPos1 = reftoBacteriaSpawnPos1.transform.position;
+        Vector2 spawnPos2 = reftoBacteriaSpawnPos2.transform.position;
 
-        for (int i = 0; i < bacteriaCount; i++)
-        {
-            CreateBacteriaCell(spawnPos);
-        }
+        //for (int i = 0; i < bacteriaCount; i++)
+        //{
+        //    CreateBacteriaCell(spawnPos1);
+        //}
 
-        bacteriaCount = 0;
+        //bacteriaCount = 0;
 
     }
     /// <summary>
@@ -172,15 +174,17 @@ public class CellManager : MonoBehaviour
 
         bacteriaSpawnTimer += dt;
 
-        //if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount > 0)
-        //{
-        //    bacteriaSpawnTimer -= bacteriaSpawnInterval;
+        if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount > 0)
+        {
+            bacteriaSpawnTimer -= bacteriaSpawnInterval;
 
-        //    Vector2 spawnPos = reftoBacteriaSpawnPos.transform.position;
-        //    CreateBacteriaCell(spawnPos);
-        //    bacteriaCount--;
-        //}
-        //if (bacteriaCount <= 0) bacteriaCount = 0;
+            Vector2 spawnPos1 = reftoBacteriaSpawnPos1.transform.position;
+            Vector2 spawnPos2 = reftoBacteriaSpawnPos2.transform.position;
+            CreateBacteriaCell(spawnPos1);
+            CreateBacteriaCell(spawnPos2);
+            bacteriaCount-= 2;
+        }
+        if (bacteriaCount <= 0) bacteriaCount = 0;
 
         // 0) Double buffer start
         for (int i = 0; i < cells.Count; i++)
@@ -1446,13 +1450,76 @@ public class CellManager : MonoBehaviour
             bacteriaFieldManager.DepositTrail(c.currentPos);
         }
     }
+    //void ApplyBacteriaFieldSteering()
+    //{
+    //    if (bacteriaFieldManager == null) return;
+
+    //    float dt = Time.deltaTime;
+    //    float turnRate = 50f;
+    //    float turnThreshold = 0.0001f;
+
+    //    for (int i = 0; i < cells.Count; i++)
+    //    {
+    //        Cell c = cells[i];
+    //        if (c.isDead) continue;
+    //        if (c.role != CellRole.Bacteria) continue;
+
+    //        Vector2 forward = c.nextVelocity.sqrMagnitude > 0.0001f
+    //            ? c.nextVelocity.normalized
+    //            : Random.insideUnitCircle.normalized;
+
+    //        Vector2 leftDir = Rotate(forward, -bacteriaFieldManager.SensorAngle);
+    //        Vector2 rightDir = Rotate(forward, bacteriaFieldManager.SensorAngle);
+
+    //        Vector2 forwardPos = c.currentPos + forward * bacteriaFieldManager.SensorDistance;
+    //        Vector2 leftPos = c.currentPos + leftDir * bacteriaFieldManager.SensorDistance;
+    //        Vector2 rightPos = c.currentPos + rightDir * bacteriaFieldManager.SensorDistance;
+
+    //        float forwardValue = bacteriaFieldManager.Sample(forwardPos);
+    //        float leftValue = bacteriaFieldManager.Sample(leftPos);
+    //        float rightValue = bacteriaFieldManager.Sample(rightPos);
+
+    //        Vector2 desiredDir = forward;
+
+    //        if (leftValue > forwardValue + turnThreshold && leftValue > rightValue + turnThreshold)
+    //        {
+    //            desiredDir = leftDir;
+    //        }
+    //        else if (rightValue > forwardValue + turnThreshold && rightValue > leftValue + turnThreshold)
+    //        {
+    //            desiredDir = rightDir;
+    //        }
+    //        else
+    //        {
+    //            c.headingTimer -= dt;
+
+    //            if (c.headingTimer <= 0f)
+    //            {
+    //                c.wanderAngle = Random.Range(-20f, 20f);
+    //                c.headingTimer = Random.Range(0.2f, 0.6f);
+    //            }
+
+    //            desiredDir = Rotate(forward, c.wanderAngle);
+    //        }
+
+    //        Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
+
+    //        float drawValue = bacteriaFieldManager.SampleDraw(c.currentPos);
+    //        float draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
+    //        float speed = bacteriaSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
+
+    //        c.nextVelocity = newDir * speed;
+
+    //        cells[i] = c;
+    //    }
+    //}
     void ApplyBacteriaFieldSteering()
     {
         if (bacteriaFieldManager == null) return;
 
         float dt = Time.deltaTime;
-        float turnRate = 50f;
-        float turnThreshold = 0.0001f;
+        float turnRate = 2f;
+        float turnThreshold = 0.01f;
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -1509,7 +1576,6 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
     }
-
     public void DestinationDetectoin()
     {
         Vector2 dest = refToDestination.transform.position;
