@@ -1451,8 +1451,8 @@ public class CellManager : MonoBehaviour
         if (bacteriaFieldManager == null) return;
 
         float dt = Time.deltaTime;
-        float turnRate = 2f;
-        float turnThreshold = 0.01f;
+        float turnRate = 50f;
+        float turnThreshold = 0.0001f;
 
         for (int i = 0; i < cells.Count; i++)
         {
