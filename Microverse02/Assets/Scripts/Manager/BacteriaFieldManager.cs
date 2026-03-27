@@ -31,8 +31,8 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 6f;
-    float chemoSensorAngle = 35f;
-    float chemoSteerStrength = 5f;
+    float chemoSensorAngle = 28f;
+
 
     [Header("Sampling Weights")]
     [SerializeField] float trailWeight = 1f;
@@ -81,7 +81,6 @@ public class BacteriaFieldManager : MonoBehaviour
     //getter
     public float SensorDistance => chemoSensorDistance;
     public float SensorAngle => chemoSensorAngle;
-    public float SteerStrength => chemoSteerStrength;
     public MapManager MapManager => mapManager;
 
 

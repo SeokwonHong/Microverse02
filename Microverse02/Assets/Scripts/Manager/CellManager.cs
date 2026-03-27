@@ -1518,8 +1518,8 @@ public class CellManager : MonoBehaviour
         if (bacteriaFieldManager == null) return;
 
         float dt = Time.deltaTime;
-        float turnRate = 2f;
-        float turnThreshold = 0.01f;
+        float turnRate = 18f;
+        float turnThreshold = 0.0015f;
 
         for (int i = 0; i < cells.Count; i++)
         {
@@ -1558,8 +1558,8 @@ public class CellManager : MonoBehaviour
 
                 if (c.headingTimer <= 0f)
                 {
-                    c.wanderAngle = Random.Range(-20f, 20f);
-                    c.headingTimer = Random.Range(0.2f, 0.6f);
+                    c.wanderAngle = Random.Range(-8f, 8f);
+                    c.headingTimer = Random.Range(0.15f, 0.35f);
                 }
 
                 desiredDir = Rotate(forward, c.wanderAngle);
