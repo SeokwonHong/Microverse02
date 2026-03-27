@@ -1915,8 +1915,8 @@ MonoBehaviour:
   foodWeight: 5
   fieldTickInterval: 0.03333334
   weakColor: {r: 0, g: 0, b: 0, a: 0}
-  midColor: {r: 0.30980393, g: 0, b: 0, a: 1}
-  strongColor: {r: 1, g: 0.35686275, b: 0.20392157, a: 1}
+  midColor: {r: 0.03529412, g: 0, b: 0.30980393, a: 1}
+  strongColor: {r: 0.20392157, g: 0.48235294, b: 1, a: 1}
   foodColor: {r: 1, g: 1, b: 1, a: 1}
   foodVisualStrength: 1
   drawColor: {r: 0.4811321, g: 0.13415255, b: 0, a: 1}
@@ -2314,7 +2314,7 @@ Transform:
   m_GameObject: {fileID: 1921727452}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -128, y: 0.3, z: 0}
+  m_LocalPosition: {x: 6.7, y: 34.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2739,7 +2739,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 2000
+      value: 4000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
