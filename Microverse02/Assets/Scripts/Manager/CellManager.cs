@@ -1450,69 +1450,7 @@ public class CellManager : MonoBehaviour
             bacteriaFieldManager.DepositTrail(c.currentPos);
         }
     }
-    //void ApplyBacteriaFieldSteering()
-    //{
-    //    if (bacteriaFieldManager == null) return;
 
-    //    float dt = Time.deltaTime;
-    //    float turnRate = 50f;
-    //    float turnThreshold = 0.0001f;
-
-    //    for (int i = 0; i < cells.Count; i++)
-    //    {
-    //        Cell c = cells[i];
-    //        if (c.isDead) continue;
-    //        if (c.role != CellRole.Bacteria) continue;
-
-    //        Vector2 forward = c.nextVelocity.sqrMagnitude > 0.0001f
-    //            ? c.nextVelocity.normalized
-    //            : Random.insideUnitCircle.normalized;
-
-    //        Vector2 leftDir = Rotate(forward, -bacteriaFieldManager.SensorAngle);
-    //        Vector2 rightDir = Rotate(forward, bacteriaFieldManager.SensorAngle);
-
-    //        Vector2 forwardPos = c.currentPos + forward * bacteriaFieldManager.SensorDistance;
-    //        Vector2 leftPos = c.currentPos + leftDir * bacteriaFieldManager.SensorDistance;
-    //        Vector2 rightPos = c.currentPos + rightDir * bacteriaFieldManager.SensorDistance;
-
-    //        float forwardValue = bacteriaFieldManager.Sample(forwardPos);
-    //        float leftValue = bacteriaFieldManager.Sample(leftPos);
-    //        float rightValue = bacteriaFieldManager.Sample(rightPos);
-
-    //        Vector2 desiredDir = forward;
-
-    //        if (leftValue > forwardValue + turnThreshold && leftValue > rightValue + turnThreshold)
-    //        {
-    //            desiredDir = leftDir;
-    //        }
-    //        else if (rightValue > forwardValue + turnThreshold && rightValue > leftValue + turnThreshold)
-    //        {
-    //            desiredDir = rightDir;
-    //        }
-    //        else
-    //        {
-    //            c.headingTimer -= dt;
-
-    //            if (c.headingTimer <= 0f)
-    //            {
-    //                c.wanderAngle = Random.Range(-20f, 20f);
-    //                c.headingTimer = Random.Range(0.2f, 0.6f);
-    //            }
-
-    //            desiredDir = Rotate(forward, c.wanderAngle);
-    //        }
-
-    //        Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
-
-    //        float drawValue = bacteriaFieldManager.SampleDraw(c.currentPos);
-    //        float draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
-    //        float speed = bacteriaSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
-
-    //        c.nextVelocity = newDir * speed;
-
-    //        cells[i] = c;
-    //    }
-    //}
     void ApplyBacteriaFieldSteering()
     {
         if (bacteriaFieldManager == null) return;
