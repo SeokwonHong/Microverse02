@@ -157,12 +157,13 @@ public class CellManager : MonoBehaviour
         Vector2 spawnPos1 = reftoBacteriaSpawnPos1.transform.position;
         Vector2 spawnPos2 = reftoBacteriaSpawnPos2.transform.position;
 
-        //for (int i = 0; i < bacteriaCount; i++)
-        //{
-        //    CreateBacteriaCell(spawnPos1);
-        //}
+        for (int i = 0; i < bacteriaCount/2; i++)
+        {
+            CreateBacteriaCell(spawnPos1);
+            CreateBacteriaCell(spawnPos2);
+        }
 
-        //bacteriaCount = 0;
+        bacteriaCount = 0;
 
     }
     /// <summary>
@@ -172,19 +173,19 @@ public class CellManager : MonoBehaviour
     {
         float dt = Time.deltaTime;
 
-        bacteriaSpawnTimer += dt;
+        //bacteriaSpawnTimer += dt;
 
-        if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount > 0)
-        {
-            bacteriaSpawnTimer -= bacteriaSpawnInterval;
+        //if (bacteriaSpawnTimer >= bacteriaSpawnInterval && bacteriaCount > 0)
+        //{
+        //    bacteriaSpawnTimer -= bacteriaSpawnInterval;
 
-            Vector2 spawnPos1 = reftoBacteriaSpawnPos1.transform.position;
-            Vector2 spawnPos2 = reftoBacteriaSpawnPos2.transform.position;
-            CreateBacteriaCell(spawnPos1);
-            CreateBacteriaCell(spawnPos2);
-            bacteriaCount-= 2;
-        }
-        if (bacteriaCount <= 0) bacteriaCount = 0;
+        //    Vector2 spawnPos1 = reftoBacteriaSpawnPos1.transform.position;
+        //    Vector2 spawnPos2 = reftoBacteriaSpawnPos2.transform.position;
+        //    CreateBacteriaCell(spawnPos1);
+        //    CreateBacteriaCell(spawnPos2);
+        //    bacteriaCount-= 2;
+        //}
+        //if (bacteriaCount <= 0) bacteriaCount = 0;
 
         // 0) Double buffer start
         for (int i = 0; i < cells.Count; i++)
