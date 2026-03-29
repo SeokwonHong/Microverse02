@@ -4,7 +4,6 @@ Shader "Custom/URP/SimpleOutline"
     {
         [MainTexture] _MainTex("Texture", 2D) = "white" {}
         [HDR] _OutlineColor("Outline Color", Color) = (1, 0.5, 0, 1)
-        [HDR] _InnerColor("Inner Glow Color", Color) = (0, 0.5, 1, 1)
         _Thickness("Outline Thickness", Range(0, 10)) = 1
         _Threshold("Alpha Threshold", Range(0, 1)) = 0.5
     }
@@ -58,27 +57,23 @@ Shader "Custom/URP/SimpleOutline"
             float4 frag(Varyings input) : SV_Target
             {
                 float4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-                
-                // Sample neighbors to find edges
+    
                 float2 texelSize = _MainTex_TexelSize.xy * _Thickness;
-                
+    
                 float aUp = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(0, texelSize.y)).a;
                 float aDown = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv - float2(0, texelSize.y)).a;
                 float aLeft = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv - float2(texelSize.x, 0)).a;
                 float aRight = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(texelSize.x, 0)).a;
 
-                // Max difference in alpha determines if we are on an edge
                 float edge = max(max(aUp, aDown), max(aLeft, aRight));
-                
-                // If the current pixel is transparent but neighbors are not, it's an outline
+    
+                // outline only
                 if (col.a < _Threshold && edge >= _Threshold)
                 {
                     return _OutlineColor;
                 }
-                
-                // Color the existing shape with the Inner Color tint
-                col.rgb *= _InnerColor.rgb;
-                
+
+                // return original texture (NO inner glow)
                 return col;
             }
             ENDHLSL
