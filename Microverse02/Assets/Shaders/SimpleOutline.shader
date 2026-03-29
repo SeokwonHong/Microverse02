@@ -10,7 +10,13 @@ Shader "Custom/URP/SimpleOutline"
 
     SubShader
     {
-        Tags { "RenderType"="Transparent" "Queue"="Transparent" "RenderPipeline" = "UniversalPipeline" }
+        Tags
+        {
+            "RenderType"="Transparent"
+            "Queue"="Transparent"
+            "RenderPipeline"="UniversalPipeline"
+        }
+
         LOD 100
         Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
@@ -18,6 +24,7 @@ Shader "Custom/URP/SimpleOutline"
         Pass
         {
             Name "Unlit"
+
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -40,9 +47,8 @@ Shader "Custom/URP/SimpleOutline"
             SAMPLER(sampler_MainTex);
 
             float4 _MainTex_ST;
-            float4 _MainTex_TexelSize; // Automatically filled by Unity (x=1/w, y=1/h)
+            float4 _MainTex_TexelSize;
             float4 _OutlineColor;
-            float4 _InnerColor;
             float _Thickness;
             float _Threshold;
 
@@ -57,24 +63,30 @@ Shader "Custom/URP/SimpleOutline"
             float4 frag(Varyings input) : SV_Target
             {
                 float4 col = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-    
+
+                // alpha channel is TRAIL MASK ONLY
+                float trailMask = col.a;
+
                 float2 texelSize = _MainTex_TexelSize.xy * _Thickness;
-    
-                float aUp = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(0, texelSize.y)).a;
-                float aDown = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv - float2(0, texelSize.y)).a;
-                float aLeft = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv - float2(texelSize.x, 0)).a;
+
+                float aUp    = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(0, texelSize.y)).a;
+                float aDown  = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv - float2(0, texelSize.y)).a;
+                float aLeft  = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv - float2(texelSize.x, 0)).a;
                 float aRight = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv + float2(texelSize.x, 0)).a;
 
                 float edge = max(max(aUp, aDown), max(aLeft, aRight));
-    
-                // outline only
-                if (col.a < _Threshold && edge >= _Threshold)
+
+                // Only outline TRAIL pixels
+                if (trailMask < _Threshold && edge >= _Threshold)
                 {
                     return _OutlineColor;
                 }
 
-                // return original texture (NO inner glow)
-                return col;
+                // Rebuild visible alpha from colour brightness OR trail mask
+                // so food/draw remain visible even though their stored alpha is 0
+                float visibleAlpha = max(trailMask, max(col.r, max(col.g, col.b)));
+
+                return float4(col.rgb, visibleAlpha);
             }
             ENDHLSL
         }

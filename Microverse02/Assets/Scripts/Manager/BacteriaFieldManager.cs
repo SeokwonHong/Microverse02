@@ -414,21 +414,33 @@ public class BacteriaFieldManager : MonoBehaviour
         {
             float4 c = new float4(0f, 0f, 0f, 0f);
 
+            // -------------------------
+            // DRAW VISUAL (RGB only)
+            // -------------------------
             float draw = math.saturate(drawField[index] * drawVisualStrength);
             if (draw > 0f)
             {
                 float4 drawOverlay = drawColor;
-                drawOverlay.w = draw;
-                c = math.lerp(c, drawOverlay, draw);
+                drawOverlay.w = 1f;
+
+                c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
             }
 
+            // -------------------------
+            // FOOD VISUAL (RGB only)
+            // -------------------------
             float food = math.saturate(foodField[index] * foodVisualStrength);
             if (food > 0f)
             {
                 float4 foodOverlay = foodColor;
-                foodOverlay.w = food;
-                c = math.lerp(c, foodOverlay, food);
+                foodOverlay.w = 1f;
+
+                c.xyz = math.lerp(c.xyz, foodOverlay.xyz, food);
             }
+
+            // -------------------------
+            // TRAIL VISUAL + TRAIL MASK
+            // -------------------------
             float v = exploreField[index];
 
             if (v > 0f)
@@ -450,18 +462,17 @@ public class BacteriaFieldManager : MonoBehaviour
                     trailColor = math.lerp(midColor, strongColor, k);
                 }
 
-                // brightness based on full trail range
                 float light01 = math.saturate(v / maxValue);
-
-                // make stronger trail brighter
                 float brightness = math.lerp(0.5f, 1.5f, light01);
                 trailColor.xyz *= brightness;
 
-                // alpha also uses full trail range
-                float alpha = math.saturate(math.pow(light01, 0.6f));
-                trailColor.w = alpha;
+                float trailAlpha = math.saturate(math.pow(light01, 0.6f));
 
-                c = trailColor;
+                // trail colour wins visually where trail exists
+                c.xyz = trailColor.xyz;
+
+                // alpha stores TRAIL MASK ONLY
+                c.w = trailAlpha;
             }
 
             pixels[index] = Float4ToColor32(c);
