@@ -15,28 +15,28 @@ public class BacteriaFieldManager : MonoBehaviour
     int chemoHeight;
 
     [Header("Trail")]
-    [SerializeField] float chemoDepositAmount = 0.3f;  // how strong bacteria chemo is 
-    [SerializeField] float chemoDecayPerSecond = 0.2f;
+    [SerializeField] float chemoDepositAmount = 0.45f;  // how strong bacteria chemo is 
+    [SerializeField] float chemoDecayPerSecond = 0.07f;
 
     [Header("Food")]
-    [SerializeField] float foodDepositAmount = 0.8f;
+    [SerializeField] float foodDepositAmount = 5f;
     float foodDecayPerSecond = 0.88f;
     float foodDiffuseRate = 1f; //How much chemical spreads to neighbours. Like blurring.
 
     [Header("Draw")]
-    [SerializeField] float drawDepositAmount = 3f;
-    [SerializeField] float drawDecayPerSecond = 0.3f;
-    [SerializeField] float drawDiffuseRate = 0f;
+    [SerializeField] float drawDepositAmount = 15f;
+    [SerializeField] float drawDecayPerSecond = 0.035f;
+    [SerializeField] float drawDiffuseRate = 0.3f;
 
 
     [Header("Sensors")]
-    [SerializeField] float chemoSensorDistance = 6f;
+    [SerializeField] float chemoSensorDistance = 4.5f;
     float chemoSensorAngle = 28f;
 
 
     [Header("Sampling Weights")]
     [SerializeField] float trailWeight = 1f;
-    [SerializeField] float foodWeight = 2f;
+    [SerializeField] float foodWeight = 5f;
 
     [Header("Tick")]
     [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
@@ -54,7 +54,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] Color drawColor = new Color(0.2f, 0.8f, 1f, 1f);
     float drawVisualStrength = 3f;
 
-    public float trailMaxDeposit = 1f;
+    public float trailMaxDeposit = 1.5f;
     float foodMaxDeposit = 5f;
     float drawMaxDeposit = 15f;
 
@@ -429,7 +429,6 @@ public class BacteriaFieldManager : MonoBehaviour
                 foodOverlay.w = food;
                 c = math.lerp(c, foodOverlay, food);
             }
-
             float v = exploreField[index];
 
             if (v > 0f)
@@ -451,7 +450,15 @@ public class BacteriaFieldManager : MonoBehaviour
                     trailColor = math.lerp(midColor, strongColor, k);
                 }
 
-                float alpha = math.saturate(math.pow(v / math.max(0.0001f, maxValue), 0.6f));
+                // brightness based on full trail range
+                float light01 = math.saturate(v / maxValue);
+
+                // make stronger trail brighter
+                float brightness = math.lerp(0.5f, 1.5f, light01);
+                trailColor.xyz *= brightness;
+
+                // alpha also uses full trail range
+                float alpha = math.saturate(math.pow(light01, 0.6f));
                 trailColor.w = alpha;
 
                 c = trailColor;

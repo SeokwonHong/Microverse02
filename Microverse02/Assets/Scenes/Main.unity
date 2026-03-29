@@ -1904,7 +1904,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapManager: {fileID: 555529757}
   fieldRenderer: {fileID: 42457891}
-  chemoDepositAmount: 0.45
+  chemoDepositAmount: 0.05
   chemoDecayPerSecond: 0.07
   foodDepositAmount: 5
   drawDepositAmount: 15
