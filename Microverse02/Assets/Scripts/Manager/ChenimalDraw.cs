@@ -24,14 +24,19 @@ public class ChenimalDraw : MonoBehaviour
             return;
 
         bool isDrawing = Input.GetMouseButton(0);
+        bool isErasing = Input.GetMouseButton(1); // RIGHT CLICK
 
-        if (isDrawing)
+        if (isDrawing || isErasing)
         {
             Vector2 mouseWorld = GetMouseWorldPosition();
 
             if (!wasDrawingLastFrame)
             {
-                bacteriaFieldManager.DepositDraw(mouseWorld, drawStrengthMultiplier);
+                if (isDrawing)
+                    bacteriaFieldManager.DepositDraw(mouseWorld, drawStrengthMultiplier);
+                else
+                    bacteriaFieldManager.DepositRemove(mouseWorld, drawStrengthMultiplier);
+
                 previousWorldPos = mouseWorld;
                 wasDrawingLastFrame = true;
                 return;
@@ -49,7 +54,10 @@ public class ChenimalDraw : MonoBehaviour
                     bacteriaFieldManager.MapManager.IsWallWorld(p))
                     continue;
 
-                bacteriaFieldManager.DepositDraw(p, drawStrengthMultiplier);
+                if (isDrawing)
+                    bacteriaFieldManager.DepositDraw(p, drawStrengthMultiplier);
+                else
+                    bacteriaFieldManager.DepositRemove(p, drawStrengthMultiplier);
             }
 
             previousWorldPos = mouseWorld;

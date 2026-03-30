@@ -56,7 +56,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     public float trailMaxDeposit = 1.5f;
     float foodMaxDeposit = 5f;
-    float drawMaxDeposit = 15f;
+    float drawMaxDeposit = 23f;
 
     Texture2D trailTexture;
 
@@ -235,7 +235,37 @@ public class BacteriaFieldManager : MonoBehaviour
             );
         }
     }
+    public void DepositRemove(Vector2 worldPos, float amountMultiplier = 1f)
+    {
+        if (!WorldToGrid(worldPos, out int gx, out int gy)) return;
 
+        int radius = 6;
+        float drawAmount = drawDepositAmount * amountMultiplier;
+        float trailAmount = chemoDepositAmount * amountMultiplier;
+        float foodAmount = foodDepositAmount * amountMultiplier;
+
+        for (int oy = -radius; oy <= radius; oy++)
+        {
+            int y = gy + oy;
+            if (y < 0 || y >= chemoHeight) continue;
+
+            for (int ox = -radius; ox <= radius; ox++)
+            {
+                int x = gx + ox;
+                if (x < 0 || x >= chemoWidth) continue;
+
+                float dist = Mathf.Sqrt(ox * ox + oy * oy);
+                if (dist > radius) continue;
+
+                float falloff = 1f - (dist / (radius + 0.001f));
+                int idx = Index(x, y);
+
+                exploreField[idx] = Mathf.Max(exploreField[idx] - trailAmount * falloff, 0f);
+                foodField[idx] = Mathf.Max(foodField[idx] - foodAmount * falloff, 0f);
+                drawField[idx] = Mathf.Max(drawField[idx] - drawAmount * falloff, 0f);
+            }
+        }
+    }
     public float Sample(Vector2 worldPos) //taking the value out from the hash
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
@@ -473,6 +503,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
                 // alpha stores TRAIL MASK ONLY
                 c.w = 1;
+             
             }
 
             pixels[index] = Float4ToColor32(c);
