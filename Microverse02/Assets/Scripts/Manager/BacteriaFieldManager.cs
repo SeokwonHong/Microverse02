@@ -472,7 +472,7 @@ public class BacteriaFieldManager : MonoBehaviour
                 c.xyz = trailColor.xyz;
 
                 // alpha stores TRAIL MASK ONLY
-                c.w = trailAlpha;
+                c.w = 1;
             }
 
             pixels[index] = Float4ToColor32(c);
