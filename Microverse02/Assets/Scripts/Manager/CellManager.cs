@@ -4,6 +4,7 @@ using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Random = UnityEngine.Random;
 using System.Security.Cryptography;
+using static CellManager;
 public class CellManager : MonoBehaviour
 {
     [Header("Defalut Settings")]
@@ -11,8 +12,8 @@ public class CellManager : MonoBehaviour
     public int maxOrganismCount = 100;
 
     [Header("Bacteria Spawn")]
-    [SerializeField] GameObject reftoBacteriaSpawnPos1;
-    [SerializeField] GameObject reftoBacteriaSpawnPos2;
+    [SerializeField] GameObject playerSpawn;
+    [SerializeField] GameObject enemySpawn;
     [SerializeField] float bacteriaSpawnInterval = 0.0001f;
     float bacteriaSpawnTimer = 0f;
     [SerializeField] int bacteriaCount = 200;
@@ -57,7 +58,7 @@ public class CellManager : MonoBehaviour
     public float GetDetectRadius(int i) => cells[i].detectRadius;
     public CellRole GetRole(int i) => cells[i].role;
     public int GetOrganismId(int i) => cells[i].organismId;
-
+    public Team GetTeam(int i) => cells[i].team;
 
     [Header ("cells  |  organisms")]
     List<Cell> cells = new List<Cell>();
@@ -68,6 +69,11 @@ public class CellManager : MonoBehaviour
     public float ReproductionEnergy = 0;
     public float SystemStability = 0;
 
+    public enum Team
+    {
+        Player,
+        Enemy
+    }
 
     class Cell
     {
@@ -98,6 +104,8 @@ public class CellManager : MonoBehaviour
         public float headingTimer;
         public float wanderAngle;
         public Vector2 cohesionDV;
+
+        public Team team;
     }
 
     class Organisms
@@ -154,13 +162,13 @@ public class CellManager : MonoBehaviour
         refToDestination.transform.localScale = new Vector3(DestinationRadius * 2f, DestinationRadius * 2f, 1f);
 
 
-        Vector2 spawnPos1 = reftoBacteriaSpawnPos1.transform.position;
-        Vector2 spawnPos2 = reftoBacteriaSpawnPos2.transform.position;
+        Vector2 spawnPos1 = playerSpawn.transform.position;
+        Vector2 spawnPos2 = enemySpawn.transform.position;
 
         for (int i = 0; i < bacteriaCount/2; i++)
         {
-            CreateBacteriaCell(spawnPos1);
-            CreateBacteriaCell(spawnPos2);
+            CreateBacteriaCell(spawnPos1, Team.Player);
+            CreateBacteriaCell(spawnPos2,Team.Enemy);
         }
 
         bacteriaCount = 0;
@@ -399,9 +407,8 @@ public class CellManager : MonoBehaviour
 
     #region Create
 
-    void CreateBacteriaCell(Vector2 pos)
+    void CreateBacteriaCell(Vector2 pos, Team team)
     {
-        //reuse pool
         if (deadBacteriaPool.Count > 0)
         {
             int idx = deadBacteriaPool[^1];
@@ -420,12 +427,11 @@ public class CellManager : MonoBehaviour
 
             c.organismId = -1;
             c.role = CellRole.Bacteria;
+            c.team = team;
 
             c.cellRadius = 0.3f;
             c.detectRadius = c.cellRadius * 13f;
-
             c.detected = true;
-
             c.cohesionDV = Vector2.zero;
 
             cells[idx] = c;
@@ -444,17 +450,16 @@ public class CellManager : MonoBehaviour
 
         clone.organismId = -1;
         clone.role = CellRole.Bacteria;
+        clone.team = team;
 
         clone.energy = 2f;
         clone.detected = true;
         clone.isDead = false;
         clone.isBacteriaAttachedToWBC = false;
-
         clone.cohesionDV = Vector2.zero;
 
         cells.Add(clone);
     }
-
     void CreateWBCCell(Vector2 pos)
     {
         Cell w = new Cell();
@@ -1448,7 +1453,7 @@ public class CellManager : MonoBehaviour
             if (c.isDead) continue;
             if (c.role != CellRole.Bacteria) continue;
 
-            bacteriaFieldManager.DepositTrail(c.currentPos);
+            bacteriaFieldManager.DepositTrail(c.currentPos, c.team);
         }
     }
 
@@ -1518,20 +1523,23 @@ public class CellManager : MonoBehaviour
     public void DestinationDetectoin()
     {
         Vector2 dest = refToDestination.transform.position;
-        for(int i=0; i<cells.Count; i++)
+
+        for (int i = 0; i < cells.Count; i++)
         {
             Cell bacteria = cells[i];
 
             if (bacteria.isDead) continue;
+            if (bacteria.role != CellRole.Bacteria) continue;
 
             Vector2 d = dest - bacteria.currentPos;
 
-            if(d.sqrMagnitude<DestinationRadius*DestinationRadius)
+            if (d.sqrMagnitude < DestinationRadius * DestinationRadius)
             {
                 bacteria.isDead = true;
+                cells[i] = bacteria;
+                deadBacteriaPool.Add(i);
                 arrivedBacteriaCount++;
             }
-
         }
     }
 

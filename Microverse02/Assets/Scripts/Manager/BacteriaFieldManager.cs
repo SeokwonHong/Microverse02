@@ -24,8 +24,8 @@ public class BacteriaFieldManager : MonoBehaviour
     float foodDiffuseRate = 1f; //How much chemical spreads to neighbours. Like blurring.
 
     [Header("Draw")]
-    [SerializeField] float drawDepositAmount = 15f;
-    [SerializeField] float drawDecayPerSecond = 0.035f;
+    [SerializeField] float drawDepositAmount = 23f;
+    [SerializeField] float drawDecayPerSecond = 0.095f;
     [SerializeField] float drawDiffuseRate = 0.3f;
 
 
@@ -41,10 +41,15 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Tick")]
     [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
 
-    [Header("Trail Colours")]
-    [SerializeField] Color weakColor = new Color(0.4f, 0f, 0f, 0f);
-    [SerializeField] Color midColor = new Color(1f, 0.3f, 0.05f, 1f);
-    [SerializeField] Color strongColor = new Color(1f, 1f, 0.6f, 1f);
+    [Header("Player Trail Colours")]
+    [SerializeField] Color playerWeakColor = new Color(0.4f, 0f, 0f, 0f);
+    [SerializeField] Color playerMidColor = new Color(1f, 0.3f, 0.05f, 1f);
+    [SerializeField] Color playerStrongColor = new Color(1f, 1f, 0.6f, 1f);
+
+    [Header("Enemy Trail Colours")]
+    [SerializeField] Color enemyWeakColor = new Color(0f, 0f, 0.4f, 0f);
+    [SerializeField] Color enemyMidColor = new Color(0.2f, 0.5f, 1f, 1f);
+    [SerializeField] Color enemyStrongColor = new Color(0.8f, 1f, 1f, 1f);
 
     [Header("Food Colours")]
     [SerializeField] Color foodColor = new Color(0.2f, 1f, 0.2f, 1f);
@@ -62,8 +67,11 @@ public class BacteriaFieldManager : MonoBehaviour
 
 
     [Header("Chemo Grid")]
-    NativeArray<float> exploreField;
-    NativeArray<float> exploreNext;
+    NativeArray<float> playerTrailField;
+    NativeArray<float> playerTrailNext;
+
+    NativeArray<float> enemyTrailField;
+    NativeArray<float> enemyTrailNext;
 
     NativeArray<float> foodField;
     NativeArray<float> foodNext;
@@ -126,8 +134,11 @@ public class BacteriaFieldManager : MonoBehaviour
     {
         int count = CellCount;
 
-        exploreField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-        exploreNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        playerTrailField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        playerTrailNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
+        enemyTrailField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        enemyTrailNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
         foodField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         foodNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
@@ -140,8 +151,11 @@ public class BacteriaFieldManager : MonoBehaviour
 
     void DisposeArrays()
     {
-        if (exploreField.IsCreated) exploreField.Dispose();
-        if (exploreNext.IsCreated) exploreNext.Dispose();
+        if (playerTrailField.IsCreated) playerTrailField.Dispose();
+        if (playerTrailNext.IsCreated) playerTrailNext.Dispose();
+
+        if (enemyTrailField.IsCreated) enemyTrailField.Dispose();
+        if (enemyTrailNext.IsCreated) enemyTrailNext.Dispose();
 
         if (foodField.IsCreated) foodField.Dispose();
         if (foodNext.IsCreated) foodNext.Dispose();
@@ -192,17 +206,28 @@ public class BacteriaFieldManager : MonoBehaviour
 
         return inside;
     }
-    public void DepositTrail(Vector2 worldPos, float amountMultiplier = 1f) //put chemecals insdie of the space
+    public void DepositTrail(Vector2 worldPos, CellManager.Team team, float amountMultiplier = 1f)
     {
-        if (!exploreField.IsCreated) return;
+        if (!playerTrailField.IsCreated || !enemyTrailField.IsCreated) return;
 
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
-            exploreField[idx] = Mathf.Min(
-                exploreField[idx] + chemoDepositAmount * amountMultiplier,
-                trailMaxDeposit
-            );
+
+            if (team == CellManager.Team.Player)
+            {
+                playerTrailField[idx] = Mathf.Min(
+                    playerTrailField[idx] + chemoDepositAmount * amountMultiplier,
+                    trailMaxDeposit
+                );
+            }
+            else
+            {
+                enemyTrailField[idx] = Mathf.Min(
+                    enemyTrailField[idx] + chemoDepositAmount * amountMultiplier,
+                    trailMaxDeposit
+                );
+            }
         }
     }
     public void DepositFood(Vector2 worldPos, float amountMultiplier = 1f)
@@ -235,44 +260,14 @@ public class BacteriaFieldManager : MonoBehaviour
             );
         }
     }
-    public void DepositRemove(Vector2 worldPos, float amountMultiplier = 1f)
-    {
-        if (!WorldToGrid(worldPos, out int gx, out int gy)) return;
-
-        int radius = 6;
-        float drawAmount = drawDepositAmount * amountMultiplier;
-        float trailAmount = chemoDepositAmount * amountMultiplier;
-        float foodAmount = foodDepositAmount * amountMultiplier;
-
-        for (int oy = -radius; oy <= radius; oy++)
-        {
-            int y = gy + oy;
-            if (y < 0 || y >= chemoHeight) continue;
-
-            for (int ox = -radius; ox <= radius; ox++)
-            {
-                int x = gx + ox;
-                if (x < 0 || x >= chemoWidth) continue;
-
-                float dist = Mathf.Sqrt(ox * ox + oy * oy);
-                if (dist > radius) continue;
-
-                float falloff = 1f - (dist / (radius + 0.001f));
-                int idx = Index(x, y);
-
-                exploreField[idx] = Mathf.Max(exploreField[idx] - trailAmount * falloff, 0f);
-                foodField[idx] = Mathf.Max(foodField[idx] - foodAmount * falloff, 0f);
-                drawField[idx] = Mathf.Max(drawField[idx] - drawAmount * falloff, 0f);
-            }
-        }
-    }
+   
     public float Sample(Vector2 worldPos) //taking the value out from the hash
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
 
-            float trail = exploreField[idx] * trailWeight;
+            float trail = (playerTrailField[idx] + enemyTrailField[idx]) * trailWeight;
             float food = foodField[idx] * foodWeight;
             float draw = drawField[idx];
 
@@ -302,8 +297,11 @@ public class BacteriaFieldManager : MonoBehaviour
             fieldTickTimer -= fieldTickInterval;
             updated = true;
 
-            RunFieldUpdate(exploreField, exploreNext, 0f, chemoDecayPerSecond, fieldTickInterval);
-            Swap(ref exploreField, ref exploreNext);
+            RunFieldUpdate(playerTrailField, playerTrailNext, 0f, chemoDecayPerSecond, fieldTickInterval);
+            Swap(ref playerTrailField, ref playerTrailNext);
+
+            RunFieldUpdate(enemyTrailField, enemyTrailNext, 0f, chemoDecayPerSecond, fieldTickInterval);
+            Swap(ref enemyTrailField, ref enemyTrailNext);
 
             RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
@@ -348,14 +346,20 @@ public class BacteriaFieldManager : MonoBehaviour
 
         var job = new BuildPixelsJob
         {
-            exploreField = exploreField,
+            playerTrailField = playerTrailField,
+            enemyTrailField = enemyTrailField,
             foodField = foodField,
             drawField = drawField,
             pixels = trailPixels,
 
-            weakColor = ToFloat4(weakColor),
-            midColor = ToFloat4(midColor),
-            strongColor = ToFloat4(strongColor),
+            playerWeakColor = ToFloat4(playerWeakColor),
+            playerMidColor = ToFloat4(playerMidColor),
+            playerStrongColor = ToFloat4(playerStrongColor),
+
+            enemyWeakColor = ToFloat4(enemyWeakColor),
+            enemyMidColor = ToFloat4(enemyMidColor),
+            enemyStrongColor = ToFloat4(enemyStrongColor),
+
             foodColor = ToFloat4(foodColor),
             drawColor = ToFloat4(drawColor),
 
@@ -422,15 +426,21 @@ public class BacteriaFieldManager : MonoBehaviour
     [BurstCompile]
     struct BuildPixelsJob : IJobParallelFor
     {
-        [ReadOnly] public NativeArray<float> exploreField;
+        [ReadOnly] public NativeArray<float> playerTrailField;
+        [ReadOnly] public NativeArray<float> enemyTrailField;
         [ReadOnly] public NativeArray<float> foodField;
         [ReadOnly] public NativeArray<float> drawField;
 
         [WriteOnly] public NativeArray<Color32> pixels;
 
-        public float4 weakColor;
-        public float4 midColor;
-        public float4 strongColor;
+        public float4 playerWeakColor;
+        public float4 playerMidColor;
+        public float4 playerStrongColor;
+
+        public float4 enemyWeakColor;
+        public float4 enemyMidColor;
+        public float4 enemyStrongColor;
+
         public float4 foodColor;
         public float4 drawColor;
 
@@ -440,70 +450,152 @@ public class BacteriaFieldManager : MonoBehaviour
         public float foodVisualStrength;
         public float drawVisualStrength;
 
+        //public void Execute(int index)
+        //{
+        //    float4 c = new float4(0f, 0f, 0f, 0f);
+
+        //    // -------------------------
+        //    // DRAW VISUAL (RGB only)
+        //    // -------------------------
+        //    float draw = math.saturate(drawField[index] * drawVisualStrength);
+        //    if (draw > 0f)
+        //    {
+        //        float4 drawOverlay = drawColor;
+        //        drawOverlay.w = 1f;
+
+        //        c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
+        //    }
+
+        //    // -------------------------
+        //    // FOOD VISUAL (RGB only)
+        //    // -------------------------
+        //    float food = math.saturate(foodField[index] * foodVisualStrength);
+        //    if (food > 0f)
+        //    {
+        //        float4 foodOverlay = foodColor;
+        //        foodOverlay.w = 1f;
+
+        //        c.xyz = math.lerp(c.xyz, foodOverlay.xyz, food);
+        //    }
+
+        //    // -------------------------
+        //    // TRAIL VISUAL + TRAIL MASK
+        //    // -------------------------
+        //    float v = exploreField[index];
+
+        //    if (v > 0f)
+        //    {
+        //        float4 trailColor;
+
+        //        float midValue = math.max(0.0001f, chemoDepositAmount);
+        //        float maxValue = math.max(midValue, trailMaxDeposit);
+
+        //        if (v <= midValue)
+        //        {
+        //            float k = math.saturate(v / midValue);
+        //            trailColor = math.lerp(weakColor, midColor, k);
+        //        }
+        //        else
+        //        {
+        //            float range = math.max(0.0001f, maxValue - midValue);
+        //            float k = math.saturate((v - midValue) / range);
+        //            trailColor = math.lerp(midColor, strongColor, k);
+        //        }
+
+        //        float light01 = math.saturate(v / maxValue);
+        //        float brightness = math.lerp(0.5f, 1.5f, light01);
+        //        trailColor.xyz *= brightness;
+
+        //        float trailAlpha = math.saturate(math.pow(light01, 0.6f));
+
+        //        // trail colour wins visually where trail exists
+        //        c.xyz = trailColor.xyz;
+
+        //        // alpha stores TRAIL MASK ONLY
+        //        c.w = 1;
+
+        //    }
+
+        //    pixels[index] = Float4ToColor32(c);
+        //}
         public void Execute(int index)
         {
             float4 c = new float4(0f, 0f, 0f, 0f);
 
-            // -------------------------
-            // DRAW VISUAL (RGB only)
-            // -------------------------
+            // DRAW
             float draw = math.saturate(drawField[index] * drawVisualStrength);
             if (draw > 0f)
             {
                 float4 drawOverlay = drawColor;
                 drawOverlay.w = 1f;
-
                 c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
             }
 
-            // -------------------------
-            // FOOD VISUAL (RGB only)
-            // -------------------------
+            // FOOD
             float food = math.saturate(foodField[index] * foodVisualStrength);
             if (food > 0f)
             {
                 float4 foodOverlay = foodColor;
                 foodOverlay.w = 1f;
-
                 c.xyz = math.lerp(c.xyz, foodOverlay.xyz, food);
             }
 
-            // -------------------------
-            // TRAIL VISUAL + TRAIL MASK
-            // -------------------------
-            float v = exploreField[index];
-
-            if (v > 0f)
+            // PLAYER TRAIL
+            float playerV = playerTrailField[index];
+            if (playerV > 0f)
             {
                 float4 trailColor;
 
                 float midValue = math.max(0.0001f, chemoDepositAmount);
                 float maxValue = math.max(midValue, trailMaxDeposit);
 
-                if (v <= midValue)
+                if (playerV <= midValue)
                 {
-                    float k = math.saturate(v / midValue);
-                    trailColor = math.lerp(weakColor, midColor, k);
+                    float k = math.saturate(playerV / midValue);
+                    trailColor = math.lerp(playerWeakColor, playerMidColor, k);
                 }
                 else
                 {
                     float range = math.max(0.0001f, maxValue - midValue);
-                    float k = math.saturate((v - midValue) / range);
-                    trailColor = math.lerp(midColor, strongColor, k);
+                    float k = math.saturate((playerV - midValue) / range);
+                    trailColor = math.lerp(playerMidColor, playerStrongColor, k);
                 }
 
-                float light01 = math.saturate(v / maxValue);
+                float light01 = math.saturate(playerV / maxValue);
                 float brightness = math.lerp(0.5f, 1.5f, light01);
                 trailColor.xyz *= brightness;
 
-                float trailAlpha = math.saturate(math.pow(light01, 0.6f));
-
-                // trail colour wins visually where trail exists
-                c.xyz = trailColor.xyz;
-
-                // alpha stores TRAIL MASK ONLY
+                c.xyz = math.lerp(c.xyz, trailColor.xyz, light01);
                 c.w = 1;
-             
+            }
+
+            // ENEMY TRAIL
+            float enemyV = enemyTrailField[index];
+            if (enemyV > 0f)
+            {
+                float4 trailColor;
+
+                float midValue = math.max(0.0001f, chemoDepositAmount);
+                float maxValue = math.max(midValue, trailMaxDeposit);
+
+                if (enemyV <= midValue)
+                {
+                    float k = math.saturate(enemyV / midValue);
+                    trailColor = math.lerp(enemyWeakColor, enemyMidColor, k);
+                }
+                else
+                {
+                    float range = math.max(0.0001f, maxValue - midValue);
+                    float k = math.saturate((enemyV - midValue) / range);
+                    trailColor = math.lerp(enemyMidColor, enemyStrongColor, k);
+                }
+
+                float light01 = math.saturate(enemyV / maxValue);
+                float brightness = math.lerp(0.5f, 1.5f, light01);
+                trailColor.xyz *= brightness;
+
+                c.xyz = math.lerp(c.xyz, trailColor.xyz, light01);
+                c.w = 1;
             }
 
             pixels[index] = Float4ToColor32(c);
