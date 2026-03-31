@@ -903,9 +903,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 721f54f3a24f4bd478475d5264b316d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cellManager: {fileID: 107149901}
-  energyText: {fileID: 559024817}
-  systemStabilityText: {fileID: 1459721436}
 --- !u!1 &1022748734
 GameObject:
   m_ObjectHideFlags: 0
@@ -1094,6 +1091,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cellManager: {fileID: 107149901}
+  maxZoom: 75
 --- !u!81 &1178671589
 AudioListener:
   m_ObjectHideFlags: 0

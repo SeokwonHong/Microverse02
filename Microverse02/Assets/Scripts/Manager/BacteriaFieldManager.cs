@@ -18,11 +18,6 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] float chemoDepositAmount = 0.45f;  // how strong bacteria chemo is 
     [SerializeField] float chemoDecayPerSecond = 0.07f;
 
-    [Header("Food")]
-    [SerializeField] float foodDepositAmount = 5f;
-    float foodDecayPerSecond = 0.88f;
-    float foodDiffuseRate = 1f; //How much chemical spreads to neighbours. Like blurring.
-
     [Header("Draw")]
     [SerializeField] float drawDepositAmount = 23f;
     [SerializeField] float drawDecayPerSecond = 0.095f;
@@ -230,19 +225,7 @@ public class BacteriaFieldManager : MonoBehaviour
             }
         }
     }
-    public void DepositFood(Vector2 worldPos, float amountMultiplier = 1f)
-    {
-        if (!foodField.IsCreated) return;
 
-        if (WorldToGrid(worldPos, out int gx, out int gy))
-        {
-            int idx = Index(gx, gy);
-            foodField[idx] = Mathf.Min(
-            foodField[idx] + foodDepositAmount * amountMultiplier,
-            foodMaxDeposit
-);
-        }
-    }
     public void DepositDraw(Vector2 worldPos, float amountMultiplier = 1f)
     {
         if (!drawField.IsCreated) return;
@@ -335,13 +318,6 @@ public class BacteriaFieldManager : MonoBehaviour
             RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
 
-            foodTickCounter++;
-            if (foodTickCounter >= 2)
-            {
-                foodTickCounter = 0;
-                RunFieldUpdate(foodField, foodNext, foodDiffuseRate, foodDecayPerSecond, fieldTickInterval * 2f);
-                Swap(ref foodField, ref foodNext);
-            }
         }
 
         return updated;
