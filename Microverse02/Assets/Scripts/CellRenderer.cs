@@ -104,17 +104,10 @@ public class CellRenderer : MonoBehaviour
     {
         var role = cellManager.GetRole(i);
 
-        if (role == CellManager.CellRole.Bacteria)
-            return playerColour;
+     
+       return playerColour;
 
-        if (role == CellManager.CellRole.WhiteBlood)
-            return wbcColour;
-
-        if (cellManager.IsOrganismDead(i))
-            return deadColour;
-
-        int organismId = cellManager.GetOrganismId(i);
-        return GetLifespanColour(organismId);
+        
     }
 
     private void EnsurePool(int count)
@@ -135,21 +128,7 @@ public class CellRenderer : MonoBehaviour
 
     }
 
-    private Color GetLifespanColour(int organismId)
-    {
-        float life = cellManager.GetOrganismEnergy(organismId);
 
-        float t = Mathf.InverseLerp(1f, 8f, life);
-
-        Color baseCol = organismColour;
-
-        Color.RGBToHSV(baseCol, out float h, out float s, out float v);
-
-        // reduce saturation over lifespan
-        s = Mathf.Lerp(0.3f, 1.25f, t);
-
-        return Color.HSVToRGB(h, s, v);
-    }
 
     
 }

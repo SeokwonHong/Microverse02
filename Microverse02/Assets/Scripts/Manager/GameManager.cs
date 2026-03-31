@@ -53,10 +53,6 @@ public class GameManager : MonoBehaviour
         if (win) return;
         if (cellManager == null) return;
 
-        if (cellManager.IsLevelWin())
-        {
-            win = true;
-            Debug.Log("WIN!");
-        }
+   
     }
 }
