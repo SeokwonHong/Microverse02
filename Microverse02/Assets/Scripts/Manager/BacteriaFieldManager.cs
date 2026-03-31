@@ -540,14 +540,25 @@ public class BacteriaFieldManager : MonoBehaviour
                 c.xyz = math.lerp(c.xyz, foodOverlay.xyz, food);
             }
 
-            // PLAYER TRAIL
+            float3 trailRgb = c.xyz;
+            float trailAlpha = c.w;
+
             float playerV = playerTrailField[index];
+            float enemyV = enemyTrailField[index];
+
+            float playerStrength = 0f;
+            float enemyStrength = 0f;
+
+            float3 playerRgb = float3.zero;
+            float3 enemyRgb = float3.zero;
+
+            float midValue = math.max(0.0001f, chemoDepositAmount);
+            float maxValue = math.max(midValue, trailMaxDeposit);
+
+            //PLAYER
             if (playerV > 0f)
             {
                 float4 trailColor;
-
-                float midValue = math.max(0.0001f, chemoDepositAmount);
-                float maxValue = math.max(midValue, trailMaxDeposit);
 
                 if (playerV <= midValue)
                 {
@@ -561,22 +572,14 @@ public class BacteriaFieldManager : MonoBehaviour
                     trailColor = math.lerp(playerMidColor, playerStrongColor, k);
                 }
 
-                float light01 = math.saturate(playerV / maxValue);
-                float brightness = math.lerp(0.5f, 1.5f, light01);
-                trailColor.xyz *= brightness;
-
-                c.xyz = math.lerp(c.xyz, trailColor.xyz, light01);
-                c.w = 1;
+                playerStrength = math.saturate(playerV / maxValue);
+                float brightness = math.lerp(0.5f, 1.5f, playerStrength);
+                playerRgb = trailColor.xyz * brightness;
             }
-
-            // ENEMY TRAIL
-            float enemyV = enemyTrailField[index];
+            //ENEMY
             if (enemyV > 0f)
             {
                 float4 trailColor;
-
-                float midValue = math.max(0.0001f, chemoDepositAmount);
-                float maxValue = math.max(midValue, trailMaxDeposit);
 
                 if (enemyV <= midValue)
                 {
@@ -590,12 +593,21 @@ public class BacteriaFieldManager : MonoBehaviour
                     trailColor = math.lerp(enemyMidColor, enemyStrongColor, k);
                 }
 
-                float light01 = math.saturate(enemyV / maxValue);
-                float brightness = math.lerp(0.5f, 1.5f, light01);
-                trailColor.xyz *= brightness;
+                enemyStrength = math.saturate(enemyV / maxValue);
+                float brightness = math.lerp(0.5f, 1.5f, enemyStrength);
+                enemyRgb = trailColor.xyz * brightness;
+            }
 
-                c.xyz = math.lerp(c.xyz, trailColor.xyz, light01);
-                c.w = 1;
+            float totalStrength = playerStrength + enemyStrength;
+
+            if (totalStrength > 0f)
+            {
+                float3 mixedTrail =
+                    (playerRgb * playerStrength + enemyRgb * enemyStrength) / totalStrength;
+
+                float blendStrength = math.saturate(totalStrength);
+                c.xyz = math.lerp(c.xyz, mixedTrail, blendStrength);
+                c.w = 1f;
             }
 
             pixels[index] = Float4ToColor32(c);
