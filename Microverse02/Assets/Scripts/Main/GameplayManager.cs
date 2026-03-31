@@ -5,20 +5,37 @@ using UnityEngine.UI;
 
 public class GameplayManager : MonoBehaviour
 {
-    [SerializeField] Button[] buttons;
+    [SerializeField] FieldButton[] buttons;
     [SerializeField] Gate gate;
 
-    bool buttonAllPressed = false;
 
-    bool allActive = false;
+    bool lastState=false;
 
-    private void Start()
+    void Awake()
     {
-        allActive = true;
+        buttons = FindObjectsByType<FieldButton>(FindObjectsSortMode.None);
     }
-    // Update is called once per frame
+
     void Update()
     {
-        
+        if (buttons == null || buttons.Length == 0) return;
+
+        bool allPressed=true;
+
+        for(int i = 0; i<buttons.Length; i++)
+        {
+            if (buttons[i]==null || !buttons[i].IsPressed)
+            {
+                allPressed = false;
+                break;
+            }
+        }
+
+        if (allPressed != lastState)
+        {
+            lastState = allPressed;
+            gate.SetOpen(allPressed);
+  
+        }
     }
 }

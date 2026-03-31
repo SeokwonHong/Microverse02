@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class Gate : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] Collider2D col;
+    [SerializeField] GameObject visual;
 
-    // Update is called once per frame
-    void Update()
+    public void SetOpen(bool open)
     {
-        
+        if (col != null)
+            col.enabled = !open;
+
+        if (visual != null)
+            visual.SetActive(!open);
     }
 }

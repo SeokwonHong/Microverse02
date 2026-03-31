@@ -55,7 +55,6 @@ public class BacteriaFieldManager : MonoBehaviour
     float drawVisualStrength = 3f;
 
     public float trailMaxDeposit = 1.5f;
-    float foodMaxDeposit = 5f;
     float drawMaxDeposit = 23f;
 
     Texture2D trailTexture;
@@ -299,6 +298,62 @@ public class BacteriaFieldManager : MonoBehaviour
 
         return 0f;
     }
+
+    public float SampleButtonArea(Vector2 worldPos, float radius, CellManager.Team team)
+    {
+        NativeArray<float> field =
+            team == CellManager.Team.Player ? playerTrailField : enemyTrailField;
+
+        if (!field.IsCreated) return 0f;
+        if (!WorldToGrid(worldPos, out int gx, out int gy)) return 0f;
+
+        float cellSizeX = MapSize.x / chemoWidth;
+        float cellSizeY = MapSize.y / chemoHeight;
+
+        int rx = Mathf.CeilToInt(radius / cellSizeX);
+        int ry = Mathf.CeilToInt(radius / cellSizeY);
+
+        float sum = 0f;
+        int hitCount = 0;
+        float radiusSqr = radius * radius;
+
+        for (int y = gy - ry; y <= gy + ry; y++)
+        {
+            if (y < 0 || y >= chemoHeight) continue;
+
+            for (int x = gx - rx; x <= gx + rx; x++)
+            {
+                if (x < 0 || x >= chemoWidth) continue;
+
+                Vector2 cellWorld = GridToWorldCentre(x, y);
+                Vector2 delta = cellWorld - worldPos;
+
+                if (delta.sqrMagnitude > radiusSqr)
+                    continue;
+
+                sum += field[Index(x, y)];
+                hitCount++;
+            }
+        }
+
+        if (hitCount == 0) return 0f;
+
+        return sum / hitCount; // average
+    }
+
+    Vector2 GridToWorldCentre(int gx, int gy)
+    {
+        Vector2 halfSize = MapSize * 0.5f;
+
+        float px = (gx + 0.5f) / chemoWidth;
+        float py = (gy + 0.5f) / chemoHeight;
+
+        float wx = (MapCentre.x - halfSize.x) + px * MapSize.x;
+        float wy = (MapCentre.y - halfSize.y) + py * MapSize.y;
+
+        return new Vector2(wx, wy);
+    }
+
     public bool TickField(float dt) //update pretty much
     {
         bool updated = false;
