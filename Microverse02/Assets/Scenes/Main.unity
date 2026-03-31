@@ -251,8 +251,9 @@ GameObject:
   m_Component:
   - component: {fileID: 63876683}
   - component: {fileID: 63876682}
+  - component: {fileID: 63876684}
   m_Layer: 0
-  m_Name: Button
+  m_Name: Button1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -325,6 +326,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &63876684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 63876681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 249ad408640bcae4c89ce61590fbe149, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bacteriaFieldManager: {fileID: 1569142227}
+  teamToDetect: 0
+  idleColor: {r: 1, g: 0, b: 0, a: 1}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &206734707
 GameObject:
   m_ObjectHideFlags: 0
@@ -1439,6 +1456,54 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 806001158}
   m_CullTransparentMesh: 1
+--- !u!1 &882715495
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 882715497}
+  - component: {fileID: 882715496}
+  m_Layer: 0
+  m_Name: GameplayManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &882715496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 882715495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f5a7b90adfe2434aa8bd83659f5e155, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buttons:
+  - {fileID: 63876684}
+  - {fileID: 1099422801}
+  gate: {fileID: 1424581312}
+--- !u!4 &882715497
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 882715495}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -10.953307, y: 7.4360557, z: 6.1168585}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &966042885
 GameObject:
   m_ObjectHideFlags: 0
@@ -1550,8 +1615,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1099422800}
   - component: {fileID: 1099422799}
+  - component: {fileID: 1099422801}
   m_Layer: 0
-  m_Name: Button
+  m_Name: Button2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1624,6 +1690,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1099422801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1099422798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 249ad408640bcae4c89ce61590fbe149, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bacteriaFieldManager: {fileID: 1569142227}
+  teamToDetect: 0
+  idleColor: {r: 1, g: 0, b: 0, a: 1}
+  activeColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &1262859526
 GameObject:
   m_ObjectHideFlags: 0
@@ -1803,6 +1885,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1424581311}
   - component: {fileID: 1424581310}
+  - component: {fileID: 1424581312}
   m_Layer: 0
   m_Name: Gate
   m_TagString: Untagged
@@ -1877,6 +1960,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1424581312
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1424581309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab97f876145a9954bae1222a59c9486b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1569142224 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
@@ -2755,7 +2850,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 3000
+      value: 6000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
@@ -3020,6 +3115,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 519420032}
   - {fileID: 8777228302442434880}
+  - {fileID: 882715497}
   - {fileID: 5402479487759917563}
   - {fileID: 555529755}
   - {fileID: 1921727453}
