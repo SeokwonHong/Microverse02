@@ -455,98 +455,39 @@ public class BacteriaFieldManager : MonoBehaviour
         public float foodVisualStrength;
         public float drawVisualStrength;
 
-        //public void Execute(int index)
-        //{
-        //    float4 c = new float4(0f, 0f, 0f, 0f);
-
-        //    // -------------------------
-        //    // DRAW VISUAL (RGB only)
-        //    // -------------------------
-        //    float draw = math.saturate(drawField[index] * drawVisualStrength);
-        //    if (draw > 0f)
-        //    {
-        //        float4 drawOverlay = drawColor;
-        //        drawOverlay.w = 1f;
-
-        //        c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
-        //    }
-
-        //    // -------------------------
-        //    // FOOD VISUAL (RGB only)
-        //    // -------------------------
-        //    float food = math.saturate(foodField[index] * foodVisualStrength);
-        //    if (food > 0f)
-        //    {
-        //        float4 foodOverlay = foodColor;
-        //        foodOverlay.w = 1f;
-
-        //        c.xyz = math.lerp(c.xyz, foodOverlay.xyz, food);
-        //    }
-
-        //    // -------------------------
-        //    // TRAIL VISUAL + TRAIL MASK
-        //    // -------------------------
-        //    float v = exploreField[index];
-
-        //    if (v > 0f)
-        //    {
-        //        float4 trailColor;
-
-        //        float midValue = math.max(0.0001f, chemoDepositAmount);
-        //        float maxValue = math.max(midValue, trailMaxDeposit);
-
-        //        if (v <= midValue)
-        //        {
-        //            float k = math.saturate(v / midValue);
-        //            trailColor = math.lerp(weakColor, midColor, k);
-        //        }
-        //        else
-        //        {
-        //            float range = math.max(0.0001f, maxValue - midValue);
-        //            float k = math.saturate((v - midValue) / range);
-        //            trailColor = math.lerp(midColor, strongColor, k);
-        //        }
-
-        //        float light01 = math.saturate(v / maxValue);
-        //        float brightness = math.lerp(0.5f, 1.5f, light01);
-        //        trailColor.xyz *= brightness;
-
-        //        float trailAlpha = math.saturate(math.pow(light01, 0.6f));
-
-        //        // trail colour wins visually where trail exists
-        //        c.xyz = trailColor.xyz;
-
-        //        // alpha stores TRAIL MASK ONLY
-        //        c.w = 1;
-
-        //    }
-
-        //    pixels[index] = Float4ToColor32(c);
-        //}
         public void Execute(int index)
         {
             float4 c = new float4(0f, 0f, 0f, 0f);
 
-            // DRAW
+            // -------------------------
+            // DRAW VISUAL (RGB only)
+            // -------------------------
             float draw = math.saturate(drawField[index] * drawVisualStrength);
             if (draw > 0f)
             {
                 float4 drawOverlay = drawColor;
                 drawOverlay.w = 1f;
+
                 c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
             }
 
-            // FOOD
+            // -------------------------
+            // FOOD VISUAL (RGB only)
+            // -------------------------
             float food = math.saturate(foodField[index] * foodVisualStrength);
             if (food > 0f)
             {
                 float4 foodOverlay = foodColor;
                 foodOverlay.w = 1f;
+
                 c.xyz = math.lerp(c.xyz, foodOverlay.xyz, food);
             }
 
-            // PLAYER TRAIL
+            // -------------------------
+            // PLAYER TRAIL VISUAL
+            // -------------------------
             float playerV = playerTrailField[index];
+
             if (playerV > 0f)
             {
                 float4 trailColor;
@@ -570,12 +511,18 @@ public class BacteriaFieldManager : MonoBehaviour
                 float brightness = math.lerp(0.5f, 1.5f, light01);
                 trailColor.xyz *= brightness;
 
-                c.xyz = math.lerp(c.xyz, trailColor.xyz, light01);
-                c.w = 1;
+                // player trail wins visually where it exists
+                c.xyz = trailColor.xyz;
+
+                // alpha stores TRAIL MASK ONLY
+                c.w = 1f;
             }
 
-            // ENEMY TRAIL
+            // -------------------------
+            // ENEMY TRAIL VISUAL
+            // -------------------------
             float enemyV = enemyTrailField[index];
+
             if (enemyV > 0f)
             {
                 float4 trailColor;
@@ -599,8 +546,11 @@ public class BacteriaFieldManager : MonoBehaviour
                 float brightness = math.lerp(0.5f, 1.5f, light01);
                 trailColor.xyz *= brightness;
 
-                c.xyz = math.lerp(c.xyz, trailColor.xyz, light01);
-                c.w = 1;
+                // if both exist, enemy overwrites player visually
+                c.xyz = trailColor.xyz;
+
+                // alpha stores TRAIL MASK ONLY
+                c.w = 1f;
             }
 
             pixels[index] = Float4ToColor32(c);

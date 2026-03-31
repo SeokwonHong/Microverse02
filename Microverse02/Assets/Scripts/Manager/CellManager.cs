@@ -80,7 +80,7 @@ public class CellManager : MonoBehaviour
         for (int i = 0; i < bacteriaCount / 2; i++)
         {
             CreateBacteriaCell(spawnPos1, Team.Player);
-            CreateBacteriaCell(spawnPos2, Team.Enemy);
+            //CreateBacteriaCell(spawnPos2, Team.Enemy);
         }
 
         bacteriaCount = 0;
