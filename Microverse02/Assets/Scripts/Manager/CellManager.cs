@@ -224,24 +224,24 @@ public class CellManager : MonoBehaviour
         }
 
         // 2) Pair Detection & Interaction
-        for (int i = 0; i < cells.Count; i++)
-        {
-            if (cells[i].isDead) continue;
+        //for (int i = 0; i < cells.Count; i++)
+        //{
+        //    if (cells[i].isDead) continue;
 
-            spatialHash.Query(cells[i].nextPos, neighbourBuffer);
+        //    spatialHash.Query(cells[i].nextPos, neighbourBuffer);
 
-            for (int n = 0; n < neighbourBuffer.Count; n++) // QQuery will give this the index id. Once it's sent, it will be replaced to next one right after
-            {
-                int otherIndex = neighbourBuffer[n];
-                if (otherIndex <= i) continue;
+        //    for (int n = 0; n < neighbourBuffer.Count; n++) // QQuery will give this the index id. Once it's sent, it will be replaced to next one right after
+        //    {
+        //        int otherIndex = neighbourBuffer[n];
+        //        if (otherIndex <= i) continue;
 
-                if (cells[otherIndex].isDead) continue;
+        //        if (cells[otherIndex].isDead) continue;
 
-                //ResolveOverlap(i, otherIndex);
-                ApplyCellPushing(i, otherIndex);
-                ApplyBacteriaAttackingOrganism(i, otherIndex);
-            }
-        }
+        //        //ResolveOverlap(i, otherIndex);
+        //        ApplyCellPushing(i, otherIndex);
+        //        ApplyBacteriaAttackingOrganism(i, otherIndex);
+        //    }
+        //}
 
 
         // 4) WBC
@@ -1482,9 +1482,22 @@ public class CellManager : MonoBehaviour
             Vector2 leftPos = c.currentPos + leftDir * bacteriaFieldManager.SensorDistance;
             Vector2 rightPos = c.currentPos + rightDir * bacteriaFieldManager.SensorDistance;
 
-            float forwardValue = bacteriaFieldManager.Sample(forwardPos);
-            float leftValue = bacteriaFieldManager.Sample(leftPos);
-            float rightValue = bacteriaFieldManager.Sample(rightPos);
+            float forwardValue;
+            float leftValue;
+            float rightValue;
+
+            if (c.team == Team.Player)
+            {
+                forwardValue = bacteriaFieldManager.SamplePlayer(forwardPos);
+                leftValue = bacteriaFieldManager.SamplePlayer(leftPos);
+                rightValue = bacteriaFieldManager.SamplePlayer(rightPos);
+            }
+            else
+            {
+                forwardValue = bacteriaFieldManager.SampleEnemy(forwardPos);
+                leftValue = bacteriaFieldManager.SampleEnemy(leftPos);
+                rightValue = bacteriaFieldManager.SampleEnemy(rightPos);
+            }
 
             Vector2 desiredDir = forward;
 
@@ -1511,8 +1524,15 @@ public class CellManager : MonoBehaviour
 
             Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
 
-            float drawValue = bacteriaFieldManager.SampleDraw(c.currentPos);
-            float draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
+
+            float draw01 = 0f;
+
+            if (c.team == Team.Player)
+            {
+                float drawValue = bacteriaFieldManager.SampleDraw(c.currentPos);
+                draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
+            }
+
             float speed = bacteriaSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
 
             c.nextVelocity = newDir * speed;
