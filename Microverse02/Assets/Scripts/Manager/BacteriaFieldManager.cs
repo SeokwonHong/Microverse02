@@ -286,7 +286,36 @@ public class BacteriaFieldManager : MonoBehaviour
         int index = x + y * chemoWidth;
         return drawField[index];
     }
+    public float SamplePlayer(Vector2 worldPos)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
 
+            float trail = playerTrailField[idx] * trailWeight;
+            float food = foodField[idx] * foodWeight;
+            float draw = drawField[idx];
+
+            return trail + food + draw;
+        }
+
+        return 0f;
+    }
+
+    public float SampleEnemy(Vector2 worldPos)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
+
+            float trail = enemyTrailField[idx] * trailWeight;
+            float food = foodField[idx] * foodWeight;
+            // no draw if enemy should ignore draw too
+            return trail + food;
+        }
+
+        return 0f;
+    }
     public bool TickField(float dt) //update pretty much
     {
         bool updated = false;
