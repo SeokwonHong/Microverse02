@@ -1,38 +1,38 @@
 using UnityEngine;
 
-
 public class FieldButton : MonoBehaviour
 {
     [SerializeField] BacteriaFieldManager bacteriaFieldManager;
+    [SerializeField] GameObject refToNotPressed;
+    [SerializeField] GameObject refToPressed;
+
+
     [SerializeField] CellManager.Team teamToDetect = CellManager.Team.Player;
-    float radius = 20f;
-    float pressDepositAverageValue = 0.08f;
+    [SerializeField] float radius = 13f;
+    [SerializeField] float pressDepositAverageValue = 0.08f;
 
-    [SerializeField] SpriteRenderer visual;
-    [SerializeField] Color idleColor = Color.red;
-    [SerializeField] Color activeColor = Color.green;   
+    public bool IsPressed { get; private set; }
 
-    public bool IsPressed { get; private set; } 
-
-
-    // Start is called before the first frame update
     void Awake()
     {
-        if(bacteriaFieldManager ==null)
+        if (bacteriaFieldManager == null)
             bacteriaFieldManager = FindAnyObjectByType<BacteriaFieldManager>();
-
-        this.transform.localScale = new Vector3(radius, radius, 1f);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (bacteriaFieldManager == null) return;
 
-        float value = bacteriaFieldManager.SampleButtonArea((Vector2)transform.position, radius,teamToDetect);
-        IsPressed = value >= pressDepositAverageValue;
+        float value = bacteriaFieldManager.SampleButtonArea((Vector2)transform.position + Vector2.up * 6f, radius,teamToDetect);
 
-        if (visual != null)
-            visual.color = IsPressed ? activeColor : idleColor;
+        bool newState = value >= pressDepositAverageValue;
+
+        if (newState != IsPressed)
+        {
+            IsPressed = newState;
+
+            refToNotPressed.SetActive(!IsPressed);
+            refToPressed.SetActive(IsPressed);
+        }
     }
 }

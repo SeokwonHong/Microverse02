@@ -9,6 +9,8 @@ public class CameraPosition : MonoBehaviour
     Camera cam;
     float minZoom = 3.5f;
     [SerializeField] float maxZoom = 75f;
+    [SerializeField] float offsetY = 8.5f;
+
     private void Awake()
     {
         cam = GetComponent<Camera>();
@@ -26,7 +28,7 @@ public class CameraPosition : MonoBehaviour
         if (cellManager == null) return;
 
         HandleZoom();
-        transform.position = new Vector3(0f, 0f, camZ);
+        transform.position = new Vector3(0f, offsetY, camZ);
     }
 
     void HandleZoom()
