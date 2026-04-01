@@ -262,6 +262,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4638960053825310466}
   - component: {fileID: 7313113608311281440}
+  - component: {fileID: 715192673310728359}
   m_Layer: 0
   m_Name: Button
   m_TagString: Untagged
@@ -283,8 +284,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1721393138287462715}
-  - {fileID: 1386295607288667728}
   - {fileID: 5920571200554356652}
+  - {fileID: 1386295607288667728}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7313113608311281440
@@ -305,3 +306,15 @@ MonoBehaviour:
   teamToDetect: 0
   radius: 13
   pressDepositAverageValue: 0.08
+--- !u!210 &715192673310728359
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6805383536066821279}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 9
+  m_SortAtRoot: 0
