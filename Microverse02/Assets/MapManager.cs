@@ -10,8 +10,8 @@ public class MapManager : MonoBehaviour
     }
 
     [Header("Grid")]
-    int gridWidth = 400;
-     int gridHeight = 400;
+    int gridWidth = 200;
+     int gridHeight = 200;
 
     [Header("World")]
     [SerializeField] Vector2 mapCentre = Vector2.zero;
