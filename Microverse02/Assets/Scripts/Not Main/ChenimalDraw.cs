@@ -9,6 +9,8 @@ public class ChenimalDraw : MonoBehaviour
     [SerializeField] float drawStrengthMultiplier = 1f;
     [SerializeField] float stepSpacing = 0.35f;
 
+    [SerializeField] PlayerEnergy playerEnergy;
+    [SerializeField] float drawCostPerSecond = 2f;
     Vector2 previousWorldPos;
     bool wasDrawingLastFrame;
 
@@ -27,6 +29,11 @@ public class ChenimalDraw : MonoBehaviour
 
         if (isDrawing)
         {
+
+            float cost = drawCostPerSecond * Time.deltaTime;
+            if (!playerEnergy.TryConsume(cost))
+                return;
+
             Vector2 mouseWorld = GetMouseWorldPosition();
 
             if (!wasDrawingLastFrame)
