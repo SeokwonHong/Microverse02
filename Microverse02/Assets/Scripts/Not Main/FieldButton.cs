@@ -6,9 +6,14 @@ public class FieldButton : MonoBehaviour
     [SerializeField] GameObject refToNotPressed;
     [SerializeField] GameObject refToPressed;
 
+    [Header("Line")]
+    [SerializeField] Transform gateTarget;
+    [SerializeField] LineRenderer line;
+    [SerializeField] Color offColor = Color.red;
+    [SerializeField] Color onColor = Color.green;
 
     [SerializeField] CellManager.Team teamToDetect = CellManager.Team.Player;
-    [SerializeField] float radius = 13f;
+    [SerializeField] float radius = 12f;
     [SerializeField] float pressDepositAverageValue = 0.08f;
 
     public bool IsPressed { get; private set; }
@@ -17,6 +22,21 @@ public class FieldButton : MonoBehaviour
     {
         if (bacteriaFieldManager == null)
             bacteriaFieldManager = FindAnyObjectByType<BacteriaFieldManager>();
+
+        if(line !=null &&gateTarget != null)
+        {
+            line.positionCount = 2;
+            line.SetPosition(0,this.transform.position);
+            line.SetPosition(1,gateTarget.position);
+
+            line.startWidth = 3f;
+            line.endWidth = 3f;
+        }
+    }
+
+    private void Start()
+    {
+        UpdateLineColor();
     }
 
     void Update()
@@ -33,6 +53,18 @@ public class FieldButton : MonoBehaviour
 
             refToNotPressed.SetActive(!IsPressed);
             refToPressed.SetActive(IsPressed);
+
+            UpdateLineColor();
         }
+    }
+
+    void UpdateLineColor()
+    {
+        if (line == null) return;
+
+        Color c= IsPressed?onColor: offColor;
+        line.startColor = c;
+        line.endColor = c;
+        
     }
 }
