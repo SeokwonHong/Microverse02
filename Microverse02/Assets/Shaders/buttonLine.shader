@@ -2,8 +2,7 @@ Shader "Custom/URP/buttonLine"
 {
     Properties
     {
-        [HDR] _BaseColor("Base Color", Color) = (0.1, 1, 0.2, 1)
-        [HDR] _GlowColor("Glow Color", Color) = (0.3, 1, 0.4, 1)
+
 
         _Alpha("Alpha", Range(0,1)) = 1
         _CoreBrightness("Core Brightness", Range(0,4)) = 1.8

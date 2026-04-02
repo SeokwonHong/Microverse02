@@ -13,7 +13,7 @@ public class FieldButton : MonoBehaviour
     [SerializeField] Color onColor = Color.green;
 
     [SerializeField] CellManager.Team teamToDetect = CellManager.Team.Player;
-    [SerializeField] float radius = 12f;
+    float radius = 7.5f;
     [SerializeField] float pressDepositAverageValue = 0.08f;
 
     public bool IsPressed { get; private set; }
@@ -43,7 +43,7 @@ public class FieldButton : MonoBehaviour
     {
         if (bacteriaFieldManager == null) return;
 
-        float value = bacteriaFieldManager.SampleButtonArea((Vector2)transform.position + Vector2.up * 6f, radius,teamToDetect);
+        float value = bacteriaFieldManager.SampleButtonArea((Vector2)transform.position + Vector2.up * 0.9f, radius,teamToDetect);
 
         bool newState = value >= pressDepositAverageValue;
 
