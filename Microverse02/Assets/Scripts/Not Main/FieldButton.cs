@@ -15,6 +15,8 @@ public class FieldButton : MonoBehaviour
     [Header("Audio")]
     [SerializeField] AudioSource audioSource;
     [SerializeField] AudioClip pressedSound;
+    [SerializeField] AudioClip gateLinkedSound;
+
 
     [SerializeField] CellManager.Team teamToDetect = CellManager.Team.Player;
     float radius = 7.5f;
@@ -58,8 +60,13 @@ public class FieldButton : MonoBehaviour
             refToNotPressed.SetActive(!IsPressed);
             refToPressed.SetActive(IsPressed);
 
-            if (audioSource != null && pressedSound != null)
+            if (audioSource != null && pressedSound != null&&gateLinkedSound !=null)
+            {
                 audioSource.PlayOneShot(pressedSound);
+                audioSource.PlayOneShot(gateLinkedSound);
+
+            }
+                
 
             UpdateLineColor();
         }

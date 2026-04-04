@@ -485,6 +485,8 @@ MonoBehaviour:
   onColor: {r: 0, g: 1, b: 0, a: 1}
   audioSource: {fileID: 8746075906434848568}
   pressedSound: {fileID: 8300000, guid: 985d80e045326384685650ee8edd74b3, type: 3}
+  gateLinkedSound: {fileID: 8300000, guid: 0ec705ad54a83db4ebc7f07606f621be, type: 3}
+  gateLinkedSoundConsistent: {fileID: 8300000, guid: 95f3352f997887445b79b59b6de3e549, type: 3}
   teamToDetect: 0
   pressDepositAverageValue: 0.08
 --- !u!82 &8746075906434848568
@@ -499,7 +501,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 985d80e045326384685650ee8edd74b3, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.286
   m_Pitch: 1
   Loop: 0
   Mute: 0
