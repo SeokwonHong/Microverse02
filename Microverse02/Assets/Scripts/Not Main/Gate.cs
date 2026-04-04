@@ -26,7 +26,7 @@ public class Gate : MonoBehaviour
 
             if (audioSource != null && gateOpenSound != null && gateBeeping != null)
             {
-                audioSource.PlayOneShot(gateOpenSound);
+                audioSource.PlayOneShot(gateOpenSound,0.65f);
                 audioSource.PlayOneShot(gateBeeping);
 
             }

@@ -18,36 +18,48 @@ public class ChenimalDraw : MonoBehaviour
     Vector2 previousWorldPos;
     bool wasDrawingLastFrame;
 
+    [Header("Audio")]
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioClip sprayingSound;
+
+
     void Awake()
     {
         if (cam == null)
             cam = Camera.main;
+
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
+        if (audioSource != null)
+        {
+            audioSource.playOnAwake = false;
+            audioSource.loop = true;
+            audioSource.spatialBlend = 0f;
+            audioSource.clip = sprayingSound;
+        }
     }
 
     void Update()
     {
-        if (bacteriaFieldManager == null || cam == null)
+        if (bacteriaFieldManager == null || cam == null || playerEnergy == null)
             return;
-        
+
         bool isDrawing = Input.GetMouseButton(0);
 
-
         float cost = drawCostPerSecond * Time.deltaTime;
-        float recover  = recoverPerSecond * Time.deltaTime;
-        
-
+        float recover = recoverPerSecond * Time.deltaTime;
 
         if (isDrawing)
         {
-
             lastDrawTime = Time.time;
 
             if (!playerEnergy.TryConsume(cost))
             {
+                StopSpraySound();
                 wasDrawingLastFrame = false;
                 return;
             }
-                
 
             Vector2 mouseWorld = GetMouseWorldPosition();
 
@@ -56,8 +68,12 @@ public class ChenimalDraw : MonoBehaviour
                 bacteriaFieldManager.DepositDraw(mouseWorld, drawStrengthMultiplier);
                 previousWorldPos = mouseWorld;
                 wasDrawingLastFrame = true;
+
+                StartSpraySound();
                 return;
             }
+
+            StartSpraySound();
 
             float distance = Vector2.Distance(previousWorldPos, mouseWorld);
             int steps = Mathf.Max(1, Mathf.CeilToInt(distance / stepSpacing));
@@ -76,12 +92,36 @@ public class ChenimalDraw : MonoBehaviour
 
             previousWorldPos = mouseWorld;
         }
-        else if (Time.time - lastDrawTime > recoverDelay)
+        else
         {
-            playerEnergy.AddEnergy(recover);
+            StopSpraySound();
+
+            if (Time.time - lastDrawTime > recoverDelay)
+            {
+                playerEnergy.AddEnergy(recover);
+            }
+
             wasDrawingLastFrame = false;
         }
+    }
 
+
+    void StartSpraySound()
+    {
+        if (audioSource == null || sprayingSound == null)
+            return;
+
+        if (!audioSource.isPlaying)
+            audioSource.Play();
+    }
+
+    void StopSpraySound()
+    {
+        if (audioSource == null)
+            return;
+
+        if (audioSource.isPlaying)
+            audioSource.Stop();
     }
 
     Vector2 GetMouseWorldPosition()
