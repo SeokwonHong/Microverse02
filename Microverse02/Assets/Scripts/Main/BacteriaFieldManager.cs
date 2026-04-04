@@ -55,7 +55,7 @@ public class BacteriaFieldManager : MonoBehaviour
     float drawVisualStrength = 3f;
 
     public float trailMaxDeposit = 1.5f;
-    float drawMaxDeposit = 30f;
+    float drawMaxDeposit = 23f;
 
     Texture2D trailTexture;
 

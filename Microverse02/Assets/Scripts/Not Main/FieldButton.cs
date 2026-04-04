@@ -12,6 +12,10 @@ public class FieldButton : MonoBehaviour
     [SerializeField] Color offColor = Color.red;
     [SerializeField] Color onColor = Color.green;
 
+    [Header("Audio")]
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioClip pressedSound;
+
     [SerializeField] CellManager.Team teamToDetect = CellManager.Team.Player;
     float radius = 7.5f;
     [SerializeField] float pressDepositAverageValue = 0.08f;
@@ -53,6 +57,9 @@ public class FieldButton : MonoBehaviour
 
             refToNotPressed.SetActive(!IsPressed);
             refToPressed.SetActive(IsPressed);
+
+            if (audioSource != null && pressedSound != null)
+                audioSource.PlayOneShot(pressedSound);
 
             UpdateLineColor();
         }
