@@ -5,8 +5,7 @@ public class PlayerEnergy : MonoBehaviour
 
     private float maxEnergy = 10f;
     private float currentEnergy = 10f;
-    private float minEnergy = 0f;
-
+    private float minumEnergy = 0;  
     public float CurrentEnergy => currentEnergy;
     public float MaxEnergy => maxEnergy;
     public float  NormalizedEnergy =>maxEnergy <=0f?0f: currentEnergy / maxEnergy;
@@ -30,4 +29,6 @@ public class PlayerEnergy : MonoBehaviour
         currentEnergy += amount;
         currentEnergy = Mathf.Min(currentEnergy,maxEnergy);
     }
+
+
 }

@@ -10,7 +10,11 @@ public class ChenimalDraw : MonoBehaviour
     [SerializeField] float stepSpacing = 0.35f;
 
     [SerializeField] PlayerEnergy playerEnergy;
-    [SerializeField] float drawCostPerSecond = 2f;
+    float drawCostPerSecond = 5f;
+    float recoverPerSecond = 1f;
+    float recoverDelay = 0.2f;
+    float lastDrawTime;
+
     Vector2 previousWorldPos;
     bool wasDrawingLastFrame;
 
@@ -24,15 +28,26 @@ public class ChenimalDraw : MonoBehaviour
     {
         if (bacteriaFieldManager == null || cam == null)
             return;
-
+        
         bool isDrawing = Input.GetMouseButton(0);
+
+
+        float cost = drawCostPerSecond * Time.deltaTime;
+        float recover  = recoverPerSecond * Time.deltaTime;
+        
+
 
         if (isDrawing)
         {
 
-            float cost = drawCostPerSecond * Time.deltaTime;
+            lastDrawTime = Time.time;
+
             if (!playerEnergy.TryConsume(cost))
+            {
+                wasDrawingLastFrame = false;
                 return;
+            }
+                
 
             Vector2 mouseWorld = GetMouseWorldPosition();
 
@@ -61,10 +76,12 @@ public class ChenimalDraw : MonoBehaviour
 
             previousWorldPos = mouseWorld;
         }
-        else
+        else if (Time.time - lastDrawTime > recoverDelay)
         {
+            playerEnergy.AddEnergy(recover);
             wasDrawingLastFrame = false;
         }
+
     }
 
     Vector2 GetMouseWorldPosition()

@@ -6,6 +6,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] PlayerEnergy playerEnergy;
     [SerializeField] RectTransform refToEnergyBar;
 
+    private float EnergyBarFullSize = 3.39f;
+
     Vector3 originalScale;
 
 
@@ -20,7 +22,7 @@ public class UIManager : MonoBehaviour
 
         float t = Mathf.Clamp01(playerEnergy.NormalizedEnergy);
         refToEnergyBar.localScale = new Vector3(
-            3.39f *t,
+            EnergyBarFullSize * t,
             originalScale.y,
             originalScale.z
         );
