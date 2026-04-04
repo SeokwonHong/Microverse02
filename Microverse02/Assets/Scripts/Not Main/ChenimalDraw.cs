@@ -10,7 +10,7 @@ public class ChenimalDraw : MonoBehaviour
     [SerializeField] float stepSpacing = 0.35f;
 
     [SerializeField] PlayerEnergy playerEnergy;
-    float drawCostPerSecond = 5f;
+    float drawCostPerSecond = 3f;
     float recoverPerSecond = 1f;
     float recoverDelay = 0.2f;
     float lastDrawTime;

@@ -23,10 +23,7 @@ public class CellManager : MonoBehaviour
     [Header("Bacteria Pooling")]
     readonly List<int> deadBacteriaPool = new List<int>(128);
 
-    [Header("Destination")]
-    [SerializeField] GameObject refToDestination;
-    [SerializeField] float destinationRadius = 2f;
-    int arrivedBacteriaCount = 0;
+
 
     [SerializeField] float drawChemicalSpeedBoost = 5f;
     [SerializeField] float drawChemicalSpeedSensitivity = 1f;
@@ -68,11 +65,7 @@ public class CellManager : MonoBehaviour
 
     void Awake()
     {
-        if (refToDestination != null)
-        {
-            refToDestination.transform.localScale =
-                new Vector3(destinationRadius * 2f, destinationRadius * 2f, 1f);
-        }
+  
 
         Vector2 spawnPos1 = playerSpawn.transform.position;
         Vector2 spawnPos2 = enemySpawn.transform.position;
@@ -133,15 +126,21 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
 
-        DestinationDetection();
 
         if (ReproductionEnergy < 0f)
             ReproductionEnergy = 0f;
 
-        if (Input.GetKeyDown(KeyCode.V))
+        
+
+        if(Input.GetKeyDown(KeyCode.Q))
         {
-            Debug.Log(arrivedBacteriaCount);
+            bacteriaSpeed = 80f;
         }
+        else if (Input.GetKeyDown(KeyCode.E))
+        {
+            bacteriaSpeed = 3.6f;
+        }
+
     }
 
     void ApplyRectangleBoundary(int i)
@@ -345,26 +344,5 @@ public class CellManager : MonoBehaviour
         }
     }
 
-    public void DestinationDetection()
-    {
-        if (refToDestination == null) return;
-
-        Vector2 dest = refToDestination.transform.position;
-
-        for (int i = 0; i < cells.Count; i++)
-        {
-            BacteriaData bacteria = cells[i];
-            if (bacteria.isDead) continue;
-
-            Vector2 d = dest - bacteria.currentPos;
-
-            if (d.sqrMagnitude < destinationRadius * destinationRadius)
-            {
-                bacteria.isDead = true;
-                cells[i] = bacteria;
-                deadBacteriaPool.Add(i);
-                arrivedBacteriaCount++;
-            }
-        }
-    }
+   
 }

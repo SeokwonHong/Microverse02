@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class Gate : MonoBehaviour
 {
-    [SerializeField] Collider2D col;
+
     [SerializeField] Animator animator;
+    [SerializeField] CellManager cellManager;
 
     bool currentState;
 
@@ -19,8 +20,6 @@ public class Gate : MonoBehaviour
             animator.SetBool("AllPressed", open);
         }
 
-        if (col != null)
-            col.enabled = !open;
 
     }
 }

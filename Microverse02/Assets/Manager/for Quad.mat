@@ -35,14 +35,26 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _NormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _DissolveAmount: 0.5
     - _EnableExternalAlpha: 0
-    - _Thickness: 1.35
+    - _Smudge: 0.5
+    - _SmudgeAmount: 0.35
+    - _SmudgeDither: 0.5
+    - _SmudgeScale: 12
+    - _SmudgeSoftness: 0.08
+    - _SmudgeStrength: 1
+    - _SmudgeWidth: 5
+    - _Thickness: 1
     - _Threshold: 0.0001
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
