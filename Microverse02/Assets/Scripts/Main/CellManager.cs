@@ -11,6 +11,13 @@ public class CellManager : MonoBehaviour
     [SerializeField] float bacteriaSpawnInterval = 0.0001f;
     float bacteriaSpawnTimer = 0f;
     [SerializeField] int bacteriaCount = 200;
+    [SerializeField] int EnemyCount = 100;
+
+    [Header("Enemy Pressure")]
+    [SerializeField] float enemyEraseTrailPerSecond = 1.8f;
+    [SerializeField] float enemyEraseDrawPerSecond = 3.5f;
+    [SerializeField] float enemyEraseRadius = 1.2f;
+
     [SerializeField] float bacteriaSpeed = 1.5f;
 
     [Header("Map generation")]
@@ -70,10 +77,13 @@ public class CellManager : MonoBehaviour
         Vector2 spawnPos1 = playerSpawn.transform.position;
         Vector2 spawnPos2 = enemySpawn.transform.position;
 
-        for (int i = 0; i < bacteriaCount / 2; i++)
+        for (int i = 0; i < bacteriaCount; i++)
         {
             CreateBacteriaCell(spawnPos1, Team.Player);
-            //CreateBacteriaCell(spawnPos2, Team.Enemy);
+        }
+        for(int i = 0;i < EnemyCount; i++)
+        {
+            CreateBacteriaCell(spawnPos2, Team.Enemy);
         }
 
         bacteriaCount = 0;
@@ -82,14 +92,6 @@ public class CellManager : MonoBehaviour
     void Update()
     {
         float dt = Time.deltaTime;
-
-        DepositBacteriaField();
-
-        bool updated = bacteriaFieldManager.TickField(dt);
-        if (updated)
-        {
-            bacteriaFieldManager.UpdateTrailTexture();
-        }
 
         ApplyBacteriaFieldSteering();
 
@@ -126,13 +128,19 @@ public class CellManager : MonoBehaviour
             cells[i] = c;
         }
 
+        DepositBacteriaField();
+        ApplyEnemyFieldDamage(dt);
+
+        bool updated = bacteriaFieldManager.TickField(dt);
+        if (updated)
+        {
+            bacteriaFieldManager.UpdateTrailTexture();
+        }
 
         if (ReproductionEnergy < 0f)
             ReproductionEnergy = 0f;
 
-        
-
-        if(Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q))
         {
             bacteriaSpeed = 80f;
         }
@@ -140,7 +148,6 @@ public class CellManager : MonoBehaviour
         {
             bacteriaSpeed = 3.6f;
         }
-
     }
 
     void ApplyRectangleBoundary(int i)
@@ -344,5 +351,23 @@ public class CellManager : MonoBehaviour
         }
     }
 
-   
+    void ApplyEnemyFieldDamage(float dt)
+    {
+        if (bacteriaFieldManager == null) return;
+
+        float trailAmount = enemyEraseTrailPerSecond * dt;
+        float drawAmount = enemyEraseDrawPerSecond * dt;
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            BacteriaData c = cells[i];
+            if (c.isDead) continue;
+            if (c.team != Team.Enemy) continue;
+
+            bacteriaFieldManager.ErasePlayerTrail(c.currentPos, enemyEraseRadius, trailAmount);
+            bacteriaFieldManager.EraseDraw(c.currentPos, enemyEraseRadius, drawAmount);
+        }
+    }
+
+
 }
