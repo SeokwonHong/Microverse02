@@ -611,7 +611,6 @@ public class BacteriaFieldManager : MonoBehaviour
             pixels[index] = Float4ToColor32(c);
         }
 
-        
         static Color32 Float4ToColor32(float4 c)
         {
             c = math.saturate(c);
@@ -622,57 +621,6 @@ public class BacteriaFieldManager : MonoBehaviour
                 (byte)math.round(c.z * 255f),
                 (byte)math.round(c.w * 255f)
             );
-        }
-    }
-
-    public void ErasePlayerTrail(Vector2 worldPos, float radius, float amount)
-    {
-        if (!playerTrailField.IsCreated) return;
-        if (amount <= 0f) return;
-
-        ModifyFieldCircle(playerTrailField, worldPos, radius, -amount, false);
-    }
-
-    public void EraseDraw(Vector2 worldPos, float radius, float amount)
-    {
-        if (!drawField.IsCreated) return;
-        if (amount <= 0f) return;
-
-        ModifyFieldCircle(drawField, worldPos, radius, -amount, true);
-    }
-    void ModifyFieldCircle(NativeArray<float> field, Vector2 worldPos, float radius, float delta, bool blockWalls)
-    {
-        if (!field.IsCreated) return;
-        if (!WorldToGrid(worldPos, out int gx, out int gy)) return;
-
-        float cellSizeX = MapSize.x / chemoWidth;
-        float cellSizeY = MapSize.y / chemoHeight;
-
-        int rx = Mathf.CeilToInt(radius / cellSizeX);
-        int ry = Mathf.CeilToInt(radius / cellSizeY);
-
-        float radiusSqr = radius * radius;
-
-        for (int y = gy - ry; y <= gy + ry; y++)
-        {
-            if (y < 0 || y >= chemoHeight) continue;
-
-            for (int x = gx - rx; x <= gx + rx; x++)
-            {
-                if (x < 0 || x >= chemoWidth) continue;
-
-                Vector2 cellWorld = GridToWorldCentre(x, y);
-                Vector2 deltaPos = cellWorld - worldPos;
-
-                if (deltaPos.sqrMagnitude > radiusSqr)
-                    continue;
-
-                if (blockWalls && mapManager != null && mapManager.IsWallWorld(cellWorld))
-                    continue;
-
-                int idx = Index(x, y);
-                field[idx] = Mathf.Max(0f, field[idx] + delta);
-            }
         }
     }
 }
