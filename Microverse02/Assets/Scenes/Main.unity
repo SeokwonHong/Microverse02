@@ -60420,6 +60420,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 721f54f3a24f4bd478475d5264b316d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gameplayManager: {fileID: 0}
   playerEnergy: {fileID: 1569142233}
   refToEnergyBar: {fileID: 1462328411}
   levelTimer: {fileID: 1959233176}
@@ -61329,7 +61330,7 @@ MonoBehaviour:
   mapManager: {fileID: 1056029286}
   fieldRenderer: {fileID: 42457891}
   chemoDepositAmount: 0.45
-  chemoDecayPerSecond: 0.1
+  chemoDecayPerSecond: 0.5
   drawDepositAmount: 30
   drawDecayPerSecond: 0.32
   drawDiffuseRate: 0.3
@@ -61337,9 +61338,9 @@ MonoBehaviour:
   trailWeight: 1
   foodWeight: 5
   fieldTickInterval: 0.03333334
-  playerWeakColor: {r: 0.7058824, g: 0, b: 0.5254902, a: 0}
+  playerWeakColor: {r: 0, g: 0, b: 0, a: 0}
   playerMidColor: {r: 0, g: 0.22352941, b: 0.59607846, a: 1}
-  playerStrongColor: {r: 0.5568628, g: 0.5294118, b: 0, a: 1}
+  playerStrongColor: {r: 0.5568628, g: 0.04657208, b: 0, a: 1}
   enemyWeakColor: {r: 0, g: 0, b: 0.4, a: 0}
   enemyMidColor: {r: 0.2, g: 0.5, b: 1, a: 1}
   enemyStrongColor: {r: 0.8, g: 1, b: 1, a: 1}
@@ -63170,7 +63171,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fe519962321aa0489b96e61236ffcf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  timeLimit: 30
+  timeLimit: 1200
   currentTime: 0
 --- !u!4 &1959233177
 Transform:
@@ -64487,7 +64488,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaCount
-      value: 4500
+      value: 15000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
