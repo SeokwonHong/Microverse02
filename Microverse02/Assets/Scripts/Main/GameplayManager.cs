@@ -7,35 +7,73 @@ public class GameplayManager : MonoBehaviour
 {
     [SerializeField] FieldButton[] buttons;
     [SerializeField] Gate gate;
-
+    [SerializeField] LevelTimer timer;
 
     bool lastState=false;
+    bool completed = false;
 
     void Awake()
     {
-        buttons = FindObjectsByType<FieldButton>(FindObjectsSortMode.None);
+        if (buttons == null || buttons.Length == 0)
+            buttons = FindObjectsByType<FieldButton>(FindObjectsSortMode.None);
+    }
+    private void Start()
+    {
+        if (timer != null)
+            timer.OnTimerEnded += OnLose;
     }
 
     void Update()
     {
+        if (completed) return;
         if (buttons == null || buttons.Length == 0) return;
 
-        bool allPressed=true;
+        bool allPressed = true;
 
-        for(int i = 0; i<buttons.Length; i++)
+        for (int i = 0; i < buttons.Length; i++)
         {
-            if (buttons[i]==null || !buttons[i].IsPressed)
+            if (buttons[i] == null || !buttons[i].IsPressed)
             {
                 allPressed = false;
                 break;
             }
         }
 
+        // state change (for gate)
         if (allPressed != lastState)
         {
             lastState = allPressed;
             gate.SetOpen(allPressed);
-  
         }
+
+        // win condition (only once)
+        if (allPressed)
+        {
+            completed = true;
+            OnWin();
+        }
+    }
+
+    void OnWin()
+    {
+        Debug.Log("WIN");
+
+        if (timer != null)
+            timer.StopTimer();
+
+        // later:
+        // play sound
+        // load next level
+    }
+
+    void OnLose()
+    {
+        if (completed) return;
+
+        Debug.Log("LOSE");
+
+        // example:
+        // reload scene
+        // disable input
     }
 }
