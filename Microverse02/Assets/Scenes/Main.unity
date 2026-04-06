@@ -61329,7 +61329,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapManager: {fileID: 1056029286}
   fieldRenderer: {fileID: 42457891}
-  chemoDepositAmount: 0.45
+  chemoDepositAmount: 1.23
   chemoDecayPerSecond: 0.5
   drawDepositAmount: 30
   drawDecayPerSecond: 0.32
@@ -61340,7 +61340,7 @@ MonoBehaviour:
   fieldTickInterval: 0.03333334
   playerWeakColor: {r: 0, g: 0, b: 0, a: 0}
   playerMidColor: {r: 0, g: 0.22352941, b: 0.59607846, a: 1}
-  playerStrongColor: {r: 0.5568628, g: 0.04657208, b: 0, a: 1}
+  playerStrongColor: {r: 0.617486, g: 1, b: 0, a: 1}
   enemyWeakColor: {r: 0, g: 0, b: 0.4, a: 0}
   enemyMidColor: {r: 0.2, g: 0.5, b: 1, a: 1}
   enemyStrongColor: {r: 0.8, g: 1, b: 1, a: 1}
@@ -63100,7 +63100,7 @@ Transform:
   m_GameObject: {fileID: 1921727452}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -176.4, y: -86.9, z: 0}
+  m_LocalPosition: {x: -1.4, y: -1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -64423,6 +64423,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3181221499565562391, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: showDetectRadius
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3181221499565562391, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaBodyPrefab
       value: 
       objectReference: {fileID: 647007298097418435, guid: 83f99c3f291f50641b993e54ffcf9b49, type: 3}
@@ -64492,7 +64496,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: bacteriaSpeed
-      value: 3.6
+      value: 35.39
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: refToCircleBg
