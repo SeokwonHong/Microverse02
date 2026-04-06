@@ -4,11 +4,14 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
+    [SerializeField] GameplayManager gameplayManager;
+
     [SerializeField] PlayerEnergy playerEnergy;
     [SerializeField] RectTransform refToEnergyBar;
 
     [SerializeField] LevelTimer levelTimer;
     [SerializeField] TextMeshPro timeText;
+
 
     private float EnergyBarFullSize = 3.39f;
 
@@ -39,6 +42,14 @@ public class UIManager : MonoBehaviour
             int centiseconds = Mathf.FloorToInt((time - seconds) * 100f);
 
             timeText.text = $"{seconds:00}:{centiseconds:00}";
+
+
+            if(gameplayManager != null && gameplayManager.IsCompleted)
+            {
+                Color c;
+                ColorUtility.TryParseHtmlString("#60FE01", out c);
+                timeText.color = c;
+            }
         }
 
     }

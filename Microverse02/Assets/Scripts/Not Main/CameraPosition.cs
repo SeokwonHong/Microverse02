@@ -27,7 +27,7 @@ public class CameraPosition : MonoBehaviour
     {
         if (cellManager == null) return;
 
-        HandleZoom();
+        //HandleZoom();
         transform.position = new Vector3(0f, offsetY, camZ);
     }
 

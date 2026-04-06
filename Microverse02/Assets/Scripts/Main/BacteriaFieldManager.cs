@@ -11,7 +11,7 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] Renderer fieldRenderer;
 
     //Grid
-    int chemoWidth = 400;
+    int chemoWidth = 500;
     int chemoHeight;
 
     [Header("Trail")]

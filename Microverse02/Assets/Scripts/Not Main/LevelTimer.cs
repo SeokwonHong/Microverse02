@@ -13,6 +13,8 @@ public class LevelTimer : MonoBehaviour
 
     public float CurrentTime => currentTime;
     public float TimeLimit => timeLimit;
+
+    public bool IsRunning => isRunning;
     void Start()
     {
         currentTime = timeLimit;

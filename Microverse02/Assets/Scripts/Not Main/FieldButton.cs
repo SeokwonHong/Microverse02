@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class FieldButton : MonoBehaviour
 {
+    [SerializeField] GameplayManager gameplayManager;
     [SerializeField] BacteriaFieldManager bacteriaFieldManager;
     [SerializeField] GameObject refToNotPressed;
     [SerializeField] GameObject refToPressed;
@@ -33,6 +34,9 @@ public class FieldButton : MonoBehaviour
         if (bacteriaFieldManager == null)
             bacteriaFieldManager = FindAnyObjectByType<BacteriaFieldManager>();
 
+        if (gameplayManager == null)
+            gameplayManager = FindAnyObjectByType<GameplayManager>();
+
         if (line != null && gateTarget != null)
         {
             line.positionCount = 2;
@@ -52,6 +56,9 @@ public class FieldButton : MonoBehaviour
     void Update()
     {
         if (bacteriaFieldManager == null) return;
+        if (gameplayManager != null && gameplayManager.InputLocked)
+            return;
+
 
         float value = bacteriaFieldManager.SampleButtonArea((Vector2)transform.position + Vector2.up * 0.9f, radius, teamToDetect);
 
@@ -72,14 +79,25 @@ public class FieldButton : MonoBehaviour
             {
                 audioSource.PlayOneShot(pressedSound);
                 audioSource.PlayOneShot(gateLinkedSound);
-
             }
-
 
             UpdateLineColor();
         }
     }
+    public void ForceUnpress()
+    {
+        IsPressed = false;
+        lastStateChangeTime = Time.time;
 
+        if (refToNotPressed != null)
+            refToNotPressed.SetActive(true);
+
+        if (refToPressed != null)
+            refToPressed.SetActive(false);
+
+ 
+        UpdateLineColor();
+    }
     void UpdateLineColor()
     {
         if (line == null) return;
