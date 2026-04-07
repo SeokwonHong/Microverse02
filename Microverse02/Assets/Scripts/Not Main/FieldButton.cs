@@ -13,7 +13,7 @@ public class FieldButton : MonoBehaviour
     [SerializeField] Color offColor = Color.red;
     [SerializeField] Color onColor = Color.green;
 
-    float stateLockDuration = 0.3f;
+    float stateLockDuration = 0.1f;
     float lastStateChangeTime = -999f;
 
     [Header("Audio")]
@@ -24,7 +24,7 @@ public class FieldButton : MonoBehaviour
 
     [SerializeField] CellManager.Team teamToDetect = CellManager.Team.Player;
     float radius = 7.5f;
-    [SerializeField] float pressDepositAverageValue = 0.08f;
+    [SerializeField] float pressDepositAverageValue = 0.03f;
 
 
     public bool IsPressed { get; private set; }
