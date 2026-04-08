@@ -134,11 +134,11 @@ public class CellManager : MonoBehaviour
 
         if(Input.GetKeyDown(KeyCode.Q))
         {
-            bacteriaSpeed = 80f;
+            bacteriaSpeed = bacteriaSpeed* 1.5f;
         }
         else if (Input.GetKeyDown(KeyCode.E))
         {
-            bacteriaSpeed = 3.6f;
+            bacteriaSpeed = bacteriaSpeed *0.75f;
         }
 
     }
@@ -269,7 +269,7 @@ public class CellManager : MonoBehaviour
         if (bacteriaFieldManager == null) return;
 
         float dt = Time.deltaTime;
-        float turnRate = 18f;
+        float turnRate = 25f; //18
         float turnThreshold = 0.0015f;
 
         for (int i = 0; i < cells.Count; i++)
@@ -321,8 +321,8 @@ public class CellManager : MonoBehaviour
 
                 if (c.headingTimer <= 0f)
                 {
-                    c.wanderAngle = Random.Range(-8f, 8f);
-                    c.headingTimer = Random.Range(0.15f, 0.35f);
+                    c.wanderAngle = Random.Range(-3f, 3f);
+                    c.headingTimer = Random.Range(0.15f, 0.16f);
                 }
 
                 desiredDir = Rotate(forward, c.wanderAngle);
