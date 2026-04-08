@@ -23,7 +23,8 @@ public class CellManager : MonoBehaviour
     [Header("Bacteria Pooling")]
     readonly List<int> deadBacteriaPool = new List<int>(128);
 
-
+    [SerializeField] float wanderTimer;
+    [SerializeField] float wanderRate;
 
     [SerializeField] float drawChemicalSpeedBoost = 5f;
     [SerializeField] float drawChemicalSpeedSensitivity = 1f;
@@ -321,8 +322,9 @@ public class CellManager : MonoBehaviour
 
                 if (c.headingTimer <= 0f)
                 {
-                    c.wanderAngle = Random.Range(-8f, 8f);
+                    c.wanderAngle = Random.Range(-16f, 16f);
                     c.headingTimer = Random.Range(0.15f, 0.35f);
+                    //c.headingTimer = 0.15f;
                 }
 
                 desiredDir = Rotate(forward, c.wanderAngle);

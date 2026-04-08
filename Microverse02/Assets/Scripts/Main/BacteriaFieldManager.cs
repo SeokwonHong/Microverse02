@@ -26,7 +26,7 @@ public class BacteriaFieldManager : MonoBehaviour
 
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 4.5f;
-    float chemoSensorAngle = 28f;
+    float chemoSensorAngle = 38f;
 
 
     [Header("Sampling Weights")]
