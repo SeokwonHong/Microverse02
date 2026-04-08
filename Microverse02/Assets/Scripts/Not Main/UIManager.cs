@@ -4,7 +4,6 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    [SerializeField] GameplayManager gameplayManager;
 
     [SerializeField] PlayerEnergy playerEnergy;
     [SerializeField] RectTransform refToEnergyBar;
@@ -44,12 +43,6 @@ public class UIManager : MonoBehaviour
             timeText.text = $"{seconds:00}:{centiseconds:00}";
 
 
-            if(gameplayManager != null && gameplayManager.IsCompleted)
-            {
-                Color c;
-                ColorUtility.TryParseHtmlString("#60FE01", out c);
-                timeText.color = c;
-            }
         }
 
     }
