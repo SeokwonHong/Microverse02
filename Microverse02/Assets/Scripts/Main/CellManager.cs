@@ -71,7 +71,7 @@ public class CellManager : MonoBehaviour
         Vector2 spawnPos1 = playerSpawn.transform.position;
         Vector2 spawnPos2 = enemySpawn.transform.position;
 
-        for (int i = 0; i < bacteriaCount / 2; i++)
+        for (int i = 0; i < bacteriaCount; i++)
         {
             CreateBacteriaCell(spawnPos1, Team.Player);
             //CreateBacteriaCell(spawnPos2, Team.Enemy);

@@ -31,8 +31,6 @@ public class MapManager : MonoBehaviour
     [SerializeField] Color wallInnerColor = new Color(0.08f, 0.08f, 0.08f, 1f);
     [SerializeField] int edgeWidthInCells = 6;
 
-    [Header("bg")]
-    [SerializeField] GameObject refToBg;
 
     [SerializeField, HideInInspector] byte[] wallField;
 
@@ -54,7 +52,6 @@ public class MapManager : MonoBehaviour
 
     void OnEnable()
     {
-        refToBg.transform.localScale = mapSize;
 
 
         EnsureInitialised();
