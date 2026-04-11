@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] MapManager mapManager;
+    [SerializeField] float playerRadius = 0.2f;
+
     [Header("Move")]
     [SerializeField] float moveSpeed = 5f;
 
@@ -50,8 +53,36 @@ public class PlayerController : MonoBehaviour
 
         Vector3 move = new Vector3(h, v, 0f).normalized;
         transform.position += move * moveSpeed * Time.deltaTime;
+
+        ClampInsideMap();
     }
 
+    void ClampInsideMap()
+    {
+        if (mapManager == null) return;
+
+        Vector2 centre = mapManager.MapCentre;
+        Vector2 size = mapManager.MapSize;
+
+        float halfW = size.x * 0.5f;
+        float halfH = size.y * 0.5f;
+
+        Vector3 pos = transform.position;
+
+        pos.x = Mathf.Clamp(
+            pos.x,
+            centre.x - halfW + playerRadius/2,
+            centre.x + halfW - playerRadius/2
+        );
+
+        pos.y = Mathf.Clamp(
+            pos.y,
+            centre.y - halfH + playerRadius/2,
+            centre.y + halfH - playerRadius/2
+        );
+
+        transform.position = pos;
+    }
     void HandleDrawing()
     {
         if (bacteriaFieldManager == null || playerEnergy == null)

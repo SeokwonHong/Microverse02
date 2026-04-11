@@ -135,7 +135,7 @@ public class CellManager : MonoBehaviour
 
         if(Input.GetKeyDown(KeyCode.Q))
         {
-            bacteriaSpeed = 80f;
+            bacteriaSpeed = 40f;
         }
         else if (Input.GetKeyDown(KeyCode.E))
         {
