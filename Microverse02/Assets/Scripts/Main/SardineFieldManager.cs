@@ -59,11 +59,11 @@ public class SardineFieldManager : MonoBehaviour
     NativeArray<float> playerTrailField;
     NativeArray<float> playerTrailNext;
 
-    NativeArray<float> foodField;
-    NativeArray<float> foodNext;
+  
 
     NativeArray<float> drawField;
     NativeArray<float> drawNext;
+
 
     NativeArray<Color32> trailPixels;
 
@@ -123,9 +123,6 @@ public class SardineFieldManager : MonoBehaviour
         playerTrailField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         playerTrailNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
-        foodField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-        foodNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-
         drawField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         drawNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
@@ -136,9 +133,6 @@ public class SardineFieldManager : MonoBehaviour
     {
         if (playerTrailField.IsCreated) playerTrailField.Dispose();
         if (playerTrailNext.IsCreated) playerTrailNext.Dispose();
-
-        if (foodField.IsCreated) foodField.Dispose();
-        if (foodNext.IsCreated) foodNext.Dispose();
 
         if (drawField.IsCreated) drawField.Dispose();
         if (drawNext.IsCreated) drawNext.Dispose();
@@ -229,10 +223,9 @@ public class SardineFieldManager : MonoBehaviour
             int idx = Index(gx, gy);
 
             float trail = playerTrailField[idx] * trailWeight;
-            float food = foodField[idx] * foodWeight;
             float draw = drawField[idx];
 
-            return trail + food + draw;
+            return trail +draw;
         }
 
         return 0f;
@@ -254,10 +247,9 @@ public class SardineFieldManager : MonoBehaviour
             int idx = Index(gx, gy);
 
             float trail = playerTrailField[idx] * trailWeight;
-            float food = foodField[idx] * foodWeight;
             float draw = drawField[idx];
 
-            return trail + food + draw;
+            return trail +draw;
         }
 
         return 0f;
@@ -328,7 +320,6 @@ public class SardineFieldManager : MonoBehaviour
         var job = new BuildPixelsJob
         {
             playerTrailField = playerTrailField,
-            foodField = foodField,
             drawField = drawField,
             pixels = trailPixels,
 
@@ -336,10 +327,8 @@ public class SardineFieldManager : MonoBehaviour
             playerMidColor = ToFloat4(playerMidColor),
             playerStrongColor = ToFloat4(playerStrongColor),
 
-            foodColor = ToFloat4(foodColor),
             drawColor = ToFloat4(drawColor),
 
-            foodVisualStrength = foodVisualStrength,
             drawVisualStrength = drawVisualStrength,
             chemoDepositAmount = chemoDepositAmount,
             trailMaxDeposit = trailMaxDeposit
@@ -403,7 +392,6 @@ public class SardineFieldManager : MonoBehaviour
     struct BuildPixelsJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<float> playerTrailField;
-        [ReadOnly] public NativeArray<float> foodField;
         [ReadOnly] public NativeArray<float> drawField;
 
         [WriteOnly] public NativeArray<Color32> pixels;
@@ -412,13 +400,11 @@ public class SardineFieldManager : MonoBehaviour
         public float4 playerMidColor;
         public float4 playerStrongColor;
 
-        public float4 foodColor;
         public float4 drawColor;
 
         public float chemoDepositAmount;
         public float trailMaxDeposit;
 
-        public float foodVisualStrength;
         public float drawVisualStrength;
 
         public void Execute(int index)
@@ -436,19 +422,6 @@ public class SardineFieldManager : MonoBehaviour
 
                 c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
             }
-
-            // -------------------------
-            // FOOD VISUAL (RGB only)
-            // -------------------------
-            float food = math.saturate(foodField[index] * foodVisualStrength);
-            if (food > 0f)
-            {
-                float4 foodOverlay = foodColor;
-                foodOverlay.w = 1f;
-
-                c.xyz = math.lerp(c.xyz, foodOverlay.xyz, food);
-            }
-
             // -------------------------
             // PLAYER TRAIL VISUAL
             // -------------------------

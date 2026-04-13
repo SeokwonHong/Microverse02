@@ -1,0 +1,123 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8034811381048981240
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9041897232896126861}
+  - component: {fileID: 8262563032313686678}
+  - component: {fileID: 4365823185928857308}
+  - component: {fileID: 5181741460696558485}
+  - component: {fileID: 183857284267095410}
+  m_Layer: 0
+  m_Name: SardineManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9041897232896126861
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8034811381048981240}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8262563032313686678
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8034811381048981240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4523a7501112aa245a03942bee30db83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerSpawn: {fileID: 0}
+  sardineCount: 7000
+  sardineSpeed: 3.6
+  SardineFieldManager: {fileID: 4365823185928857308}
+  wallBounciness: 1
+  mapManager: {fileID: 0}
+  wanderTimer: 0
+  wanderRate: 0
+  drawChemicalSpeedBoost: 6.5
+  drawChemicalSpeedSensitivity: 3
+  ReproductionEnergy: 1300
+  SystemStability: 0
+--- !u!114 &4365823185928857308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8034811381048981240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fa66ca12c2db39459276f5992da8422, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapManager: {fileID: 0}
+  fieldRenderer: {fileID: 0}
+  chemoDepositAmount: 3
+  chemoDecayPerSecond: 1.5
+  drawDepositAmount: 30
+  drawDecayPerSecond: 0.5
+  drawDiffuseRate: 0.3
+  chemoSensorDistance: 6.5
+  trailWeight: 1
+  foodWeight: 5
+  fieldTickInterval: 0.03333334
+  playerWeakColor: {r: 0, g: 0, b: 0, a: 0}
+  playerMidColor: {r: 0.36862746, g: 0.5882353, b: 0.7921569, a: 1}
+  playerStrongColor: {r: 0.27450982, g: 0.47058824, b: 0.21568628, a: 1}
+  foodColor: {r: 0.36862746, g: 0.5882353, b: 0.79215693, a: 1}
+  foodVisualStrength: 1
+  drawColor: {r: 0.36862746, g: 0.5882353, b: 0.79215693, a: 1}
+  trailMaxDeposit: 3
+--- !u!114 &5181741460696558485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8034811381048981240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23549dbaa73a09445a14b25e545c1f95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &183857284267095410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8034811381048981240}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9a7a3185bd31df45b65dd1ff5d09d1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cursorCircle: {fileID: 0}
+  bacteriaFieldManager: {fileID: 4365823185928857308}
+  cam: {fileID: 0}
+  drawStrengthMultiplier: 1
+  stepSpacing: 0.35
+  playerEnergy: {fileID: 5181741460696558485}
+  audioSource: {fileID: 0}
+  sprayingSound: {fileID: 0}
