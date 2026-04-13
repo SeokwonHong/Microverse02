@@ -63442,6 +63442,56 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &895805067
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 895805069}
+  - component: {fileID: 895805068}
+  m_Layer: 0
+  m_Name: PlanktonManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &895805068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 895805067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d194e6fe5d4c9e47a9710d8b8f7e231, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  oceanFieldManager: {fileID: 1569142227}
+  mapManager: {fileID: 1056029286}
+  startClusterCount: 86
+  pointsPerCluster: 25
+  clusterRadius: 4
+  amountMultiplier: 1
+--- !u!4 &895805069
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 895805067}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.0020554, y: -27.311974, z: -0.9165883}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1056029286 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4194141431140931615, guid: 0ddb7d0fe675b8f4480dc67e9097ca9b, type: 3}
@@ -64784,6 +64834,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 628923899}
     - target: {fileID: 183857284267095410, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: oceanFieldManager
+      value: 
+      objectReference: {fileID: 1569142227}
+    - target: {fileID: 183857284267095410, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineFieldManager
       value: 
       objectReference: {fileID: 1569142227}
@@ -64815,6 +64869,10 @@ PrefabInstance:
       propertyPath: sardineSpeed
       value: 3.6
       objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: OceanFieldManager
+      value: 
+      objectReference: {fileID: 1569142227}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: ReproductionEnergy
       value: 1300
@@ -65039,6 +65097,7 @@ SceneRoots:
   - {fileID: 888524219}
   - {fileID: 1959233177}
   - {fileID: 5402479487759917563}
+  - {fileID: 895805069}
   - {fileID: 534792690}
   - {fileID: 1921727453}
   - {fileID: 1950570000}

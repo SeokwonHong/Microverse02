@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 
-public class SardineFieldManager : MonoBehaviour
+public class OceanFieldManager : MonoBehaviour
 {
     [SerializeField] MapManager mapManager;
     [SerializeField] Renderer fieldRenderer;
@@ -23,6 +23,13 @@ public class SardineFieldManager : MonoBehaviour
     [SerializeField] float drawDecayPerSecond = 0.095f;
     [SerializeField] float drawDiffuseRate = 0.3f;
 
+    [Header("Plankton")]
+    [SerializeField] float planktonAmount = 1f;
+    [SerializeField] float planktonMaxAmount = 2f;
+
+    [Header("Plankton Colours")]
+    [SerializeField] Color planktonColor = new Color(0.6f, 1f, 0.7f, 1f);
+    [SerializeField] float planktonVisualStrength = 1f;
 
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 4.5f;
@@ -59,7 +66,9 @@ public class SardineFieldManager : MonoBehaviour
     NativeArray<float> playerTrailField;
     NativeArray<float> playerTrailNext;
 
-  
+    [Header("Plankton Grid")]
+    NativeArray<float> planktonField;
+
 
     NativeArray<float> drawField;
     NativeArray<float> drawNext;
@@ -126,6 +135,8 @@ public class SardineFieldManager : MonoBehaviour
         drawField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         drawNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
+        planktonField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
         trailPixels = new NativeArray<Color32>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
     }
 
@@ -134,6 +145,7 @@ public class SardineFieldManager : MonoBehaviour
         if (playerTrailField.IsCreated) playerTrailField.Dispose();
         if (playerTrailNext.IsCreated) playerTrailNext.Dispose();
 
+        if (planktonField.IsCreated) planktonField.Dispose();
         if (drawField.IsCreated) drawField.Dispose();
         if (drawNext.IsCreated) drawNext.Dispose();
 
@@ -215,7 +227,38 @@ public class SardineFieldManager : MonoBehaviour
         }
     }
 
-   
+    public void AddPlankton(Vector2 worldPos, float amountMultiplier = 1f)
+    {
+        if (!planktonField.IsCreated) return;
+        if (mapManager == null) return;
+
+        if (mapManager.IsWallWorld(worldPos))
+            return;
+
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
+
+            planktonField[idx] = Mathf.Min(
+                planktonField[idx] + planktonAmount * amountMultiplier,
+                planktonMaxAmount
+            );
+        }
+    }
+
+    public float SamplePlankton(Vector2 worldPos)
+    {
+        if (!planktonField.IsCreated)
+            return 0f;
+
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
+            return planktonField[idx];
+        }
+
+        return 0f;
+    }
     public float Sample(Vector2 worldPos) //taking the value out from the hash
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
@@ -270,7 +313,8 @@ public class SardineFieldManager : MonoBehaviour
         return new Vector2(wx, wy);
     }
 
-    public bool TickField(float dt) //update pretty much
+   
+    public bool TickField(float dt)//update pretty much
     {
         bool updated = false;
         fieldTickTimer += dt;
@@ -285,7 +329,6 @@ public class SardineFieldManager : MonoBehaviour
 
             RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
-
         }
 
         return updated;
@@ -320,6 +363,7 @@ public class SardineFieldManager : MonoBehaviour
         var job = new BuildPixelsJob
         {
             playerTrailField = playerTrailField,
+            planktonField = planktonField,
             drawField = drawField,
             pixels = trailPixels,
 
@@ -327,9 +371,11 @@ public class SardineFieldManager : MonoBehaviour
             playerMidColor = ToFloat4(playerMidColor),
             playerStrongColor = ToFloat4(playerStrongColor),
 
+            planktonColor = ToFloat4(planktonColor),
             drawColor = ToFloat4(drawColor),
 
             drawVisualStrength = drawVisualStrength,
+            planktonVisualStrength = planktonVisualStrength,
             chemoDepositAmount = chemoDepositAmount,
             trailMaxDeposit = trailMaxDeposit
         };
@@ -393,12 +439,16 @@ public class SardineFieldManager : MonoBehaviour
     {
         [ReadOnly] public NativeArray<float> playerTrailField;
         [ReadOnly] public NativeArray<float> drawField;
+        [ReadOnly] public NativeArray<float> planktonField;
 
         [WriteOnly] public NativeArray<Color32> pixels;
 
         public float4 playerWeakColor;
         public float4 playerMidColor;
         public float4 playerStrongColor;
+        public float4 planktonColor;
+        public float planktonVisualStrength;
+
 
         public float4 drawColor;
 
@@ -410,6 +460,18 @@ public class SardineFieldManager : MonoBehaviour
         public void Execute(int index)
         {
             float4 c = new float4(0f, 0f, 0f, 0f);
+
+            // -------------------------
+            // PLANKTON TRAIL VISUAL
+            // -------------------------
+            float plankton = math.saturate(planktonField[index] * planktonVisualStrength);
+            if (plankton > 0f)
+            {
+                float4 planktonOverlay = planktonColor;
+                planktonOverlay.w = 1f;
+
+                c.xyz = math.lerp(c.xyz, planktonOverlay.xyz, plankton);
+            }
 
             // -------------------------
             // DRAW VISUAL (RGB only)

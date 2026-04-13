@@ -13,7 +13,7 @@ public class SardineManager : MonoBehaviour
     [SerializeField] float sardineSpeed = 1.5f;
 
     [Header("Map generation")]
-    [SerializeField] SardineFieldManager SardineFieldManager;
+    [SerializeField] OceanFieldManager OceanFieldManager;
     [SerializeField] float wallBounciness = 0.5f;
 
     [Header("Map")]
@@ -77,10 +77,10 @@ public class SardineManager : MonoBehaviour
 
         DepositBacteriaField();
 
-        bool updated = SardineFieldManager.TickField(dt);
+        bool updated = OceanFieldManager.TickField(dt);
         if (updated)
         {
-            SardineFieldManager.UpdateTrailTexture();
+            OceanFieldManager.UpdateTrailTexture();
         }
 
         ApplyBacteriaFieldSteering();
@@ -244,20 +244,20 @@ public class SardineManager : MonoBehaviour
 
     void DepositBacteriaField()
     {
-        if (SardineFieldManager == null) return;
+        if (OceanFieldManager == null) return;
 
         for (int i = 0; i < sardines.Count; i++)
         {
             BacteriaData c = sardines[i];
             if (c.isDead) return;
 
-            SardineFieldManager.DepositTrail(c.currentPos);
+            OceanFieldManager.DepositTrail(c.currentPos);
         }
     }
 
     void ApplyBacteriaFieldSteering()
     {
-        if (SardineFieldManager == null) return;
+        if (OceanFieldManager == null) return;
 
         float dt = Time.deltaTime;
         float turnRate = 18f;
@@ -272,21 +272,21 @@ public class SardineManager : MonoBehaviour
                 ? c.currentVelocity.normalized
                 : Random.insideUnitCircle.normalized;
 
-            Vector2 leftDir = Rotate(forward, -SardineFieldManager.SensorAngle);
-            Vector2 rightDir = Rotate(forward, SardineFieldManager.SensorAngle);
+            Vector2 leftDir = Rotate(forward, -OceanFieldManager.SensorAngle);
+            Vector2 rightDir = Rotate(forward, OceanFieldManager.SensorAngle);
 
-            Vector2 forwardPos = c.currentPos + forward * SardineFieldManager.SensorDistance;
-            Vector2 leftPos = c.currentPos + leftDir * SardineFieldManager.SensorDistance;
-            Vector2 rightPos = c.currentPos + rightDir * SardineFieldManager.SensorDistance;
+            Vector2 forwardPos = c.currentPos + forward * OceanFieldManager.SensorDistance;
+            Vector2 leftPos = c.currentPos + leftDir * OceanFieldManager.SensorDistance;
+            Vector2 rightPos = c.currentPos + rightDir * OceanFieldManager.SensorDistance;
 
             float forwardValue;
             float leftValue;
             float rightValue;
 
            
-            forwardValue = SardineFieldManager.SamplePlayer(forwardPos);
-            leftValue = SardineFieldManager.SamplePlayer(leftPos);
-            rightValue = SardineFieldManager.SamplePlayer(rightPos);
+            forwardValue = OceanFieldManager.SamplePlayer(forwardPos);
+            leftValue = OceanFieldManager.SamplePlayer(leftPos);
+            rightValue = OceanFieldManager.SamplePlayer(rightPos);
             
 
             Vector2 desiredDir = forward;
@@ -317,7 +317,7 @@ public class SardineManager : MonoBehaviour
 
             float draw01 = 0f;
 
-            float drawValue = SardineFieldManager.SampleDraw(c.currentPos);
+            float drawValue = OceanFieldManager.SampleDraw(c.currentPos);
             draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
             
 

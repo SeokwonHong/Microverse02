@@ -6,7 +6,7 @@ public class ChenimalDraw : MonoBehaviour
 {
     [SerializeField] Transform cursorCircle;
 
-    [SerializeField] SardineFieldManager sardineFieldManager;
+    [SerializeField] OceanFieldManager oceanFieldManager;
     [SerializeField] Camera cam;
 
     [Header("Draw")]
@@ -49,7 +49,7 @@ public class ChenimalDraw : MonoBehaviour
 
     void Update()
     {
-        if (sardineFieldManager == null || cam == null || playerEnergy == null)
+        if (oceanFieldManager == null || cam == null || playerEnergy == null)
             return;
 
         UpdateCursorVisual();
@@ -74,7 +74,7 @@ public class ChenimalDraw : MonoBehaviour
 
             if (!wasDrawingLastFrame)
             {
-                sardineFieldManager.DepositDraw(mouseWorld, drawStrengthMultiplier);
+                oceanFieldManager.DepositDraw(mouseWorld, drawStrengthMultiplier);
                 previousWorldPos = mouseWorld;
                 wasDrawingLastFrame = true;
 
@@ -92,11 +92,11 @@ public class ChenimalDraw : MonoBehaviour
                 float t = i / (float)steps;
                 Vector2 p = Vector2.Lerp(previousWorldPos, mouseWorld, t);
 
-                if (sardineFieldManager.MapManager != null &&
-                    sardineFieldManager.MapManager.IsWallWorld(p))
+                if (oceanFieldManager.MapManager != null &&
+                    oceanFieldManager.MapManager.IsWallWorld(p))
                     continue;
 
-                sardineFieldManager.DepositDraw(p, drawStrengthMultiplier);
+                oceanFieldManager.DepositDraw(p, drawStrengthMultiplier);
             }
 
             previousWorldPos = mouseWorld;
