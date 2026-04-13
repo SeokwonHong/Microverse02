@@ -3,25 +3,24 @@ using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 using Random = UnityEngine.Random;
 
-public class CellManager : MonoBehaviour
+public class SardineManager : MonoBehaviour
 {
-    [Header("Bacteria Spawn")]
+    [Header("Sardine Spawn")]
     [SerializeField] GameObject playerSpawn;
-    [SerializeField] GameObject enemySpawn;
-    [SerializeField] float bacteriaSpawnInterval = 0.0001f;
-    float bacteriaSpawnTimer = 0f;
-    [SerializeField] int bacteriaCount = 200;
-    [SerializeField] float bacteriaSpeed = 1.5f;
+    float sardineSpawnInterval = 0.0001f;
+    float sardineSpawnTimer = 0f;
+    [SerializeField] int sardineCount = 200;
+    [SerializeField] float sardineSpeed = 1.5f;
 
     [Header("Map generation")]
-    [SerializeField] BacteriaFieldManager bacteriaFieldManager;
+    [SerializeField] SardineFieldManager SardineFieldManager;
     [SerializeField] float wallBounciness = 0.5f;
 
     [Header("Map")]
     [SerializeField] MapManager mapManager;
 
-    [Header("Bacteria Pooling")]
-    readonly List<int> deadBacteriaPool = new List<int>(128);
+    [Header("Sardine Pooling")]
+    readonly List<int> deadSardinePool = new List<int>(128);
 
     [SerializeField] float wanderTimer;
     [SerializeField] float wanderRate;
@@ -29,24 +28,18 @@ public class CellManager : MonoBehaviour
     [SerializeField] float drawChemicalSpeedBoost = 5f;
     [SerializeField] float drawChemicalSpeedSensitivity = 1f;
 
-    public int CellCount => cells.Count;
-    public bool IsDead(int i) => cells[i].isDead;
-    public Vector2 GetPos(int i) => cells[i].currentPos;
-    public float GetRadius(int i) => cells[i].cellRadius;
-    public Team GetTeam(int i) => cells[i].team;
+    public int CellCount => sardines.Count;
+    public bool IsDead(int i) => sardines[i].isDead;
+    public Vector2 GetPos(int i) => sardines[i].currentPos;
+    public float GetRadius(int i) => sardines[i].cellRadius;
 
-    [Header("Cells")]
-    List<BacteriaData> cells = new List<BacteriaData>();
+    [Header("Sardines")]
+    List<BacteriaData> sardines = new List<BacteriaData>();
 
     [Header("Game Values")]
     public float ReproductionEnergy = 0;
     public float SystemStability = 0;
 
-    public enum Team
-    {
-        Player,
-        Enemy
-    }
 
     struct BacteriaData
     {
@@ -61,7 +54,6 @@ public class CellManager : MonoBehaviour
         public float cellRadius;
 
         public bool isDead;
-        public Team team;
     }
 
     void Awake()
@@ -69,15 +61,14 @@ public class CellManager : MonoBehaviour
   
 
         Vector2 spawnPos1 = playerSpawn.transform.position;
-        Vector2 spawnPos2 = enemySpawn.transform.position;
 
-        for (int i = 0; i < bacteriaCount; i++)
+        for (int i = 0; i < sardineCount; i++)
         {
-            CreateBacteriaCell(spawnPos1, Team.Player);
-            //CreateBacteriaCell(spawnPos2, Team.Enemy);
+            CreateSardine(spawnPos1);
+         
         }
 
-        bacteriaCount = 0;
+        sardineCount = 0;
     }
 
     void Update()
@@ -86,17 +77,17 @@ public class CellManager : MonoBehaviour
 
         DepositBacteriaField();
 
-        bool updated = bacteriaFieldManager.TickField(dt);
+        bool updated = SardineFieldManager.TickField(dt);
         if (updated)
         {
-            bacteriaFieldManager.UpdateTrailTexture();
+            SardineFieldManager.UpdateTrailTexture();
         }
 
         ApplyBacteriaFieldSteering();
 
-        for (int i = 0; i < cells.Count; i++)
+        for (int i = 0; i < sardines.Count; i++)
         {
-            BacteriaData c = cells[i];
+            BacteriaData c = sardines[i];
             if (c.isDead) continue;
 
             c.nextPos = c.currentPos;
@@ -110,10 +101,10 @@ public class CellManager : MonoBehaviour
                 c.nextVelocity *= -wallBounciness;
             }
 
-            cells[i] = c;
+            sardines[i] = c;
 
             ApplyRectangleBoundary(i);
-            c = cells[i];
+            c = sardines[i];
 
             if (!IsFinite(c.nextPos) || !IsFinite(c.nextVelocity))
             {
@@ -124,7 +115,7 @@ public class CellManager : MonoBehaviour
             c.currentVelocity = c.nextVelocity;
             c.currentPos = c.nextPos;
 
-            cells[i] = c;
+            sardines[i] = c;
         }
 
 
@@ -135,11 +126,11 @@ public class CellManager : MonoBehaviour
 
         if(Input.GetKeyDown(KeyCode.Q))
         {
-            bacteriaSpeed = 40f;
+            sardineSpeed = 40f;
         }
         else if (Input.GetKeyDown(KeyCode.E))
         {
-            bacteriaSpeed = 3.6f;
+            sardineSpeed = 3.6f;
         }
 
     }
@@ -148,7 +139,7 @@ public class CellManager : MonoBehaviour
     {
         if (mapManager == null) return;
 
-        BacteriaData c = cells[i];
+        BacteriaData c = sardines[i];
 
         Vector2 p = c.nextPos;
         Vector2 v = c.nextVelocity;
@@ -194,7 +185,7 @@ public class CellManager : MonoBehaviour
 
         c.nextPos = p;
         c.nextVelocity = v;
-        cells[i] = c;
+        sardines[i] = c;
     }
 
     static bool IsFinite(Vector2 v)
@@ -202,14 +193,14 @@ public class CellManager : MonoBehaviour
         return !(float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.x) || float.IsInfinity(v.y));
     }
 
-    void CreateBacteriaCell(Vector2 pos, Team team)
+    void CreateSardine(Vector2 pos)
     {
-        if (deadBacteriaPool.Count > 0)
+        if (deadSardinePool.Count > 0)
         {
-            int idx = deadBacteriaPool[^1];
-            deadBacteriaPool.RemoveAt(deadBacteriaPool.Count - 1);
+            int idx = deadSardinePool[^1];
+            deadSardinePool.RemoveAt(deadSardinePool.Count - 1);
 
-            BacteriaData c = cells[idx];
+            BacteriaData c = sardines[idx];
             c.isDead = false;
             c.currentPos = pos;
             c.nextPos = pos;
@@ -218,9 +209,9 @@ public class CellManager : MonoBehaviour
             c.cellRadius = 0.3f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-            c.team = team;
 
-            cells[idx] = c;
+
+            sardines[idx] = c;
             return;
         }
 
@@ -234,10 +225,9 @@ public class CellManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.3f,
             isDead = false,
-            team = team
         };
 
-        cells.Add(clone);
+        sardines.Add(clone);
     }
 
     Vector2 Rotate(Vector2 v, float degrees)
@@ -254,57 +244,50 @@ public class CellManager : MonoBehaviour
 
     void DepositBacteriaField()
     {
-        if (bacteriaFieldManager == null) return;
+        if (SardineFieldManager == null) return;
 
-        for (int i = 0; i < cells.Count; i++)
+        for (int i = 0; i < sardines.Count; i++)
         {
-            BacteriaData c = cells[i];
-            if (c.isDead) continue;
+            BacteriaData c = sardines[i];
+            if (c.isDead) return;
 
-            bacteriaFieldManager.DepositTrail(c.currentPos, c.team);
+            SardineFieldManager.DepositTrail(c.currentPos);
         }
     }
 
     void ApplyBacteriaFieldSteering()
     {
-        if (bacteriaFieldManager == null) return;
+        if (SardineFieldManager == null) return;
 
         float dt = Time.deltaTime;
         float turnRate = 18f;
         float turnThreshold = 0.0015f;
 
-        for (int i = 0; i < cells.Count; i++)
+        for (int i = 0; i < sardines.Count; i++)
         {
-            BacteriaData c = cells[i];
+            BacteriaData c = sardines[i];
             if (c.isDead) continue;
 
             Vector2 forward = c.currentVelocity.sqrMagnitude > 0.0001f
                 ? c.currentVelocity.normalized
                 : Random.insideUnitCircle.normalized;
 
-            Vector2 leftDir = Rotate(forward, -bacteriaFieldManager.SensorAngle);
-            Vector2 rightDir = Rotate(forward, bacteriaFieldManager.SensorAngle);
+            Vector2 leftDir = Rotate(forward, -SardineFieldManager.SensorAngle);
+            Vector2 rightDir = Rotate(forward, SardineFieldManager.SensorAngle);
 
-            Vector2 forwardPos = c.currentPos + forward * bacteriaFieldManager.SensorDistance;
-            Vector2 leftPos = c.currentPos + leftDir * bacteriaFieldManager.SensorDistance;
-            Vector2 rightPos = c.currentPos + rightDir * bacteriaFieldManager.SensorDistance;
+            Vector2 forwardPos = c.currentPos + forward * SardineFieldManager.SensorDistance;
+            Vector2 leftPos = c.currentPos + leftDir * SardineFieldManager.SensorDistance;
+            Vector2 rightPos = c.currentPos + rightDir * SardineFieldManager.SensorDistance;
 
             float forwardValue;
             float leftValue;
             float rightValue;
 
-            if (c.team == Team.Player)
-            {
-                forwardValue = bacteriaFieldManager.SamplePlayer(forwardPos);
-                leftValue = bacteriaFieldManager.SamplePlayer(leftPos);
-                rightValue = bacteriaFieldManager.SamplePlayer(rightPos);
-            }
-            else
-            {
-                forwardValue = bacteriaFieldManager.SampleEnemy(forwardPos);
-                leftValue = bacteriaFieldManager.SampleEnemy(leftPos);
-                rightValue = bacteriaFieldManager.SampleEnemy(rightPos);
-            }
+           
+            forwardValue = SardineFieldManager.SamplePlayer(forwardPos);
+            leftValue = SardineFieldManager.SamplePlayer(leftPos);
+            rightValue = SardineFieldManager.SamplePlayer(rightPos);
+            
 
             Vector2 desiredDir = forward;
 
@@ -333,30 +316,27 @@ public class CellManager : MonoBehaviour
             Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
 
             float draw01 = 0f;
-            if (c.team == Team.Player)
-            {
-                float drawValue = bacteriaFieldManager.SampleDraw(c.currentPos);
-                draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
-            }
 
-            float speed = bacteriaSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
+            float drawValue = SardineFieldManager.SampleDraw(c.currentPos);
+            draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
+            
+
+            float speed = sardineSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
             c.currentVelocity = newDir * speed;
 
-            cells[i] = c;
+            sardines[i] = c;
         }
     }
 
-    public void RemoveCellsInRadius(Vector2 worldPos, float radius, Team? onlyTeam = null)
+    public void RemoveCellsInRadius(Vector2 worldPos, float radius)
     {
         float radiusSqr = radius * radius;
 
-        for (int i = 0; i < cells.Count; i++)
+        for (int i = 0; i < sardines.Count; i++)
         {
-            BacteriaData c = cells[i];
+            BacteriaData c = sardines[i];
             if (c.isDead) continue;
 
-            if (onlyTeam.HasValue && c.team != onlyTeam.Value)
-                continue;
 
             Vector2 delta = c.currentPos - worldPos;
             if (delta.sqrMagnitude > radiusSqr)
@@ -366,8 +346,8 @@ public class CellManager : MonoBehaviour
             c.currentVelocity = Vector2.zero;
             c.nextVelocity = Vector2.zero;
 
-            cells[i] = c;
-            deadBacteriaPool.Add(i);
+            sardines[i] = c;
+            deadSardinePool.Add(i);
         }
     }
 }

@@ -5,7 +5,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
 
-public class BacteriaFieldManager : MonoBehaviour
+public class SardineFieldManager : MonoBehaviour
 {
     [SerializeField] MapManager mapManager;
     [SerializeField] Renderer fieldRenderer;
@@ -41,11 +41,6 @@ public class BacteriaFieldManager : MonoBehaviour
     [SerializeField] Color playerMidColor = new Color(1f, 0.3f, 0.05f, 1f);
     [SerializeField] Color playerStrongColor = new Color(1f, 1f, 0.6f, 1f);
 
-    [Header("Enemy Trail Colours")]
-    [SerializeField] Color enemyWeakColor = new Color(0f, 0f, 0.4f, 0f);
-    [SerializeField] Color enemyMidColor = new Color(0.2f, 0.5f, 1f, 1f);
-    [SerializeField] Color enemyStrongColor = new Color(0.8f, 1f, 1f, 1f);
-
     [Header("Food Colours")]
     [SerializeField] Color foodColor = new Color(0.2f, 1f, 0.2f, 1f);
     [SerializeField] float foodVisualStrength = 1f;
@@ -63,9 +58,6 @@ public class BacteriaFieldManager : MonoBehaviour
     [Header("Chemo Grid")]
     NativeArray<float> playerTrailField;
     NativeArray<float> playerTrailNext;
-
-    NativeArray<float> enemyTrailField;
-    NativeArray<float> enemyTrailNext;
 
     NativeArray<float> foodField;
     NativeArray<float> foodNext;
@@ -131,9 +123,6 @@ public class BacteriaFieldManager : MonoBehaviour
         playerTrailField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         playerTrailNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
-        enemyTrailField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-        enemyTrailNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-
         foodField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         foodNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
@@ -147,9 +136,6 @@ public class BacteriaFieldManager : MonoBehaviour
     {
         if (playerTrailField.IsCreated) playerTrailField.Dispose();
         if (playerTrailNext.IsCreated) playerTrailNext.Dispose();
-
-        if (enemyTrailField.IsCreated) enemyTrailField.Dispose();
-        if (enemyTrailNext.IsCreated) enemyTrailNext.Dispose();
 
         if (foodField.IsCreated) foodField.Dispose();
         if (foodNext.IsCreated) foodNext.Dispose();
@@ -200,28 +186,20 @@ public class BacteriaFieldManager : MonoBehaviour
 
         return inside;
     }
-    public void DepositTrail(Vector2 worldPos, CellManager.Team team, float amountMultiplier = 1f)
+    public void DepositTrail(Vector2 worldPos,  float amountMultiplier = 1f)
     {
-        if (!playerTrailField.IsCreated || !enemyTrailField.IsCreated) return;
 
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
 
-            if (team == CellManager.Team.Player)
-            {
-                playerTrailField[idx] = Mathf.Min(
-                    playerTrailField[idx] + chemoDepositAmount * amountMultiplier,
-                    trailMaxDeposit
-                );
-            }
-            else
-            {
-                enemyTrailField[idx] = Mathf.Min(
-                    enemyTrailField[idx] + chemoDepositAmount * amountMultiplier,
-                    trailMaxDeposit
-                );
-            }
+          
+            playerTrailField[idx] = Mathf.Min(
+                playerTrailField[idx] + chemoDepositAmount * amountMultiplier,
+                trailMaxDeposit
+            );
+            
+
         }
     }
 
@@ -243,54 +221,14 @@ public class BacteriaFieldManager : MonoBehaviour
         }
     }
 
-    public void EraseField(Vector2 worldPos, float radius)
-    {
-        if (!drawField.IsCreated || !playerTrailField.IsCreated || !enemyTrailField.IsCreated)
-            return;
-
-        if (radius <= 0f)
-            return;
-
-        if (!WorldToGrid(worldPos, out int gx, out int gy))
-            return;
-
-        float cellSizeX = MapSize.x / chemoWidth;
-        float cellSizeY = MapSize.y / chemoHeight;
-
-        int rx = Mathf.CeilToInt(radius / cellSizeX);
-        int ry = Mathf.CeilToInt(radius / cellSizeY);
-
-        float radiusSqr = radius * radius;
-
-        for (int y = gy - ry; y <= gy + ry; y++)
-        {
-            if (y < 0 || y >= chemoHeight) continue;
-
-            for (int x = gx - rx; x <= gx + rx; x++)
-            {
-                if (x < 0 || x >= chemoWidth) continue;
-
-                Vector2 cellWorld = GridToWorldCentre(x, y);
-                Vector2 delta = cellWorld - worldPos;
-
-                if (delta.sqrMagnitude > radiusSqr)
-                    continue;
-
-                int idx = Index(x, y);
-
-                drawField[idx] = 0f;
-                playerTrailField[idx] = 0f;
-                enemyTrailField[idx] = 0f;
-            }
-        }
-    }
+   
     public float Sample(Vector2 worldPos) //taking the value out from the hash
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
 
-            float trail = (playerTrailField[idx] + enemyTrailField[idx]) * trailWeight;
+            float trail = playerTrailField[idx] * trailWeight;
             float food = foodField[idx] * foodWeight;
             float draw = drawField[idx];
 
@@ -325,62 +263,7 @@ public class BacteriaFieldManager : MonoBehaviour
         return 0f;
     }
 
-    public float SampleEnemy(Vector2 worldPos)
-    {
-        if (WorldToGrid(worldPos, out int gx, out int gy))
-        {
-            int idx = Index(gx, gy);
 
-            float trail = enemyTrailField[idx] * trailWeight;
-            float food = foodField[idx] * foodWeight;
-            // no draw if enemy should ignore draw too
-            return trail + food;
-        }
-
-        return 0f;
-    }
-
-    public float SampleButtonArea(Vector2 worldPos, float radius, CellManager.Team team)
-    {
-        NativeArray<float> field =
-            team == CellManager.Team.Player ? playerTrailField : enemyTrailField;
-
-        if (!field.IsCreated) return 0f;
-        if (!WorldToGrid(worldPos, out int gx, out int gy)) return 0f;
-
-        float cellSizeX = MapSize.x / chemoWidth;
-        float cellSizeY = MapSize.y / chemoHeight;
-
-        int rx = Mathf.CeilToInt(radius / cellSizeX);
-        int ry = Mathf.CeilToInt(radius / cellSizeY);
-
-        float sum = 0f;
-        int hitCount = 0;
-        float radiusSqr = radius * radius;
-
-        for (int y = gy - ry; y <= gy + ry; y++)
-        {
-            if (y < 0 || y >= chemoHeight) continue;
-
-            for (int x = gx - rx; x <= gx + rx; x++)
-            {
-                if (x < 0 || x >= chemoWidth) continue;
-
-                Vector2 cellWorld = GridToWorldCentre(x, y);
-                Vector2 delta = cellWorld - worldPos;
-
-                if (delta.sqrMagnitude > radiusSqr)
-                    continue;
-
-                sum += field[Index(x, y)];
-                hitCount++;
-            }
-        }
-
-        if (hitCount == 0) return 0f;
-
-        return sum / hitCount; // average
-    }
 
     Vector2 GridToWorldCentre(int gx, int gy)
     {
@@ -407,9 +290,6 @@ public class BacteriaFieldManager : MonoBehaviour
 
             RunFieldUpdate(playerTrailField, playerTrailNext, 0f, chemoDecayPerSecond, fieldTickInterval);
             Swap(ref playerTrailField, ref playerTrailNext);
-
-            RunFieldUpdate(enemyTrailField, enemyTrailNext, 0f, chemoDecayPerSecond, fieldTickInterval);
-            Swap(ref enemyTrailField, ref enemyTrailNext);
 
             RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
@@ -448,7 +328,6 @@ public class BacteriaFieldManager : MonoBehaviour
         var job = new BuildPixelsJob
         {
             playerTrailField = playerTrailField,
-            enemyTrailField = enemyTrailField,
             foodField = foodField,
             drawField = drawField,
             pixels = trailPixels,
@@ -456,10 +335,6 @@ public class BacteriaFieldManager : MonoBehaviour
             playerWeakColor = ToFloat4(playerWeakColor),
             playerMidColor = ToFloat4(playerMidColor),
             playerStrongColor = ToFloat4(playerStrongColor),
-
-            enemyWeakColor = ToFloat4(enemyWeakColor),
-            enemyMidColor = ToFloat4(enemyMidColor),
-            enemyStrongColor = ToFloat4(enemyStrongColor),
 
             foodColor = ToFloat4(foodColor),
             drawColor = ToFloat4(drawColor),
@@ -528,7 +403,6 @@ public class BacteriaFieldManager : MonoBehaviour
     struct BuildPixelsJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<float> playerTrailField;
-        [ReadOnly] public NativeArray<float> enemyTrailField;
         [ReadOnly] public NativeArray<float> foodField;
         [ReadOnly] public NativeArray<float> drawField;
 
@@ -537,10 +411,6 @@ public class BacteriaFieldManager : MonoBehaviour
         public float4 playerWeakColor;
         public float4 playerMidColor;
         public float4 playerStrongColor;
-
-        public float4 enemyWeakColor;
-        public float4 enemyMidColor;
-        public float4 enemyStrongColor;
 
         public float4 foodColor;
         public float4 drawColor;
@@ -614,40 +484,6 @@ public class BacteriaFieldManager : MonoBehaviour
                 c.w = 1f;
             }
 
-            // -------------------------
-            // ENEMY TRAIL VISUAL
-            // -------------------------
-            float enemyV = enemyTrailField[index];
-
-            if (enemyV > 0f)
-            {
-                float4 trailColor;
-
-                float midValue = math.max(0.0001f, chemoDepositAmount);
-                float maxValue = math.max(midValue, trailMaxDeposit);
-
-                if (enemyV <= midValue)
-                {
-                    float k = math.saturate(enemyV / midValue);
-                    trailColor = math.lerp(enemyWeakColor, enemyMidColor, k);
-                }
-                else
-                {
-                    float range = math.max(0.0001f, maxValue - midValue);
-                    float k = math.saturate((enemyV - midValue) / range);
-                    trailColor = math.lerp(enemyMidColor, enemyStrongColor, k);
-                }
-
-                float light01 = math.saturate(enemyV / maxValue);
-                float brightness = math.lerp(0.5f, 1.5f, light01);
-                trailColor.xyz *= brightness;
-
-                // if both exist, enemy overwrites player visually
-                c.xyz = trailColor.xyz;
-
-                // alpha stores TRAIL MASK ONLY
-                c.w = 1f;
-            }
 
             pixels[index] = Float4ToColor32(c);
         }
@@ -665,43 +501,6 @@ public class BacteriaFieldManager : MonoBehaviour
         }
     }
 
-    public float SampleTrailAreaSum(Vector2 worldPos, float radius, CellManager.Team team)
-    {
-        NativeArray<float> field =
-            team == CellManager.Team.Player ? playerTrailField : enemyTrailField;
-
-        if (!field.IsCreated) return 0f;
-        if (!WorldToGrid(worldPos, out int gx, out int gy)) return 0f;
-
-        float cellSizeX = MapSize.x / chemoWidth;
-        float cellSizeY = MapSize.y / chemoHeight;
-
-        int rx = Mathf.CeilToInt(radius / cellSizeX);
-        int ry = Mathf.CeilToInt(radius / cellSizeY);
-
-        float sum = 0f;
-        float radiusSqr = radius * radius;
-
-        for (int y = gy - ry; y <= gy + ry; y++)
-        {
-            if (y < 0 || y >= chemoHeight) continue;
-
-            for (int x = gx - rx; x <= gx + rx; x++)
-            {
-                if (x < 0 || x >= chemoWidth) continue;
-
-                Vector2 cellWorld = GridToWorldCentre(x, y);
-                Vector2 delta = cellWorld - worldPos;
-
-                if (delta.sqrMagnitude > radiusSqr)
-                    continue;
-
-                sum += field[Index(x, y)];
-            }
-        }
-
-        return sum;
-    }
 }
 
 

@@ -5,7 +5,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [SerializeField] private CellManager cellManager;
+    [SerializeField] private SardineManager sardineManager;
     public bool win;
 
     void Awake()
@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         // Re-find scene objects after load
-        cellManager = FindAnyObjectByType<CellManager>();
+        sardineManager = FindAnyObjectByType<SardineManager>();
         win = false;
     }
 
@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         if (win) return;
-        if (cellManager == null) return;
+        if (sardineManager == null) return;
 
    
     }

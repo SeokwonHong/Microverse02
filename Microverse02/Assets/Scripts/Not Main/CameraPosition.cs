@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CameraPosition : MonoBehaviour
 {
-    [SerializeField] CellManager cellManager;
+    [SerializeField] SardineManager cellManager;
     float camZ = -10;
     Camera cam;
     float minZoom = 3.5f;

@@ -6,18 +6,13 @@ public class ChenimalDraw : MonoBehaviour
 {
     [SerializeField] Transform cursorCircle;
 
-    [SerializeField] BacteriaFieldManager bacteriaFieldManager;
-    [SerializeField] CellManager cellManager;
+    [SerializeField] SardineFieldManager bacteriaFieldManager;
     [SerializeField] Camera cam;
 
     [Header("Draw")]
     [SerializeField] float drawStrengthMultiplier = 1f;
     [SerializeField] float stepSpacing = 0.35f;
 
-    [Header("Erase")]
-    [SerializeField] float eraseRadius = 1.5f;
-    [SerializeField] float eraseStepSpacing = 0.35f;
-    [SerializeField] bool eraseOnlyEnemy = false;
 
     [SerializeField] PlayerEnergy playerEnergy;
     float drawCostPerSecond = 0f;
@@ -27,7 +22,6 @@ public class ChenimalDraw : MonoBehaviour
 
     Vector2 previousWorldPos;
     bool wasDrawingLastFrame;
-    bool wasErasingLastFrame;
 
     [Header("Audio")]
     [SerializeField] AudioSource audioSource;
@@ -60,15 +54,13 @@ public class ChenimalDraw : MonoBehaviour
 
         UpdateCursorVisual();
 
-        bool isDrawing = Input.GetMouseButton(0)||Input.GetKeyDown(KeyCode.Space);
-        bool isErasing = Input.GetMouseButton(1);
+        bool isDrawing = Input.GetMouseButton(0);
 
         float cost = drawCostPerSecond * Time.deltaTime;
         float recover = recoverPerSecond * Time.deltaTime;
 
         if (isDrawing)
         {
-            wasErasingLastFrame = false;
             lastDrawTime = Time.time;
 
             if (!playerEnergy.TryConsume(cost))
@@ -109,61 +101,17 @@ public class ChenimalDraw : MonoBehaviour
 
             previousWorldPos = mouseWorld;
         }
-        else if (isErasing)
-        {
-            StopSpraySound();
-            wasDrawingLastFrame = false;
-
-            Vector2 mouseWorld = GetMouseWorldPosition();
-
-            if (!wasErasingLastFrame)
-            {
-                EraseAt(mouseWorld);
-                bacteriaFieldManager.UpdateTrailTexture();
-
-                previousWorldPos = mouseWorld;
-                wasErasingLastFrame = true;
-                return;
-            }
-
-            float distance = Vector2.Distance(previousWorldPos, mouseWorld);
-            int steps = Mathf.Max(1, Mathf.CeilToInt(distance / eraseStepSpacing));
-
-            for (int i = 0; i <= steps; i++)
-            {
-                float t = i / (float)steps;
-                Vector2 p = Vector2.Lerp(previousWorldPos, mouseWorld, t);
-                EraseAt(p);
-            }
-
-            bacteriaFieldManager.UpdateTrailTexture();
-            previousWorldPos = mouseWorld;
-        }
         else
         {
             StopSpraySound();
 
             if (Time.time - lastDrawTime > recoverDelay)
-            {
                 playerEnergy.AddEnergy(recover);
-            }
 
             wasDrawingLastFrame = false;
-            wasErasingLastFrame = false;
         }
     }
 
-    void EraseAt(Vector2 p)
-    {
-        bacteriaFieldManager.EraseField(p, eraseRadius);
-
-        if (cellManager == null) return;
-
-        if (eraseOnlyEnemy)
-            cellManager.RemoveCellsInRadius(p, eraseRadius, CellManager.Team.Enemy);
-        else
-            cellManager.RemoveCellsInRadius(p, eraseRadius);
-    }
 
     void StartSpraySound()
     {
@@ -199,7 +147,7 @@ public class ChenimalDraw : MonoBehaviour
         Vector2 pos = GetMouseWorldPosition();
         cursorCircle.position = new Vector3(pos.x, pos.y, 0f);
 
-        float size = eraseRadius * 2f;
+        float size = 2f;
         cursorCircle.localScale = new Vector3(size, size, 1f);
     }
 }

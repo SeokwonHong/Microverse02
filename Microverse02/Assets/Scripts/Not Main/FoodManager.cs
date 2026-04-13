@@ -5,13 +5,12 @@ public class FoodManager : MonoBehaviour
 {
     [SerializeField] GameObject refToFoodSprite;
     [SerializeField] MapManager mapManager;
-    [SerializeField] BacteriaFieldManager bacteriaFieldManager;
+    [SerializeField] SardineFieldManager bacteriaFieldManager;
 
     [SerializeField] int foodCount = 5;
     [SerializeField] float foodRadius = 5f;
     [SerializeField] float triggerTrailSum = 20f;
     [SerializeField] float respawnCooldown = 0.2f;
-    [SerializeField] CellManager.Team teamToDetect = CellManager.Team.Player;
 
     List<GameObject> foods = new List<GameObject>();
     List<float> foodCooldowns = new List<float>();
@@ -23,7 +22,7 @@ public class FoodManager : MonoBehaviour
 
     void Update()
     {
-        UpdateFoods();
+       
     }
 
     void SpawnFoods()
@@ -48,35 +47,7 @@ public class FoodManager : MonoBehaviour
         }
     }
 
-    void UpdateFoods()
-    {
-        if (bacteriaFieldManager == null) return;
-
-        for (int i = 0; i < foods.Count; i++)
-        {
-            GameObject food = foods[i];
-            if (food == null) continue;
-
-            if (foodCooldowns[i] > 0f)
-            {
-                foodCooldowns[i] -= Time.deltaTime;
-                continue;
-            }
-
-            float value = bacteriaFieldManager.SampleTrailAreaSum(
-                food.transform.position,
-                foodRadius,
-                teamToDetect
-            );
-
-            if (value > triggerTrailSum)
-            {
-                MoveFoodElsewhere(i);
-                foodCooldowns[i] = respawnCooldown;
-            }
-        }
-    }
-
+ 
     void MoveFoodElsewhere(int foodIndex)
     {
         if (foodIndex < 0 || foodIndex >= foods.Count) return;
