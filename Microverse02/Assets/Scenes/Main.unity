@@ -64342,11 +64342,11 @@ MonoBehaviour:
   playerMidColor: {r: 0.36862746, g: 0.5882353, b: 0.7921569, a: 1}
   playerStrongColor: {r: 0.27450982, g: 0.47058824, b: 0.21568628, a: 1}
   enemyWeakColor: {r: 0, g: 0, b: 0.4, a: 0}
-  enemyMidColor: {r: 0.2, g: 0.5, b: 1, a: 1}
+  enemyMidColor: {r: 0.36862746, g: 0.5882353, b: 0.79215693, a: 1}
   enemyStrongColor: {r: 0.8, g: 1, b: 1, a: 1}
-  foodColor: {r: 1, g: 1, b: 1, a: 1}
+  foodColor: {r: 0.36862746, g: 0.5882353, b: 0.79215693, a: 1}
   foodVisualStrength: 1
-  drawColor: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
+  drawColor: {r: 0.36862746, g: 0.5882353, b: 0.79215693, a: 1}
   trailMaxDeposit: 3
 --- !u!114 &1569142233
 MonoBehaviour:
