@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class ChenimalDraw : MonoBehaviour
 {
+    [SerializeField] Transform cursorCircle;
+
     [SerializeField] BacteriaFieldManager bacteriaFieldManager;
     [SerializeField] CellManager cellManager;
     [SerializeField] Camera cam;
@@ -33,6 +35,9 @@ public class ChenimalDraw : MonoBehaviour
 
     void Awake()
     {
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.None;
+
         if (cam == null)
             cam = Camera.main;
 
@@ -52,6 +57,8 @@ public class ChenimalDraw : MonoBehaviour
     {
         if (bacteriaFieldManager == null || cam == null || playerEnergy == null)
             return;
+
+        UpdateCursorVisual();
 
         bool isDrawing = Input.GetMouseButton(0);
         bool isErasing = Input.GetMouseButton(1);
@@ -112,6 +119,8 @@ public class ChenimalDraw : MonoBehaviour
             if (!wasErasingLastFrame)
             {
                 EraseAt(mouseWorld);
+                bacteriaFieldManager.UpdateTrailTexture();
+
                 previousWorldPos = mouseWorld;
                 wasErasingLastFrame = true;
                 return;
@@ -127,6 +136,7 @@ public class ChenimalDraw : MonoBehaviour
                 EraseAt(p);
             }
 
+            bacteriaFieldManager.UpdateTrailTexture();
             previousWorldPos = mouseWorld;
         }
         else
@@ -145,7 +155,7 @@ public class ChenimalDraw : MonoBehaviour
 
     void EraseAt(Vector2 p)
     {
-        bacteriaFieldManager.EraseDraw(p, eraseRadius);
+        bacteriaFieldManager.EraseField(p, eraseRadius);
 
         if (cellManager == null) return;
 
@@ -180,5 +190,16 @@ public class ChenimalDraw : MonoBehaviour
 
         Vector3 mouseWorld = cam.ScreenToWorldPoint(mouseScreen);
         return new Vector2(mouseWorld.x, mouseWorld.y);
+    }
+
+    void UpdateCursorVisual()
+    {
+        if (cursorCircle == null) return;
+
+        Vector2 pos = GetMouseWorldPosition();
+        cursorCircle.position = new Vector3(pos.x, pos.y, 0f);
+
+        float size = eraseRadius * 2f;
+        cursorCircle.localScale = new Vector3(size, size, 1f);
     }
 }

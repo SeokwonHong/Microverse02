@@ -243,10 +243,13 @@ public class BacteriaFieldManager : MonoBehaviour
         }
     }
 
-    public void EraseDraw(Vector2 worldPos, float radius)
+    public void EraseField(Vector2 worldPos, float radius)
     {
-        if (!drawField.IsCreated) return;
-        if (radius <= 0f) return;
+        if (!drawField.IsCreated || !playerTrailField.IsCreated || !enemyTrailField.IsCreated)
+            return;
+
+        if (radius <= 0f)
+            return;
 
         if (!WorldToGrid(worldPos, out int gx, out int gy))
             return;
@@ -273,7 +276,11 @@ public class BacteriaFieldManager : MonoBehaviour
                 if (delta.sqrMagnitude > radiusSqr)
                     continue;
 
-                drawField[Index(x, y)] = 0f;
+                int idx = Index(x, y);
+
+                drawField[idx] = 0f;
+                playerTrailField[idx] = 0f;
+                enemyTrailField[idx] = 0f;
             }
         }
     }
