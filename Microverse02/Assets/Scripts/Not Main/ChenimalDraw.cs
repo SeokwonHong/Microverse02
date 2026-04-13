@@ -5,9 +5,17 @@ using UnityEngine;
 public class ChenimalDraw : MonoBehaviour
 {
     [SerializeField] BacteriaFieldManager bacteriaFieldManager;
+    [SerializeField] CellManager cellManager;
     [SerializeField] Camera cam;
+
+    [Header("Draw")]
     [SerializeField] float drawStrengthMultiplier = 1f;
     [SerializeField] float stepSpacing = 0.35f;
+
+    [Header("Erase")]
+    [SerializeField] float eraseRadius = 1.5f;
+    [SerializeField] float eraseStepSpacing = 0.35f;
+    [SerializeField] bool eraseOnlyEnemy = false;
 
     [SerializeField] PlayerEnergy playerEnergy;
     float drawCostPerSecond = 0f;
@@ -17,11 +25,11 @@ public class ChenimalDraw : MonoBehaviour
 
     Vector2 previousWorldPos;
     bool wasDrawingLastFrame;
+    bool wasErasingLastFrame;
 
     [Header("Audio")]
     [SerializeField] AudioSource audioSource;
     [SerializeField] AudioClip sprayingSound;
-
 
     void Awake()
     {
@@ -46,12 +54,14 @@ public class ChenimalDraw : MonoBehaviour
             return;
 
         bool isDrawing = Input.GetMouseButton(0);
+        bool isErasing = Input.GetMouseButton(1);
 
         float cost = drawCostPerSecond * Time.deltaTime;
         float recover = recoverPerSecond * Time.deltaTime;
 
         if (isDrawing)
         {
+            wasErasingLastFrame = false;
             lastDrawTime = Time.time;
 
             if (!playerEnergy.TryConsume(cost))
@@ -92,6 +102,33 @@ public class ChenimalDraw : MonoBehaviour
 
             previousWorldPos = mouseWorld;
         }
+        else if (isErasing)
+        {
+            StopSpraySound();
+            wasDrawingLastFrame = false;
+
+            Vector2 mouseWorld = GetMouseWorldPosition();
+
+            if (!wasErasingLastFrame)
+            {
+                EraseAt(mouseWorld);
+                previousWorldPos = mouseWorld;
+                wasErasingLastFrame = true;
+                return;
+            }
+
+            float distance = Vector2.Distance(previousWorldPos, mouseWorld);
+            int steps = Mathf.Max(1, Mathf.CeilToInt(distance / eraseStepSpacing));
+
+            for (int i = 0; i <= steps; i++)
+            {
+                float t = i / (float)steps;
+                Vector2 p = Vector2.Lerp(previousWorldPos, mouseWorld, t);
+                EraseAt(p);
+            }
+
+            previousWorldPos = mouseWorld;
+        }
         else
         {
             StopSpraySound();
@@ -102,9 +139,21 @@ public class ChenimalDraw : MonoBehaviour
             }
 
             wasDrawingLastFrame = false;
+            wasErasingLastFrame = false;
         }
     }
 
+    void EraseAt(Vector2 p)
+    {
+        bacteriaFieldManager.EraseDraw(p, eraseRadius);
+
+        if (cellManager == null) return;
+
+        if (eraseOnlyEnemy)
+            cellManager.RemoveCellsInRadius(p, eraseRadius, CellManager.Team.Enemy);
+        else
+            cellManager.RemoveCellsInRadius(p, eraseRadius);
+    }
 
     void StartSpraySound()
     {

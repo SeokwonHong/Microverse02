@@ -346,5 +346,28 @@ public class CellManager : MonoBehaviour
         }
     }
 
-   
+    public void RemoveCellsInRadius(Vector2 worldPos, float radius, Team? onlyTeam = null)
+    {
+        float radiusSqr = radius * radius;
+
+        for (int i = 0; i < cells.Count; i++)
+        {
+            BacteriaData c = cells[i];
+            if (c.isDead) continue;
+
+            if (onlyTeam.HasValue && c.team != onlyTeam.Value)
+                continue;
+
+            Vector2 delta = c.currentPos - worldPos;
+            if (delta.sqrMagnitude > radiusSqr)
+                continue;
+
+            c.isDead = true;
+            c.currentVelocity = Vector2.zero;
+            c.nextVelocity = Vector2.zero;
+
+            cells[i] = c;
+            deadBacteriaPool.Add(i);
+        }
+    }
 }

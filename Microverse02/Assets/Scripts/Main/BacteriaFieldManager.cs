@@ -242,7 +242,41 @@ public class BacteriaFieldManager : MonoBehaviour
             );
         }
     }
-   
+
+    public void EraseDraw(Vector2 worldPos, float radius)
+    {
+        if (!drawField.IsCreated) return;
+        if (radius <= 0f) return;
+
+        if (!WorldToGrid(worldPos, out int gx, out int gy))
+            return;
+
+        float cellSizeX = MapSize.x / chemoWidth;
+        float cellSizeY = MapSize.y / chemoHeight;
+
+        int rx = Mathf.CeilToInt(radius / cellSizeX);
+        int ry = Mathf.CeilToInt(radius / cellSizeY);
+
+        float radiusSqr = radius * radius;
+
+        for (int y = gy - ry; y <= gy + ry; y++)
+        {
+            if (y < 0 || y >= chemoHeight) continue;
+
+            for (int x = gx - rx; x <= gx + rx; x++)
+            {
+                if (x < 0 || x >= chemoWidth) continue;
+
+                Vector2 cellWorld = GridToWorldCentre(x, y);
+                Vector2 delta = cellWorld - worldPos;
+
+                if (delta.sqrMagnitude > radiusSqr)
+                    continue;
+
+                drawField[Index(x, y)] = 0f;
+            }
+        }
+    }
     public float Sample(Vector2 worldPos) //taking the value out from the hash
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
@@ -622,6 +656,44 @@ public class BacteriaFieldManager : MonoBehaviour
                 (byte)math.round(c.w * 255f)
             );
         }
+    }
+
+    public float SampleTrailAreaSum(Vector2 worldPos, float radius, CellManager.Team team)
+    {
+        NativeArray<float> field =
+            team == CellManager.Team.Player ? playerTrailField : enemyTrailField;
+
+        if (!field.IsCreated) return 0f;
+        if (!WorldToGrid(worldPos, out int gx, out int gy)) return 0f;
+
+        float cellSizeX = MapSize.x / chemoWidth;
+        float cellSizeY = MapSize.y / chemoHeight;
+
+        int rx = Mathf.CeilToInt(radius / cellSizeX);
+        int ry = Mathf.CeilToInt(radius / cellSizeY);
+
+        float sum = 0f;
+        float radiusSqr = radius * radius;
+
+        for (int y = gy - ry; y <= gy + ry; y++)
+        {
+            if (y < 0 || y >= chemoHeight) continue;
+
+            for (int x = gx - rx; x <= gx + rx; x++)
+            {
+                if (x < 0 || x >= chemoWidth) continue;
+
+                Vector2 cellWorld = GridToWorldCentre(x, y);
+                Vector2 delta = cellWorld - worldPos;
+
+                if (delta.sqrMagnitude > radiusSqr)
+                    continue;
+
+                sum += field[Index(x, y)];
+            }
+        }
+
+        return sum;
     }
 }
 
