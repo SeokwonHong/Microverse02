@@ -63473,8 +63473,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   oceanFieldManager: {fileID: 1569142227}
   mapManager: {fileID: 1056029286}
+  consumeAmount: 1
   startClusterCount: 86
-  pointsPerCluster: 25
+  pointsPerCluster: 77
   clusterRadius: 4
   amountMultiplier: 1
 --- !u!4 &895805069
@@ -64849,6 +64850,14 @@ PrefabInstance:
       propertyPath: fieldRenderer
       value: 
       objectReference: {fileID: 42457891}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: planktonAmount
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: planktonMaxAmount
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 8034811381048981240, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: m_Name
       value: SardineManager
@@ -64863,7 +64872,7 @@ PrefabInstance:
       objectReference: {fileID: 1921727452}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineCount
-      value: 7000
+      value: 8500
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineSpeed
@@ -64945,6 +64954,10 @@ PrefabInstance:
     - target: {fileID: 4676036555824210670, guid: 2ffc6b9e36fba0741a0e1dffc4ff0bd0, type: 3}
       propertyPath: m_Name
       value: Global Volume
+      objectReference: {fileID: 0}
+    - target: {fileID: 4676036555824210670, guid: 2ffc6b9e36fba0741a0e1dffc4ff0bd0, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7597048649568006047, guid: 2ffc6b9e36fba0741a0e1dffc4ff0bd0, type: 3}
       propertyPath: m_LocalPosition.x

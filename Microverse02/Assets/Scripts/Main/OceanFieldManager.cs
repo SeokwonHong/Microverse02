@@ -376,6 +376,7 @@ public class OceanFieldManager : MonoBehaviour
 
             drawVisualStrength = drawVisualStrength,
             planktonVisualStrength = planktonVisualStrength,
+            planktonMaxAmount = planktonMaxAmount,
             chemoDepositAmount = chemoDepositAmount,
             trailMaxDeposit = trailMaxDeposit
         };
@@ -448,7 +449,7 @@ public class OceanFieldManager : MonoBehaviour
         public float4 playerStrongColor;
         public float4 planktonColor;
         public float planktonVisualStrength;
-
+        public float planktonMaxAmount;
 
         public float4 drawColor;
 
@@ -461,17 +462,6 @@ public class OceanFieldManager : MonoBehaviour
         {
             float4 c = new float4(0f, 0f, 0f, 0f);
 
-            // -------------------------
-            // PLANKTON TRAIL VISUAL
-            // -------------------------
-            float plankton = math.saturate(planktonField[index] * planktonVisualStrength);
-            if (plankton > 0f)
-            {
-                float4 planktonOverlay = planktonColor;
-                planktonOverlay.w = 1f;
-
-                c.xyz = math.lerp(c.xyz, planktonOverlay.xyz, plankton);
-            }
 
             // -------------------------
             // DRAW VISUAL (RGB only)
@@ -484,6 +474,20 @@ public class OceanFieldManager : MonoBehaviour
 
                 c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
             }
+
+            // -------------------------
+            // PLANKTON TRAIL VISUAL
+            // -------------------------
+            float plankton = math.saturate(planktonField[index] / planktonMaxAmount);
+            if (plankton > 0f)
+            {
+                float4 planktonOverlay = planktonColor;
+                planktonOverlay.w = 1f;
+                     
+                c.xyz = math.lerp(c.xyz, planktonOverlay.xyz, plankton);
+            }
+
+            
             // -------------------------
             // PLAYER TRAIL VISUAL
             // -------------------------
@@ -534,6 +538,26 @@ public class OceanFieldManager : MonoBehaviour
                 (byte)math.round(c.w * 255f)
             );
         }
+    }
+
+    public bool ConsumePlanktonWhereTrailMax(float amount)
+    {
+        if (!playerTrailField.IsCreated || !planktonField.IsCreated)
+            return false;
+
+        bool changed = false;
+        float eatThreshold = trailMaxDeposit - 0.01f;
+
+        for (int i = 0; i < planktonField.Length; i++)
+        {
+            if (playerTrailField[i] >= eatThreshold && planktonField[i] > 0f)
+            {
+                planktonField[i] = Mathf.Max(0f, planktonField[i] - amount);
+                changed = true;
+            }
+        }
+
+        return changed;
     }
 
 }

@@ -7,15 +7,29 @@ public class PlanktonManager : MonoBehaviour
     [SerializeField] OceanFieldManager oceanFieldManager;
     [SerializeField] MapManager mapManager;
 
+    [SerializeField] float consumeAmount = 3f;
     [Header("Spawn")]
     [SerializeField] int startClusterCount = 20;
     [SerializeField] int pointsPerCluster = 25;
     [SerializeField] float clusterRadius = 2.5f;
     [SerializeField] float amountMultiplier = 1f;
 
+
+
     void Start()
     {
         SpawnInitialPlankton();
+    }
+
+    void Update()
+    {
+        if (oceanFieldManager == null)
+            return;
+
+        if (oceanFieldManager.ConsumePlanktonWhereTrailMax(consumeAmount))
+        {
+            oceanFieldManager.UpdateTrailTexture();
+        }
     }
 
     void SpawnInitialPlankton()
