@@ -60,7 +60,7 @@ public class ChenimalDraw : MonoBehaviour
 
         UpdateCursorVisual();
 
-        bool isDrawing = Input.GetMouseButton(0);
+        bool isDrawing = Input.GetMouseButton(0)||Input.GetKeyDown(KeyCode.Space);
         bool isErasing = Input.GetMouseButton(1);
 
         float cost = drawCostPerSecond * Time.deltaTime;

@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    [SerializeField] CellManager cellManager;
+
     [SerializeField] MapManager mapManager;
     [SerializeField] float playerRadius = 0.2f;
 
@@ -88,12 +90,13 @@ public class PlayerController : MonoBehaviour
         if (bacteriaFieldManager == null || playerEnergy == null)
             return;
 
-        bool isDrawing = true;
-            
-            //Input.GetKey(KeyCode.Space);
+        bool isErasing = Input.GetKey(KeyCode.Space);
+        bool isDrawing = !isErasing;
 
         float cost = drawCostPerSecond * Time.deltaTime;
         float recover = recoverPerSecond * Time.deltaTime;
+
+        Vector2 currentWorldPos = transform.position;
 
         if (isDrawing)
         {
@@ -105,8 +108,6 @@ public class PlayerController : MonoBehaviour
                 wasDrawingLastFrame = false;
                 return;
             }
-
-            Vector2 currentWorldPos = transform.position;
 
             if (!wasDrawingLastFrame)
             {
@@ -146,12 +147,20 @@ public class PlayerController : MonoBehaviour
         {
             StopSpraySound();
 
+            bacteriaFieldManager.EraseField(currentWorldPos, playerRadius);
+
+            if (cellManager != null)
+                cellManager.RemoveCellsInRadius(currentWorldPos, playerRadius);
+
+            bacteriaFieldManager.UpdateTrailTexture();
+
             if (Time.time - lastDrawTime > recoverDelay)
             {
                 playerEnergy.AddEnergy(recover);
             }
 
             wasDrawingLastFrame = false;
+            previousWorldPos = currentWorldPos;
         }
     }
 
