@@ -118,8 +118,12 @@ public class OceanFieldManager : MonoBehaviour
 
     void OnDisable()
     {
-        if (trailTexture != null && fieldRenderer != null && fieldRenderer.material != null)
+        if (fieldRenderer != null && fieldRenderer.material != null)
+        {
             fieldRenderer.material.mainTexture = null;
+            fieldRenderer.material.SetTexture("_TrailTex", null);
+            fieldRenderer.material.SetTexture("_PlanktonTex", null);
+        }
     }
 
     void SyncGridToMapAspect()
@@ -142,6 +146,7 @@ public class OceanFieldManager : MonoBehaviour
         planktonNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
         trailPixels = new NativeArray<Color32>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        planktonPixels = new NativeArray<Color32>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
     }
 
     void DisposeArrays()
@@ -155,6 +160,7 @@ public class OceanFieldManager : MonoBehaviour
         if (drawNext.IsCreated) drawNext.Dispose();
 
         if (trailPixels.IsCreated) trailPixels.Dispose();
+        if (planktonPixels.IsCreated) planktonPixels.Dispose();
     }
 
     void CreateTexture()
@@ -162,12 +168,17 @@ public class OceanFieldManager : MonoBehaviour
         trailTexture = new Texture2D(chemoWidth, chemoHeight, TextureFormat.RGBA32, false);
         trailTexture.wrapMode = TextureWrapMode.Clamp;
         trailTexture.filterMode = FilterMode.Point;
+
+        planktonTexture = new Texture2D(chemoWidth, chemoHeight, TextureFormat.RGBA32, false);
+        planktonTexture.wrapMode = TextureWrapMode.Clamp;
+        planktonTexture.filterMode = FilterMode.Bilinear;
     }
     void SyncRenderer()
     {
         if (fieldRenderer == null) return;
 
-        fieldRenderer.material.mainTexture = trailTexture;
+        fieldRenderer.material.SetTexture("_TrailTex", trailTexture);
+        fieldRenderer.material.SetTexture("_PlanktonTex", planktonTexture);
         fieldRenderer.transform.position = new Vector3(MapCentre.x, MapCentre.y, 0f);
         fieldRenderer.transform.localScale = new Vector3(MapSize.x, MapSize.y, 1f);
     }
@@ -426,33 +437,43 @@ public class OceanFieldManager : MonoBehaviour
 
     public void UpdateTrailTexture()
     {
-        if (trailTexture == null || !trailPixels.IsCreated) return;
+        if (trailTexture == null || !trailPixels.IsCreated || !planktonPixels.IsCreated)
+            return;
 
-        var job = new BuildPixelsJob
+        var trailJob = new BuildPixelsJob
         {
             playerTrailField = playerTrailField,
-            planktonField = planktonField,
             drawField = drawField,
             pixels = trailPixels,
 
             playerWeakColor = ToFloat4(playerWeakColor),
             playerStrongColor = ToFloat4(playerStrongColor),
-
-            planktonColor = ToFloat4(planktonColor),
             drawColor = ToFloat4(drawColor),
 
             drawVisualStrength = drawVisualStrength,
-            planktonVisualStrength = planktonVisualStrength,
-            planktonMaxAmount = planktonMaxAmount,
             chemoDepositAmount = chemoDepositAmount,
             trailMaxDeposit = trailMaxDeposit
         };
 
-        JobHandle handle = job.Schedule(CellCount, 128);
-        handle.Complete();
+        JobHandle handle1 = trailJob.Schedule(CellCount, 128);
+        handle1.Complete();
 
         trailTexture.SetPixelData(trailPixels, 0);
         trailTexture.Apply(false);
+
+        var planktonJob = new BuildPlanktonPixelsJob
+        {
+            planktonField = planktonField,
+            pixels = planktonPixels,
+            planktonColor = ToFloat4(planktonColor),
+            planktonMaxAmount = planktonMaxAmount
+        };
+
+        JobHandle handle2 = planktonJob.Schedule(CellCount, 128);
+        handle2.Complete();
+
+        planktonTexture.SetPixelData(planktonPixels, 0);
+        planktonTexture.Apply(false);
     }
     static float4 ToFloat4(Color c)
     {
@@ -501,74 +522,78 @@ public class OceanFieldManager : MonoBehaviour
             target[index] = math.max(0f, value - decay);
         }
     }
-    
+    [BurstCompile]
+    struct BuildPlanktonPixelsJob : IJobParallelFor
+    {
+        [ReadOnly] public NativeArray<float> planktonField;
+        [WriteOnly] public NativeArray<Color32> pixels;
+
+        public float4 planktonColor;
+        public float planktonMaxAmount;
+
+        public void Execute(int index)
+        {
+            float v = math.saturate(planktonField[index] / planktonMaxAmount);
+
+            float4 c = new float4(0f, 0f, 0f, 0f);
+
+            if (v > 0f)
+            {
+                c.xyz = planktonColor.xyz;
+                c.w = v;
+            }
+
+            pixels[index] = Float4ToColor32(c);
+        }
+
+        static Color32 Float4ToColor32(float4 c)
+        {
+            c = math.saturate(c);
+
+            return new Color32(
+                (byte)math.round(c.x * 255f),
+                (byte)math.round(c.y * 255f),
+                (byte)math.round(c.z * 255f),
+                (byte)math.round(c.w * 255f)
+            );
+        }
+    }
     [BurstCompile]
     struct BuildPixelsJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<float> playerTrailField;
         [ReadOnly] public NativeArray<float> drawField;
-        [ReadOnly] public NativeArray<float> planktonField;
 
         [WriteOnly] public NativeArray<Color32> pixels;
 
         public float4 playerWeakColor;
         public float4 playerStrongColor;
-        public float4 planktonColor;
-        public float planktonVisualStrength;
-        public float planktonMaxAmount;
-
         public float4 drawColor;
 
         public float chemoDepositAmount;
         public float trailMaxDeposit;
-
         public float drawVisualStrength;
 
         public void Execute(int index)
         {
             float4 c = new float4(0f, 0f, 0f, 0f);
 
-
-            // -------------------------
-            // DRAW VISUAL (RGB only)
-            // -------------------------
             float draw = math.saturate(drawField[index] * drawVisualStrength);
             if (draw > 0f)
             {
                 float4 drawOverlay = drawColor;
                 drawOverlay.w = 1f;
-
                 c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
             }
 
-            // -------------------------
-            // PLANKTON TRAIL VISUAL
-            // -------------------------
-            float plankton = math.saturate(planktonField[index] / planktonMaxAmount);
-            if (plankton > 0f)
-            {
-                float4 planktonOverlay = planktonColor;
-                planktonOverlay.w = 1f;
-                     
-                c.xyz = math.lerp(c.xyz, planktonOverlay.xyz, plankton);
-            }
-
-
-            // -------------------------
-            // PLAYER TRAIL VISUAL
-            // -------------------------
             float playerV = playerTrailField[index];
 
             if (playerV > 0f)
             {
                 float maxValue = math.max(0.0001f, trailMaxDeposit);
-
                 float k = playerV / maxValue;
 
-
-
                 float4 trailColor = math.lerp(playerWeakColor, playerStrongColor, k);
-
                 float brightness = math.lerp(0.5f, 1.5f, k);
                 trailColor.xyz *= brightness;
 
@@ -577,7 +602,6 @@ public class OceanFieldManager : MonoBehaviour
                 c.xyz = trailColor.xyz;
                 c.w = alpha;
             }
-
 
             pixels[index] = Float4ToColor32(c);
         }
