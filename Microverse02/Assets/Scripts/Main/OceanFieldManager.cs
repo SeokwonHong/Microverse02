@@ -31,6 +31,10 @@ public class OceanFieldManager : MonoBehaviour
     [SerializeField] Color planktonColor = new Color(0.6f, 1f, 0.7f, 1f);
     [SerializeField] float planktonVisualStrength = 1f;
 
+    [Header("Plankton Motion")]
+    [SerializeField] float planktonMoveChance = 0.08f;
+    [SerializeField] uint planktonRandomSeed = 12345;
+
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 4.5f;
     float chemoSensorAngle = 38f;
@@ -45,12 +49,8 @@ public class OceanFieldManager : MonoBehaviour
 
     [Header("Player Trail Colours")]
     [SerializeField] Color playerWeakColor = new Color(0.4f, 0f, 0f, 0f);
-    [SerializeField] Color playerMidColor = new Color(1f, 0.3f, 0.05f, 1f);
     [SerializeField] Color playerStrongColor = new Color(1f, 1f, 0.6f, 1f);
 
-    [Header("Food Colours")]
-    [SerializeField] Color foodColor = new Color(0.2f, 1f, 0.2f, 1f);
-    [SerializeField] float foodVisualStrength = 1f;
 
     [Header("Draw Colours")]
     [SerializeField] Color drawColor = new Color(0.2f, 0.8f, 1f, 1f);
@@ -68,7 +68,8 @@ public class OceanFieldManager : MonoBehaviour
 
     [Header("Plankton Grid")]
     NativeArray<float> planktonField;
-
+    NativeArray<float> planktonNext;
+    uint planktonTick;
 
     NativeArray<float> drawField;
     NativeArray<float> drawNext;
@@ -136,6 +137,7 @@ public class OceanFieldManager : MonoBehaviour
         drawNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
         planktonField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        planktonNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
         trailPixels = new NativeArray<Color32>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
     }
@@ -146,6 +148,7 @@ public class OceanFieldManager : MonoBehaviour
         if (playerTrailNext.IsCreated) playerTrailNext.Dispose();
 
         if (planktonField.IsCreated) planktonField.Dispose();
+        if (planktonNext.IsCreated) planktonNext.Dispose();
         if (drawField.IsCreated) drawField.Dispose();
         if (drawNext.IsCreated) drawNext.Dispose();
 
@@ -330,11 +333,72 @@ public class OceanFieldManager : MonoBehaviour
 
             RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
+
+            RunPlanktonMove(fieldTickInterval);
         }
 
         return updated;
     }
+    void RunPlanktonMove(float dt)
+    {
+        for (int i = 0; i < planktonNext.Length; i++)
+            planktonNext[i] = 0f;
 
+        for (int index = 0; index < planktonField.Length; index++)
+        {
+            float value = planktonField[index];
+            if (value <= 0f)
+                continue;
+
+            int x = index % chemoWidth;
+            int y = index / chemoWidth;
+
+            uint h = (uint)(index * 73856093) ^ (planktonTick * 19349663) ^ planktonRandomSeed;
+            float r = Hash01(h);
+
+            int nx = x;
+            int ny = y;
+
+            if (r < planktonMoveChance)
+            {
+                int dir = (int)(Hash01(h ^ 0x9E3779B9u) * 9f);
+
+                switch (dir)
+                {
+                    case 0: nx = x; ny = y - 1; break;
+                    case 1: nx = x; ny = y + 1; break;
+                    case 2: nx = x - 1; ny = y; break;
+                    case 3: nx = x + 1; ny = y; break;
+                    case 4: nx = x - 1; ny = y - 1; break;
+                    case 5: nx = x + 1; ny = y - 1; break;
+                    case 6: nx = x - 1; ny = y + 1; break;
+                    case 7: nx = x + 1; ny = y + 1; break;
+                    default: nx = x; ny = y; break;
+                }
+
+                nx = Mathf.Clamp(nx, 0, chemoWidth - 1);
+                ny = Mathf.Clamp(ny, 0, chemoHeight - 1);
+            }
+
+            int targetIndex = nx + ny * chemoWidth;
+            planktonNext[targetIndex] += value;
+        }
+
+        Swap(ref planktonField, ref planktonNext);
+        planktonTick++;
+    }
+
+    static float Hash01(uint x)
+    {
+        x ^= x >> 17;
+        x *= 0xED5AD4BBu;
+        x ^= x >> 11;
+        x *= 0xAC4C1B51u;
+        x ^= x >> 15;
+        x *= 0x31848BABu;
+        x ^= x >> 14;
+        return (x & 0x00FFFFFFu) / 16777215f;
+    }
     void RunFieldUpdate(NativeArray<float> source, NativeArray<float> target, float diffuseRate, float decayPerSecond, float dt)
     {
         var job = new UpdateFieldJob
@@ -369,7 +433,6 @@ public class OceanFieldManager : MonoBehaviour
             pixels = trailPixels,
 
             playerWeakColor = ToFloat4(playerWeakColor),
-            playerMidColor = ToFloat4(playerMidColor),
             playerStrongColor = ToFloat4(playerStrongColor),
 
             planktonColor = ToFloat4(planktonColor),
@@ -379,7 +442,9 @@ public class OceanFieldManager : MonoBehaviour
             planktonVisualStrength = planktonVisualStrength,
             planktonMaxAmount = planktonMaxAmount,
             chemoDepositAmount = chemoDepositAmount,
-            trailMaxDeposit = trailMaxDeposit
+            trailMaxDeposit = trailMaxDeposit,
+            width = chemoWidth,
+            height = chemoHeight
         };
 
         JobHandle handle = job.Schedule(CellCount, 128);
@@ -435,7 +500,73 @@ public class OceanFieldManager : MonoBehaviour
             target[index] = math.max(0f, value - decay);
         }
     }
+    [BurstCompile]
+    struct MovePlanktonJob : IJobParallelFor
+    {
+        [ReadOnly] public NativeArray<float> source;
+        public NativeArray<float> target;
 
+        public int width;
+        public int height;
+        public float moveChance;
+        public float maxAmount;
+        public uint tick;
+        public uint seed;
+
+        public void Execute(int index)
+        {
+            float value = source[index];
+            if (value <= 0f)
+                return;
+
+            int x = index % width;
+            int y = index / width;
+
+            uint h = (uint)(index * 73856093) ^ (tick * 19349663) ^ seed;
+            float r = Hash01(h);
+
+            int nx = x;
+            int ny = y;
+
+            if (r < moveChance)
+            {
+                int dir = (int)(Hash01(h ^ 0x9E3779B9u) * 9f);
+
+                switch (dir)
+                {
+                    case 0: nx = x; ny = y - 1; break; // up
+                    case 1: nx = x; ny = y + 1; break; // down
+                    case 2: nx = x - 1; ny = y; break; // left
+                    case 3: nx = x + 1; ny = y; break; // right
+                    case 4: nx = x - 1; ny = y - 1; break; // up-left
+                    case 5: nx = x + 1; ny = y - 1; break; // up-right
+                    case 6: nx = x - 1; ny = y + 1; break; // down-left
+                    case 7: nx = x + 1; ny = y + 1; break; // down-right
+                    default: nx = x; ny = y; break; // stay
+                }
+
+                nx = math.clamp(nx, 0, width - 1);
+                ny = math.clamp(ny, 0, height - 1);
+            }
+
+            int targetIndex = nx + ny * width;
+
+            // not perfectly race-safe, but acceptable for a first pass if density is low
+            target[targetIndex] = math.min(maxAmount, target[targetIndex] + value);
+        }
+
+        static float Hash01(uint x)
+        {
+            x ^= x >> 17;
+            x *= 0xED5AD4BBu;
+            x ^= x >> 11;
+            x *= 0xAC4C1B51u;
+            x ^= x >> 15;
+            x *= 0x31848BABu;
+            x ^= x >> 14;
+            return (x & 0x00FFFFFFu) / 16777215f;
+        }
+    }
     [BurstCompile]
     struct BuildPixelsJob : IJobParallelFor
     {
@@ -446,7 +577,6 @@ public class OceanFieldManager : MonoBehaviour
         [WriteOnly] public NativeArray<Color32> pixels;
 
         public float4 playerWeakColor;
-        public float4 playerMidColor;
         public float4 playerStrongColor;
         public float4 planktonColor;
         public float planktonVisualStrength;
@@ -458,6 +588,8 @@ public class OceanFieldManager : MonoBehaviour
         public float trailMaxDeposit;
 
         public float drawVisualStrength;
+        public int width;
+        public int height;
 
         public void Execute(int index)
         {
@@ -477,18 +609,42 @@ public class OceanFieldManager : MonoBehaviour
             }
 
             // -------------------------
-            // PLANKTON TRAIL VISUAL
+            // PLANKTON TRAIL VISUAL (soft / bigger)
             // -------------------------
-            float plankton = math.saturate(planktonField[index] / planktonMaxAmount);
+            int x = index % width;
+            int y = index / width;
+
+            float sum = 0f;
+            int count = 0;
+
+            for (int oy = -1; oy <= 1; oy++)
+            {
+                int ny = y + oy;
+                if (ny < 0 || ny >= height) continue;
+
+                int row = ny * width;
+
+                for (int ox = -1; ox <= 1; ox++)
+                {
+                    int nx = x + ox;
+                    if (nx < 0 || nx >= width) continue;
+
+                    sum += planktonField[row + nx];
+                    count++;
+                }
+            }
+
+            float plankton = math.saturate((sum / count) / planktonMaxAmount);
+
             if (plankton > 0f)
             {
                 float4 planktonOverlay = planktonColor;
                 planktonOverlay.w = 1f;
-                     
+
                 c.xyz = math.lerp(c.xyz, planktonOverlay.xyz, plankton);
             }
 
-            
+
             // -------------------------
             // PLAYER TRAIL VISUAL
             // -------------------------
@@ -496,32 +652,30 @@ public class OceanFieldManager : MonoBehaviour
 
             if (playerV > 0f)
             {
-                float4 trailColor;
+                float maxValue = math.max(0.0001f, trailMaxDeposit);
 
-                float midValue = math.max(0.0001f, chemoDepositAmount);
-                float maxValue = math.max(midValue, trailMaxDeposit);
+                float k = playerV / maxValue;
 
-                if (playerV <= midValue)
+                if (k < 0.63f)
                 {
-                    float k = math.saturate(playerV / midValue);
-                    trailColor = math.lerp(playerWeakColor, playerMidColor, k);
+                    c.xyz = playerWeakColor.xyz;
+                    c.w = 1f;
                 }
                 else
                 {
-                    float range = math.max(0.0001f, maxValue - midValue);
-                    float k = math.saturate((playerV - midValue) / range);
-                    trailColor = math.lerp(playerMidColor, playerStrongColor, k);
+                    c.xyz = playerStrongColor.xyz;
+                    c.w = 1f;
                 }
 
-                float light01 = math.saturate(playerV / maxValue);
-                float brightness = math.lerp(0.5f, 1.5f, light01);
+                float4 trailColor = math.lerp(playerWeakColor, playerStrongColor, k);
+
+                float brightness = math.lerp(0.5f, 1.5f, k);
                 trailColor.xyz *= brightness;
 
-                // player trail wins visually where it exists
-                c.xyz = trailColor.xyz;
+                float alpha = math.lerp(0.5f, 1f, k);
 
-                // alpha stores TRAIL MASK ONLY
-                c.w = 1f;
+                c.xyz = trailColor.xyz;
+                c.w = alpha;
             }
 
 

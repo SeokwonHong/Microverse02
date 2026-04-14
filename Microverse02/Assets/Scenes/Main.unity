@@ -63473,10 +63473,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   oceanFieldManager: {fileID: 1569142227}
   mapManager: {fileID: 1056029286}
-  consumeAmount: 1
-  startClusterCount: 86
-  pointsPerCluster: 77
-  clusterRadius: 4
+  startClusterCount: 40
+  pointsPerCluster: 180
+  clusterRadius: 5
   amountMultiplier: 1
 --- !u!4 &895805069
 Transform:
@@ -64852,11 +64851,39 @@ PrefabInstance:
       objectReference: {fileID: 42457891}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: planktonAmount
-      value: 0.5
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerMidColor.b
+      value: 0.36862743
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerMidColor.g
+      value: 0.38669112
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerMidColor.r
+      value: 0.7921569
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: planktonMaxAmount
-      value: 0.5
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: planktonMoveChance
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerStrongColor.b
+      value: 0.79215693
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerStrongColor.g
+      value: 0.5882353
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: playerStrongColor.r
+      value: 0.36862746
       objectReference: {fileID: 0}
     - target: {fileID: 8034811381048981240, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: m_Name
