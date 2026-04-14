@@ -206,7 +206,7 @@ public class SardineManager : MonoBehaviour
             c.nextPos = pos;
             c.currentVelocity = Vector2.zero;
             c.nextVelocity = Vector2.zero;
-            c.cellRadius = 0.3f;
+            c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
 
@@ -223,7 +223,7 @@ public class SardineManager : MonoBehaviour
             nextVelocity = Vector2.zero,
             headingTimer = 0f,
             wanderAngle = 0f,
-            cellRadius = 0.3f,
+            cellRadius = 0.6f,
             isDead = false,
         };
 

@@ -192,20 +192,21 @@ public class OceanFieldManager : MonoBehaviour
 
         return inside;
     }
-    public void DepositTrail(Vector2 worldPos,  float amountMultiplier = 1f)
+    public void DepositTrail(Vector2 worldPos, float amountMultiplier = 1f)
     {
+        if (!WorldToGrid(worldPos, out int gx, out int gy))
+            return;
 
-        if (WorldToGrid(worldPos, out int gx, out int gy))
+        int idx = Index(gx, gy);
+
+        playerTrailField[idx] = Mathf.Min(
+            playerTrailField[idx] + chemoDepositAmount * amountMultiplier,
+            trailMaxDeposit
+        );
+
+        if (planktonField.IsCreated && planktonField[idx] > 0f)
         {
-            int idx = Index(gx, gy);
-
-          
-            playerTrailField[idx] = Mathf.Min(
-                playerTrailField[idx] + chemoDepositAmount * amountMultiplier,
-                trailMaxDeposit
-            );
-            
-
+            planktonField[idx] = Mathf.Max(0f, planktonField[idx] - planktonAmount);
         }
     }
 
@@ -540,25 +541,7 @@ public class OceanFieldManager : MonoBehaviour
         }
     }
 
-    public bool ConsumePlanktonWhereTrailMax(float amount)
-    {
-        if (!playerTrailField.IsCreated || !planktonField.IsCreated)
-            return false;
 
-        bool changed = false;
-        float eatThreshold = trailMaxDeposit - 0.01f;
-
-        for (int i = 0; i < planktonField.Length; i++)
-        {
-            if (playerTrailField[i] >= eatThreshold && planktonField[i] > 0f)
-            {
-                planktonField[i] = Mathf.Max(0f, planktonField[i] - amount);
-                changed = true;
-            }
-        }
-
-        return changed;
-    }
 
 }
 
