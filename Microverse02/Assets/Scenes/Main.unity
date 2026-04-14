@@ -63473,9 +63473,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   oceanFieldManager: {fileID: 1569142227}
   mapManager: {fileID: 1056029286}
-  startClusterCount: 40
+  startClusterCount: 80
   pointsPerCluster: 180
-  clusterRadius: 5
+  clusterRadius: 7.5
   amountMultiplier: 1
 --- !u!4 &895805069
 Transform:
@@ -64846,6 +64846,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1056029286}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: drawColor.g
+      value: 0.3764706
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: fieldRenderer
       value: 
       objectReference: {fileID: 42457891}
@@ -64879,7 +64883,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: playerStrongColor.g
-      value: 0.5882353
+      value: 0.3764706
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: playerStrongColor.r
@@ -64899,7 +64903,7 @@ PrefabInstance:
       objectReference: {fileID: 1921727452}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineCount
-      value: 8500
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineSpeed

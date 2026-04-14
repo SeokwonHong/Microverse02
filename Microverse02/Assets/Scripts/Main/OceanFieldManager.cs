@@ -11,7 +11,7 @@ public class OceanFieldManager : MonoBehaviour
     [SerializeField] Renderer fieldRenderer;
 
     //Grid
-    int chemoWidth = 500;
+    int chemoWidth = 500; //500
     int chemoHeight;
 
     [Header("Trail")]
@@ -219,23 +219,6 @@ public class OceanFieldManager : MonoBehaviour
             playerTrailField[idx] + chemoDepositAmount * amountMultiplier,
             trailMaxDeposit
         );
-
-        if (planktonField.IsCreated)
-        {
-            for (int oy = -1; oy <= 1; oy++)
-            {
-                int ny = gy + oy;
-                if (ny < 0 || ny >= chemoHeight) continue;
-
-                for (int ox = -1; ox <= 1; ox++)
-                {
-                    int nx = gx + ox;
-                    if (nx < 0 || nx >= chemoWidth) continue;
-
-                    planktonField[Index(nx, ny)] = 0f;
-                }
-            }
-        }
     }
 
     public void DepositDraw(Vector2 worldPos, float amountMultiplier = 1f)
@@ -275,6 +258,35 @@ public class OceanFieldManager : MonoBehaviour
         }
     }
 
+    public bool EatPlanktonAt(Vector2 worldPos, int radiusCells = 1)
+    {
+        if (!planktonField.IsCreated) return false;
+        if (!WorldToGrid(worldPos, out int gx, out int gy)) return false;
+
+        bool ateAny = false;
+
+        for (int oy = -radiusCells; oy <= radiusCells; oy++)
+        {
+            int ny = gy + oy;
+            if (ny < 0 || ny >= chemoHeight) continue;
+
+            for (int ox = -radiusCells; ox <= radiusCells; ox++)
+            {
+                int nx = gx + ox;
+                if (nx < 0 || nx >= chemoWidth) continue;
+
+                int idx = Index(nx, ny);
+
+                if (planktonField[idx] > 0f)
+                {
+                    planktonField[idx] = 0f;
+                    ateAny = true;
+                }
+            }
+        }
+
+        return ateAny;
+    }
     public float SamplePlankton(Vector2 worldPos)
     {
         if (!planktonField.IsCreated)
@@ -590,6 +602,10 @@ public class OceanFieldManager : MonoBehaviour
         {
             float4 c = new float4(0f, 0f, 0f, 0f);
 
+            ////////////////////////////////
+            //Draw deposit colour
+            ////////////////////////////////
+            ///
             float draw = math.saturate(drawField[index] * drawVisualStrength);
             if (draw > 0f)
             {
@@ -597,7 +613,9 @@ public class OceanFieldManager : MonoBehaviour
                 drawOverlay.w = 1f;
                 c.xyz = math.lerp(c.xyz, drawOverlay.xyz, draw);
             }
-
+            ////////////////////////////////
+            //Trail deposit colour and alpha
+            ////////////////////////////////
             float playerV = playerTrailField[index];
 
             if (playerV > 0f)

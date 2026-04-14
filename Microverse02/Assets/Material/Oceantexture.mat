@@ -50,7 +50,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _EnableExternalAlpha: 0
-    - _PlanktonGlowStrength: 3.85
+    - _PlanktonGlowStrength: 2
     - _PlanktonSoftness: 0
     - _Thickness: 1
     - _Threshold: 0.1

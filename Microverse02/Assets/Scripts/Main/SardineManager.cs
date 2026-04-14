@@ -10,6 +10,7 @@ public class SardineManager : MonoBehaviour
     float sardineSpawnInterval = 0.0001f;
     float sardineSpawnTimer = 0f;
     [SerializeField] int sardineCount = 200;
+    [SerializeField] int maxSardineCount = 10000;
     [SerializeField] float sardineSpeed = 1.5f;
 
     [Header("Map generation")]
@@ -132,6 +133,10 @@ public class SardineManager : MonoBehaviour
         {
             sardineSpeed = 3.6f;
         }
+        else if(Input.GetKeyDown(KeyCode.N))
+        {
+            Debug.Log(sardines.Count);
+        }
 
     }
 
@@ -249,7 +254,7 @@ public class SardineManager : MonoBehaviour
         for (int i = 0; i < sardines.Count; i++)
         {
             BacteriaData c = sardines[i];
-            if (c.isDead) return;
+            if (c.isDead) continue;
 
             OceanFieldManager.DepositTrail(c.currentPos);
         }
@@ -267,6 +272,12 @@ public class SardineManager : MonoBehaviour
         {
             BacteriaData c = sardines[i];
             if (c.isDead) continue;
+            bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
+
+            if (atePlankton&&sardines.Count<= maxSardineCount)
+            {
+                CreateSardine(c.currentPos);
+            }
 
             Vector2 forward = c.currentVelocity.sqrMagnitude > 0.0001f
                 ? c.currentVelocity.normalized
@@ -287,6 +298,8 @@ public class SardineManager : MonoBehaviour
             forwardValue = OceanFieldManager.SamplePlayer(forwardPos);
             leftValue = OceanFieldManager.SamplePlayer(leftPos);
             rightValue = OceanFieldManager.SamplePlayer(rightPos);
+
+
             
 
             Vector2 desiredDir = forward;
