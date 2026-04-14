@@ -220,9 +220,21 @@ public class OceanFieldManager : MonoBehaviour
             trailMaxDeposit
         );
 
-        if (planktonField.IsCreated && planktonField[idx] > 0f)
+        if (planktonField.IsCreated)
         {
-            planktonField[idx] = 0f;
+            for (int oy = -1; oy <= 1; oy++)
+            {
+                int ny = gy + oy;
+                if (ny < 0 || ny >= chemoHeight) continue;
+
+                for (int ox = -1; ox <= 1; ox++)
+                {
+                    int nx = gx + ox;
+                    if (nx < 0 || nx >= chemoWidth) continue;
+
+                    planktonField[Index(nx, ny)] = 0f;
+                }
+            }
         }
     }
 
@@ -348,7 +360,7 @@ public class OceanFieldManager : MonoBehaviour
             RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
 
-            RunPlanktonMove(fieldTickInterval);
+           // RunPlanktonMove(fieldTickInterval);
         }
 
         return updated;

@@ -65119,6 +65119,10 @@ PrefabInstance:
       propertyPath: cellManager
       value: 
       objectReference: {fileID: 1569142224}
+    - target: {fileID: 8145715166273763460, guid: 9745eb5ed43408d4d85c5f1743a50d46, type: 3}
+      propertyPath: sardineManager
+      value: 
+      objectReference: {fileID: 1569142224}
     - target: {fileID: 8678890696686984697, guid: 9745eb5ed43408d4d85c5f1743a50d46, type: 3}
       propertyPath: m_Name
       value: GameManager
