@@ -222,7 +222,7 @@ public class OceanFieldManager : MonoBehaviour
 
         if (planktonField.IsCreated && planktonField[idx] > 0f)
         {
-            planktonField[idx] = Mathf.Max(0f, planktonField[idx] - planktonAmount);
+            planktonField[idx] = 0f;
         }
     }
 
