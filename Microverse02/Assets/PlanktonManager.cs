@@ -7,45 +7,67 @@ public class PlanktonManager : MonoBehaviour
     [SerializeField] OceanFieldManager oceanFieldManager;
     [SerializeField] MapManager mapManager;
 
-    [Header("Spawn")]
+    [Header("Spawn Settings")]
     [SerializeField] int startClusterCount = 20;
     [SerializeField] int pointsPerCluster = 25;
     [SerializeField] float clusterRadius = 2.5f;
-    [SerializeField] float amountMultiplier = 1f;
 
+    private const int amountPerSpawn = 1;
 
+    float previousPlanktonTotal;
+    float planktonLossSinceLastSpawn;
 
     void Start()
-    {
-        SpawnInitialPlankton();
-    }
-
-    void Update()
-    {
-        if (oceanFieldManager == null)
-            return;
-
-
-    }
-
-    void SpawnInitialPlankton()
     {
         if (oceanFieldManager == null || mapManager == null)
             return;
 
+        SpawnInitialClusters();
+        previousPlanktonTotal = oceanFieldManager.GetTotalPlankton();
+    }
+
+    void Update()
+    {
+        if (oceanFieldManager == null) return;
+
+        int currentTotal = oceanFieldManager.GetTotalPlankton();
+        int targetTotal = startClusterCount * pointsPerCluster;
+        int deficit = targetTotal - currentTotal;
+
+  
+        if (deficit >= pointsPerCluster)
+        {
+            SpawnOneCluster();
+    
+        }
+
+    }
+
+    void SpawnInitialClusters()
+    {
         for (int i = 0; i < startClusterCount; i++)
         {
-            Vector2 centre = GetRandomWorldPoint();
+            SpawnOneCluster();
+        }
+    }
 
-            for (int j = 0; j < pointsPerCluster; j++)
+    void SpawnOneCluster()
+    {
+        Vector2 centre = GetRandomWorldPoint();
+        int placedCount = 0;
+        int totalAttempts = 0;
+        int maxAttempts = 200; 
+
+        while (placedCount < pointsPerCluster && totalAttempts < maxAttempts)
+        {
+            totalAttempts++;
+            Vector2 offset = Random.insideUnitCircle * clusterRadius;
+            Vector2 p = centre + offset;
+
+ 
+            if (oceanFieldManager.AddPlankton(p, amountPerSpawn))
             {
-                Vector2 offset = Random.insideUnitCircle * clusterRadius;
-                Vector2 p = centre + offset;
-
-                if (mapManager.IsWallWorld(p))
-                    continue;
-
-                oceanFieldManager.AddPlankton(p, amountMultiplier);
+                placedCount++;
             }
         }
     }
@@ -60,9 +82,6 @@ public class PlanktonManager : MonoBehaviour
         float minY = centre.y - size.y * 0.5f;
         float maxY = centre.y + size.y * 0.5f;
 
-        return new Vector2(
-            Random.Range(minX, maxX),
-            Random.Range(minY, maxY)
-        );
+        return new Vector2(Random.Range(minX, maxX), Random.Range(minY, maxY));
     }
 }

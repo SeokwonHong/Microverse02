@@ -24,12 +24,11 @@ public class OceanFieldManager : MonoBehaviour
     [SerializeField] float drawDiffuseRate = 0.3f;
 
     [Header("Plankton")]
-    [SerializeField] float planktonAmount = 1f;
-    [SerializeField] float planktonMaxAmount = 2f;
+    [SerializeField] int planktonAmount = 1;
+    [SerializeField] int planktonMaxAmount = 2;
 
     [Header("Plankton Colours")]
     [SerializeField] Color planktonColor = new Color(0.6f, 1f, 0.7f, 1f);
-    [SerializeField] float planktonVisualStrength = 1f;
 
     [Header("Plankton Motion")]
     [SerializeField] float planktonMoveChance = 0.08f;
@@ -53,7 +52,7 @@ public class OceanFieldManager : MonoBehaviour
 
 
     [Header("Draw Colours")]
-    [SerializeField] Color drawColor = new Color(0.2f, 0.8f, 1f, 1f);
+    Color drawColor;
     float drawVisualStrength = 3f;
 
     public float trailMaxDeposit = 1.5f;
@@ -69,8 +68,8 @@ public class OceanFieldManager : MonoBehaviour
     NativeArray<float> playerTrailNext;
 
     [Header("Plankton Grid")]
-    NativeArray<float> planktonField;
-    NativeArray<float> planktonNext;
+    NativeArray<int> planktonField;
+    NativeArray<int> planktonNext;
     uint planktonTick;
 
     NativeArray<float> drawField;
@@ -108,6 +107,8 @@ public class OceanFieldManager : MonoBehaviour
         AllocateArrays();
         CreateTexture();
         SyncRenderer();
+
+        drawColor = playerStrongColor; 
         
         drawDiffuseRate = Mathf.Clamp01(drawDiffuseRate);
     }
@@ -142,8 +143,8 @@ public class OceanFieldManager : MonoBehaviour
         drawField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         drawNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
-        planktonField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
-        planktonNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        planktonField = new NativeArray<int>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        planktonNext = new NativeArray<int>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
         trailPixels = new NativeArray<Color32>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         planktonPixels = new NativeArray<Color32>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
@@ -239,23 +240,17 @@ public class OceanFieldManager : MonoBehaviour
         }
     }
 
-    public void AddPlankton(Vector2 worldPos, float amountMultiplier = 1f)
+    public bool AddPlankton(Vector2 worldPos, int amount = 1)
     {
-        if (!planktonField.IsCreated) return;
-        if (mapManager == null) return;
+        if (!WorldToGrid(worldPos, out int gx, out int gy)) return false;
+        int idx = Index(gx, gy);
 
-        if (mapManager.IsWallWorld(worldPos))
-            return;
-
-        if (WorldToGrid(worldPos, out int gx, out int gy))
+        if (planktonField[idx] < planktonMaxAmount)
         {
-            int idx = Index(gx, gy);
-
-            planktonField[idx] = Mathf.Min(
-                planktonField[idx] + planktonAmount * amountMultiplier,
-                planktonMaxAmount
-            );
+            planktonField[idx] = Mathf.Min(planktonField[idx] + amount, planktonMaxAmount);
+            return true;
         }
+        return false;
     }
 
     public bool EatPlanktonAt(Vector2 worldPos, int radiusCells = 1)
@@ -277,9 +272,9 @@ public class OceanFieldManager : MonoBehaviour
 
                 int idx = Index(nx, ny);
 
-                if (planktonField[idx] > 0f)
+                if (planktonField[idx] > 0)
                 {
-                    planktonField[idx] = 0f;
+                    planktonField[idx] = 0;
                     ateAny = true;
                 }
             }
@@ -287,10 +282,10 @@ public class OceanFieldManager : MonoBehaviour
 
         return ateAny;
     }
-    public float SamplePlankton(Vector2 worldPos)
+    public int SamplePlankton(Vector2 worldPos)
     {
         if (!planktonField.IsCreated)
-            return 0f;
+            return 0;
 
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
@@ -298,7 +293,7 @@ public class OceanFieldManager : MonoBehaviour
             return planktonField[idx];
         }
 
-        return 0f;
+        return 0;
     }
     public float Sample(Vector2 worldPos) //taking the value out from the hash
     {
@@ -380,12 +375,12 @@ public class OceanFieldManager : MonoBehaviour
     void RunPlanktonMove(float dt)
     {
         for (int i = 0; i < planktonNext.Length; i++)
-            planktonNext[i] = 0f;
+            planktonNext[i] = 0;
 
         for (int index = 0; index < planktonField.Length; index++)
         {
-            float value = planktonField[index];
-            if (value <= 0f)
+            int value = planktonField[index];
+            if (value <= 0)
                 continue;
 
             int x = index % chemoWidth;
@@ -420,6 +415,9 @@ public class OceanFieldManager : MonoBehaviour
 
             int targetIndex = nx + ny * chemoWidth;
             planktonNext[targetIndex] += value;
+
+            if (planktonNext[targetIndex] > planktonMaxAmount)
+                planktonNext[targetIndex] = planktonMaxAmount;
         }
 
         Swap(ref planktonField, ref planktonNext);
@@ -452,9 +450,9 @@ public class OceanFieldManager : MonoBehaviour
         JobHandle handle = job.Schedule(CellCount, 128);
         handle.Complete();
     }
-    void Swap(ref NativeArray<float> a, ref NativeArray<float> b) //for double buffering
+    void Swap<T>(ref NativeArray<T> a, ref NativeArray<T> b) where T : struct
     {
-        NativeArray<float> temp = a;
+        NativeArray<T> temp = a;
         a = b;
         b = temp;
     }
@@ -504,6 +502,32 @@ public class OceanFieldManager : MonoBehaviour
         return new float4(c.r, c.g, c.b, c.a);
     }
 
+    public int GetTotalPlankton()
+    {
+        if (!planktonField.IsCreated) return 0;
+
+        int total = 0;
+
+        for (int i = 0; i < planktonField.Length; i++)
+        {
+            total += planktonField[i];
+        }
+
+        return total;
+    }
+    public bool HasPlanktonAt(Vector2 worldPos)
+    {
+        if (!planktonField.IsCreated)
+            return false;
+
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            return planktonField[Index(gx, gy)] > 0;
+        }
+
+        return false;
+    }
+
     [BurstCompile]
     struct UpdateFieldJob : IJobParallelFor
     {
@@ -549,15 +573,15 @@ public class OceanFieldManager : MonoBehaviour
     [BurstCompile]
     struct BuildPlanktonPixelsJob : IJobParallelFor
     {
-        [ReadOnly] public NativeArray<float> planktonField;
+        [ReadOnly] public NativeArray<int> planktonField;
         [WriteOnly] public NativeArray<Color32> pixels;
 
         public float4 planktonColor;
-        public float planktonMaxAmount;
+        public int planktonMaxAmount;
 
         public void Execute(int index)
         {
-            float v = math.saturate(planktonField[index] / planktonMaxAmount);
+            float v = math.saturate((float)planktonField[index] / math.max(1, planktonMaxAmount));
 
             float4 c = new float4(0f, 0f, 0f, 0f);
 

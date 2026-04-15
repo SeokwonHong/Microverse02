@@ -135,7 +135,10 @@ public class SardineManager : MonoBehaviour
         }
         else if(Input.GetKeyDown(KeyCode.N))
         {
-            Debug.Log(sardines.Count);
+            //Debug.Log(sardines.Count);
+
+           int planktonNum = OceanFieldManager.GetTotalPlankton();
+            Debug.Log(planktonNum);
         }
 
     }

@@ -53,6 +53,10 @@ public class GameManager : MonoBehaviour
         if (win) return;
         if (sardineManager == null) return;
 
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+            OnLevelRestart();
+        }
    
     }
 }

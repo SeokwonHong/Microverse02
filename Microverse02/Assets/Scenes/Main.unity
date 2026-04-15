@@ -241,17 +241,6 @@ SortingGroup:
   m_SortingLayer: 0
   m_SortingOrder: 10
   m_SortAtRoot: 0
---- !u!114 &297364455 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8145715166273763460, guid: 9745eb5ed43408d4d85c5f1743a50d46, type: 3}
-  m_PrefabInstance: {fileID: 8777228302442434880}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2e259cfffb84374ba8e4ce2011d9eb5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &337563946
 GameObject:
   m_ObjectHideFlags: 0
@@ -63473,10 +63462,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   oceanFieldManager: {fileID: 1569142227}
   mapManager: {fileID: 1056029286}
-  startClusterCount: 80
-  pointsPerCluster: 180
-  clusterRadius: 7.5
-  amountMultiplier: 1
+  startClusterCount: 30
+  pointsPerCluster: 70
+  clusterRadius: 7
 --- !u!4 &895805069
 Transform:
   m_ObjectHideFlags: 0
@@ -64883,7 +64871,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: playerStrongColor.g
-      value: 0.3764706
+      value: 0.37647063
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: playerStrongColor.r
@@ -64908,6 +64896,10 @@ PrefabInstance:
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineSpeed
       value: 3.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: maxSardineCount
+      value: 10000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: OceanFieldManager
@@ -65102,7 +65094,7 @@ PrefabInstance:
     - target: {fileID: 5794222065040911250, guid: 9745eb5ed43408d4d85c5f1743a50d46, type: 3}
       propertyPath: gameManager
       value: 
-      objectReference: {fileID: 297364455}
+      objectReference: {fileID: 0}
     - target: {fileID: 5794222065040911250, guid: 9745eb5ed43408d4d85c5f1743a50d46, type: 3}
       propertyPath: winLoseText
       value: 
@@ -65131,7 +65123,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8145715166273763460, guid: 9745eb5ed43408d4d85c5f1743a50d46, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
