@@ -14,6 +14,9 @@ public class OceanFieldManager : MonoBehaviour
     int chemoWidth = 500; //500
     int chemoHeight;
 
+    //score
+    int score;
+
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.45f;  // how strong bacteria chemo is 
     [SerializeField] float chemoDecayPerSecond = 0.07f;
@@ -24,7 +27,6 @@ public class OceanFieldManager : MonoBehaviour
     [SerializeField] float drawDiffuseRate = 0.3f;
 
     [Header("Plankton")]
-    [SerializeField] int planktonAmount = 1;
     [SerializeField] int planktonMaxAmount = 2;
 
     [Header("Plankton Colours")]
@@ -41,7 +43,6 @@ public class OceanFieldManager : MonoBehaviour
 
     [Header("Sampling Weights")]
     [SerializeField] float trailWeight = 1f;
-    [SerializeField] float foodWeight = 5f;
 
     [Header("Tick")]
     [SerializeField] float fieldTickInterval = 1f / 30f; // 30 Hz
@@ -81,14 +82,17 @@ public class OceanFieldManager : MonoBehaviour
     float fieldTickTimer = 0f;
     int foodTickCounter;
 
-    int CellCount => chemoWidth * chemoHeight;
+
+
+
 
     //getter
+    int CellCount => chemoWidth * chemoHeight;
     public float SensorDistance => chemoSensorDistance;
     public float SensorAngle => chemoSensorAngle;
     public MapManager MapManager => mapManager;
 
-
+    public int Score => score;
     Vector2 MapCentre => mapManager.MapCentre;
     Vector2 MapSize => mapManager.MapSize;
 
@@ -274,6 +278,7 @@ public class OceanFieldManager : MonoBehaviour
 
                 if (planktonField[idx] > 0)
                 {
+                    score++;
                     planktonField[idx] = 0;
                     ateAny = true;
                 }

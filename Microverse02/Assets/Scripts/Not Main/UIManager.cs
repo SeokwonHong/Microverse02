@@ -4,13 +4,18 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-
+    //ENERGY
     [SerializeField] PlayerEnergy playerEnergy;
     [SerializeField] RectTransform refToEnergyBar;
 
+    //TIMER
     [SerializeField] LevelTimer levelTimer;
     [SerializeField] TextMeshPro timeText;
 
+    //SCORE
+    [SerializeField] OceanFieldManager fieldManager;
+    [SerializeField] TextMeshProUGUI scoreText;
+    private int score = 0;
 
     private float EnergyBarFullSize = 3.39f;
 
@@ -20,6 +25,7 @@ public class UIManager : MonoBehaviour
     void Awake()
     {
         originalScale = refToEnergyBar.localScale;
+        score = 0;
     }
     void Update()
     {
@@ -44,6 +50,14 @@ public class UIManager : MonoBehaviour
 
 
         }
+
+        if(scoreText != null)
+        {
+            score = fieldManager.Score;
+            scoreText.text = $"SCORE: {score}";
+        }
+
+
 
     }
 }

@@ -5,7 +5,6 @@ using UnityEngine;
 public class CameraPosition : MonoBehaviour
 {
     [SerializeField] SardineManager cellManager;
-    float camZ = -10;
     Camera cam;
     float minZoom = 3.5f;
     [SerializeField] float maxZoom = 75f;

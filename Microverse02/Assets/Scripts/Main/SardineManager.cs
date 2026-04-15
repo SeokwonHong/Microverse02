@@ -7,8 +7,6 @@ public class SardineManager : MonoBehaviour
 {
     [Header("Sardine Spawn")]
     [SerializeField] GameObject playerSpawn;
-    float sardineSpawnInterval = 0.0001f;
-    float sardineSpawnTimer = 0f;
     [SerializeField] int sardineCount = 200;
     [SerializeField] int maxSardineCount = 10000;
     [SerializeField] float sardineSpeed = 1.5f;
@@ -135,10 +133,8 @@ public class SardineManager : MonoBehaviour
         }
         else if(Input.GetKeyDown(KeyCode.N))
         {
-            //Debug.Log(sardines.Count);
-
            int planktonNum = OceanFieldManager.GetTotalPlankton();
-            Debug.Log(planktonNum);
+            Debug.Log("Sardines Count: " + sardines.Count + ", Plankton Count: " + planktonNum);
         }
 
     }
