@@ -80,6 +80,8 @@ public class SardineManager : MonoBehaviour
             CreateSardine(spawnPos1, BacteriaData.Team.Player);
 
         }
+        CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+
 
         sardineCount = 0;
     }
@@ -98,19 +100,19 @@ public class SardineManager : MonoBehaviour
 
         ApplyBacteriaFieldSteering();
 
-        int currentSpawnStep = OceanFieldManager.Score / enemySpawnScoreStep;
+        //int currentSpawnStep = OceanFieldManager.Score / enemySpawnScoreStep;
 
-        if (currentSpawnStep > lastEnemySpawnStep)
-        {
-            int amountToSpawn = currentSpawnStep - lastEnemySpawnStep;
+        //if (currentSpawnStep > lastEnemySpawnStep)
+        //{
+        //    int amountToSpawn = currentSpawnStep - lastEnemySpawnStep;
 
-            for (int i = 0; i < amountToSpawn; i++)
-            {
-                CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
-            }
+        //    for (int i = 0; i < amountToSpawn; i++)
+        //    {
+        //        CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+        //    }
 
-            lastEnemySpawnStep = currentSpawnStep;
-        }
+        //    lastEnemySpawnStep = currentSpawnStep;
+        //}
 
         for (int i = 0; i < sardines.Count; i++)
         {
