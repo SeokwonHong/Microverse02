@@ -280,7 +280,7 @@ public class OceanFieldManager : MonoBehaviour
         return false;
     }
 
-    public bool EatPlanktonAt(Vector2 worldPos, int radiusCells = 1)
+    public bool EatPlanktonAt(Vector2 worldPos, int radiusCells = 1, bool addScore = true)
     {
         if (!planktonField.IsCreated) return false;
         if (!WorldToGrid(worldPos, out int gx, out int gy)) return false;
@@ -301,7 +301,9 @@ public class OceanFieldManager : MonoBehaviour
 
                 if (planktonField[idx] > 0)
                 {
-                    score ++;
+                    if (addScore)
+                        score++;
+
                     planktonField[idx] = 0;
                     ateAny = true;
                 }

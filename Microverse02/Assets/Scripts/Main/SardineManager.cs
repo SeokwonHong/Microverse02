@@ -8,7 +8,7 @@ public class SardineManager : MonoBehaviour
     [Header("Sardine Spawn")]
     [SerializeField] GameObject playerSpawn;
     [SerializeField] int sardineCount = 200;
-    [SerializeField] int maxSardineCount = 10000;
+    [SerializeField] int maxSardineCount = 100000;
     [SerializeField] float sardineSpeed = 1.5f;
 
     [Header("Enemy")]
@@ -169,7 +169,7 @@ public class SardineManager : MonoBehaviour
     }
     int GetEnemySpawnStep(int score)
     {
-        return Mathf.RoundToInt(100f / (1f + score * 0.01f));
+        return Mathf.Max(3, 120 - score / 30);
     }
     void ApplyRectangleBoundary(int i)
     {
@@ -345,11 +345,11 @@ public class SardineManager : MonoBehaviour
                     deadSardinePool.Add(i);
 
 
-                    if (sardines.Count < maxSardineCount)
-                    {
+                    //if (sardines.Count < maxSardineCount)
+                    //{
 
-                        CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
-                    }
+                    //    CreateSardine(c.currentPos, BacteriaData.Team.Enemy); // I think its better to keep it annotation
+                    //}
                     //CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
                     continue; 
                 }
@@ -367,6 +367,19 @@ public class SardineManager : MonoBehaviour
             else
             {
                 c.lifeTimer -= dt;
+
+                bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1, false);
+
+                if (atePlankton)
+                {
+
+                    c.lifeTimer = 5f;
+
+                    if (sardines.Count < maxSardineCount)
+                    {
+                        CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
+                    }
+                }
 
                 if (c.lifeTimer <= 0f)
                 {

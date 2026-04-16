@@ -63451,7 +63451,7 @@ MonoBehaviour:
   oceanFieldManager: {fileID: 1569142227}
   mapManager: {fileID: 1056029286}
   startClusterCount: 15
-  pointsPerCluster: 70
+  pointsPerCluster: 85
   clusterRadius: 10
 --- !u!4 &895805069
 Transform:
@@ -64913,7 +64913,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxSardineCount
-      value: 10000
+      value: 15000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: OceanFieldManager
