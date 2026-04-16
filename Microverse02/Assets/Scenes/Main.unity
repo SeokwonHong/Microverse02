@@ -63452,7 +63452,7 @@ MonoBehaviour:
   mapManager: {fileID: 1056029286}
   startClusterCount: 15
   pointsPerCluster: 85
-  clusterRadius: 10
+  clusterRadius: 7
 --- !u!4 &895805069
 Transform:
   m_ObjectHideFlags: 0

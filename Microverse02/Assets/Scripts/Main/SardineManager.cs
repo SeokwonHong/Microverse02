@@ -14,7 +14,7 @@ public class SardineManager : MonoBehaviour
     [Header("Enemy")]
    // [SerializeField] int enemySpawnScoreStep = 40;
     int lastEnemySpawnStep = 0;
-
+    float enemyLastSeconds = 8f;
     [Header("Map generation")]
     [SerializeField] OceanFieldManager OceanFieldManager;
     [SerializeField] float wallBounciness = 0.5f;
@@ -169,7 +169,7 @@ public class SardineManager : MonoBehaviour
     }
     int GetEnemySpawnStep(int score)
     {
-        return Mathf.Max(3, 120 - score / 30);
+        return Mathf.Max(8, 120 - score / 80);
     }
     void ApplyRectangleBoundary(int i)
     {
@@ -246,7 +246,7 @@ public class SardineManager : MonoBehaviour
             c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? 5f : 0f;
+            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? enemyLastSeconds : 0f;
 
             sardines[idx] = c;
             return;
@@ -263,7 +263,7 @@ public class SardineManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.6f,
             isDead = false,
-            lifeTimer = (team == BacteriaData.Team.Enemy) ? 5f : 0f
+            lifeTimer = (team == BacteriaData.Team.Enemy) ? enemyLastSeconds : 0f
         };
 
         sardines.Add(clone);
@@ -336,7 +336,7 @@ public class SardineManager : MonoBehaviour
                 float enemyTrail = OceanFieldManager.SampleEnemyTrailOnly(c.currentPos);
 
           
-                if (enemyTrail >= OceanFieldManager.trailMaxDeposit)
+                if (enemyTrail >= OceanFieldManager.trailMaxDeposit*0.3f)
                 {
                     c.isDead = true;
                     c.currentVelocity = Vector2.zero;
