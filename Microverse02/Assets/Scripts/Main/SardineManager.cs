@@ -12,7 +12,7 @@ public class SardineManager : MonoBehaviour
     [SerializeField] float sardineSpeed = 1.5f;
 
     [Header("Enemy")]
-    [SerializeField] int enemySpawnScoreStep = 10;
+   // [SerializeField] int enemySpawnScoreStep = 40;
     int lastEnemySpawnStep = 0;
 
     [Header("Map generation")]
@@ -100,19 +100,20 @@ public class SardineManager : MonoBehaviour
 
         ApplyBacteriaFieldSteering();
 
-        //int currentSpawnStep = OceanFieldManager.Score / enemySpawnScoreStep;
+        int step = GetEnemySpawnStep(OceanFieldManager.Score);
+        int currentSpawnStep = OceanFieldManager.Score / step;
 
-        //if (currentSpawnStep > lastEnemySpawnStep)
-        //{
-        //    int amountToSpawn = currentSpawnStep - lastEnemySpawnStep;
+        if (currentSpawnStep > lastEnemySpawnStep)
+        {
+            int amountToSpawn = currentSpawnStep - lastEnemySpawnStep;
 
-        //    for (int i = 0; i < amountToSpawn; i++)
-        //    {
-        //        CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
-        //    }
+            for (int i = 0; i < amountToSpawn; i++)
+            {
+                CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+            }
 
-        //    lastEnemySpawnStep = currentSpawnStep;
-        //}
+            lastEnemySpawnStep = currentSpawnStep;
+        }
 
         for (int i = 0; i < sardines.Count; i++)
         {
@@ -166,7 +167,10 @@ public class SardineManager : MonoBehaviour
         }
 
     }
-
+    int GetEnemySpawnStep(int score)
+    {
+        return Mathf.RoundToInt(100f / (1f + score * 0.01f));
+    }
     void ApplyRectangleBoundary(int i)
     {
         if (mapManager == null) return;
@@ -242,7 +246,7 @@ public class SardineManager : MonoBehaviour
             c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-            c.lifeTimer = 0f;
+            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? 5f : 0f;
 
             sardines[idx] = c;
             return;
@@ -259,7 +263,7 @@ public class SardineManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.6f,
             isDead = false,
-            lifeTimer = 0f
+            lifeTimer = (team == BacteriaData.Team.Enemy) ? 5f : 0f
         };
 
         sardines.Add(clone);
@@ -340,19 +344,19 @@ public class SardineManager : MonoBehaviour
                     sardines[i] = c;
                     deadSardinePool.Add(i);
 
-         
+
                     if (sardines.Count < maxSardineCount)
                     {
-                     
+
                         CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
                     }
-
+                    //CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
                     continue; 
                 }
 
                 // Player reproduction by eating (keep this if you want players to grow)
                 bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
-                if (atePlankton && sardines.Count < maxSardineCount)
+                if (atePlankton&& atePlankton && sardines.Count < maxSardineCount)//(atePlankton && sardines.Count < maxSardineCount)
                 {
                     CreateSardine(c.currentPos, BacteriaData.Team.Player);
                 }
@@ -364,16 +368,16 @@ public class SardineManager : MonoBehaviour
             {
                 c.lifeTimer -= dt;
 
-                //float playerTrail = OceanFieldManager.SamplePlayerTrailOnly(c.currentPos);
+                if (c.lifeTimer <= 0f)
+                {
+                    c.isDead = true;
+                    c.currentVelocity = Vector2.zero;
+                    c.nextVelocity = Vector2.zero;
 
-                //if (playerTrail >= OceanFieldManager.trailMaxDeposit && c.lifeTimer <= 0f)
-                //{
-                //    if (sardines.Count < maxSardineCount)
-                //    {
-                //        CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
-                //        c.lifeTimer = 0.5f;
-                //    }
-                //}
+                    sardines[i] = c;
+                    deadSardinePool.Add(i);
+                    continue;
+                }
             }
 
             ////////////////////////////////
