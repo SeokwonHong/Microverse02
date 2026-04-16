@@ -149,6 +149,9 @@ public class OceanFieldManager : MonoBehaviour
         playerTrailField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         playerTrailNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
+        enemyTrailField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+        enemyTrailNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
+
         drawField = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
         drawNext = new NativeArray<float>(count, Allocator.Persistent, NativeArrayOptions.ClearMemory);
 
@@ -163,6 +166,9 @@ public class OceanFieldManager : MonoBehaviour
     {
         if (playerTrailField.IsCreated) playerTrailField.Dispose();
         if (playerTrailNext.IsCreated) playerTrailNext.Dispose();
+
+        if (enemyTrailField.IsCreated) enemyTrailField.Dispose();
+        if (enemyTrailNext.IsCreated) enemyTrailNext.Dispose();
 
         if (planktonField.IsCreated) planktonField.Dispose();
         if (planktonNext.IsCreated) planktonNext.Dispose();
@@ -227,6 +233,18 @@ public class OceanFieldManager : MonoBehaviour
 
         playerTrailField[idx] = Mathf.Min(
             playerTrailField[idx] + chemoDepositAmount * amountMultiplier,
+            trailMaxDeposit
+        );
+    }
+    public void DepositEnemyTrail(Vector2 worldPos, float amountMultiplier = 1f)
+    {
+        if (!WorldToGrid(worldPos, out int gx, out int gy))
+            return;
+
+        int idx = Index(gx, gy);
+
+        enemyTrailField[idx] = Mathf.Min(
+            enemyTrailField[idx] + chemoDepositAmount * amountMultiplier,
             trailMaxDeposit
         );
     }
@@ -343,7 +361,20 @@ public class OceanFieldManager : MonoBehaviour
 
         return 0f;
     }
+    public float SampleEnemy(Vector2 worldPos)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
 
+            float trail = enemyTrailField[idx] * trailWeight;
+            float draw = drawField[idx];
+
+            return trail + draw;
+        }
+
+        return 0f;
+    }
 
 
     Vector2 GridToWorldCentre(int gx, int gy)
@@ -361,6 +392,7 @@ public class OceanFieldManager : MonoBehaviour
 
    
 
+
     public bool TickField(float dt)//update pretty much
     {
         bool updated = false;
@@ -374,10 +406,13 @@ public class OceanFieldManager : MonoBehaviour
             RunFieldUpdate(playerTrailField, playerTrailNext, 0f, chemoDecayPerSecond, fieldTickInterval);
             Swap(ref playerTrailField, ref playerTrailNext);
 
+            RunFieldUpdate(enemyTrailField, enemyTrailNext, 0f, chemoDecayPerSecond, fieldTickInterval);
+            Swap(ref enemyTrailField, ref enemyTrailNext);
+
             RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
 
-           // RunPlanktonMove(fieldTickInterval);
+            // RunPlanktonMove(fieldTickInterval);
         }
 
         return updated;
@@ -475,11 +510,14 @@ public class OceanFieldManager : MonoBehaviour
         var trailJob = new BuildPixelsJob
         {
             playerTrailField = playerTrailField,
+            enemyTrailField = enemyTrailField,
             drawField = drawField,
             pixels = trailPixels,
 
             playerWeakColor = ToFloat4(playerWeakColor),
             playerStrongColor = ToFloat4(playerStrongColor),
+            enemyWeakColor = ToFloat4(enemyWeakColor),
+            enemyStrongColor = ToFloat4(enemyStrongColor),
             drawColor = ToFloat4(drawColor),
 
             drawVisualStrength = drawVisualStrength,
@@ -620,12 +658,15 @@ public class OceanFieldManager : MonoBehaviour
     struct BuildPixelsJob : IJobParallelFor
     {
         [ReadOnly] public NativeArray<float> playerTrailField;
+        [ReadOnly] public NativeArray<float> enemyTrailField;
         [ReadOnly] public NativeArray<float> drawField;
 
         [WriteOnly] public NativeArray<Color32> pixels;
 
         public float4 playerWeakColor;
         public float4 playerStrongColor;
+        public float4 enemyWeakColor;
+        public float4 enemyStrongColor;
         public float4 drawColor;
 
         public float chemoDepositAmount;
@@ -651,20 +692,34 @@ public class OceanFieldManager : MonoBehaviour
             //Trail deposit colour and alpha
             ////////////////////////////////
             float playerV = playerTrailField[index];
+            float enemyV = enemyTrailField[index];
 
-            if (playerV > 0f)
+            if (playerV > 0f || enemyV > 0f)
             {
                 float maxValue = math.max(0.0001f, trailMaxDeposit);
-                float k = playerV / maxValue;
 
-                float4 trailColor = math.lerp(playerWeakColor, playerStrongColor, k);
-                float brightness = math.lerp(0.5f, 1.5f, k);
-                trailColor.xyz *= brightness;
+                float pk = playerV / maxValue;
+                float ek = enemyV / maxValue;
 
-                float alpha = math.lerp(0.5f, 1f, k);
+                float4 playerColor = math.lerp(playerWeakColor, playerStrongColor, pk);
+                float4 enemyColor = math.lerp(enemyWeakColor, enemyStrongColor, ek);
 
-                c.xyz = trailColor.xyz;
-                c.w = alpha;
+                float playerBrightness = math.lerp(0.5f, 1.5f, pk);
+                float enemyBrightness = math.lerp(0.5f, 1.5f, ek);
+
+                playerColor.xyz *= playerBrightness;
+                enemyColor.xyz *= enemyBrightness;
+
+                float total = playerV + enemyV;
+
+                if (total > 0f)
+                {
+                    float playerWeight = playerV / total;
+                    float enemyWeight = enemyV / total;
+
+                    c.xyz = playerColor.xyz * playerWeight + enemyColor.xyz * enemyWeight;
+                    c.w = math.saturate(math.max(pk, ek));
+                }
             }
 
             pixels[index] = Float4ToColor32(c);

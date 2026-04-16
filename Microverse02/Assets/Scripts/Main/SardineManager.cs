@@ -11,6 +11,10 @@ public class SardineManager : MonoBehaviour
     [SerializeField] int maxSardineCount = 10000;
     [SerializeField] float sardineSpeed = 1.5f;
 
+    [Header("Enemy")]
+    [SerializeField] int enemySpawnScoreStep = 10;
+    int lastEnemySpawnStep = 0;
+
     [Header("Map generation")]
     [SerializeField] OceanFieldManager OceanFieldManager;
     [SerializeField] float wallBounciness = 0.5f;
@@ -73,8 +77,8 @@ public class SardineManager : MonoBehaviour
 
         for (int i = 0; i < sardineCount; i++)
         {
-            CreateSardine(spawnPos1);
-         
+            CreateSardine(spawnPos1, BacteriaData.Team.Player);
+
         }
 
         sardineCount = 0;
@@ -93,6 +97,20 @@ public class SardineManager : MonoBehaviour
         }
 
         ApplyBacteriaFieldSteering();
+
+        int currentSpawnStep = OceanFieldManager.Score / enemySpawnScoreStep;
+
+        if (currentSpawnStep > lastEnemySpawnStep)
+        {
+            int amountToSpawn = currentSpawnStep - lastEnemySpawnStep;
+
+            for (int i = 0; i < amountToSpawn; i++)
+            {
+                CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+            }
+
+            lastEnemySpawnStep = currentSpawnStep;
+        }
 
         for (int i = 0; i < sardines.Count; i++)
         {
@@ -215,8 +233,8 @@ public class SardineManager : MonoBehaviour
             deadSardinePool.RemoveAt(deadSardinePool.Count - 1);
 
             BacteriaData c = sardines[idx];
-            c.isDead = false;
             c.team = team;
+            c.isDead = false;
             c.currentPos = pos;
             c.nextPos = pos;
             c.currentVelocity = Vector2.zero;
@@ -224,8 +242,7 @@ public class SardineManager : MonoBehaviour
             c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-            c.reproduceCooldown = 0f;
-            c.lifeTimer = team == BacteriaData.Team.Enemy ? enemyLifetime : 999999f;
+            c.lifeTimer = 0f;
 
             sardines[idx] = c;
             return;
@@ -242,11 +259,28 @@ public class SardineManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.6f,
             isDead = false,
-            reproduceCooldown = 0f,
-            lifeTimer = team == BacteriaData.Team.Enemy ? enemyLifetime : 999999f
+            lifeTimer = 0f
         };
 
         sardines.Add(clone);
+    }
+    Vector2 GetRandomPositionInMap()
+    {
+        Vector2 centre = mapManager.MapCentre;
+        Vector2 size = mapManager.MapSize;
+
+        for (int tries = 0; tries < 50; tries++)
+        {
+            float x = Random.Range(centre.x - size.x * 0.5f, centre.x + size.x * 0.5f);
+            float y = Random.Range(centre.y - size.y * 0.5f, centre.y + size.y * 0.5f);
+
+            Vector2 p = new Vector2(x, y);
+
+            if (!mapManager.IsWallWorld(p))
+                return p;
+        }
+
+        return centre;
     }
 
     Vector2 Rotate(Vector2 v, float degrees)
@@ -270,7 +304,10 @@ public class SardineManager : MonoBehaviour
             BacteriaData c = sardines[i];
             if (c.isDead) continue;
 
-            OceanFieldManager.DepositTrail(c.currentPos);
+            if (c.team == BacteriaData.Team.Player)
+                OceanFieldManager.DepositTrail(c.currentPos);
+            else
+                OceanFieldManager.DepositEnemyTrail(c.currentPos);
         }
     }
 
@@ -286,11 +323,15 @@ public class SardineManager : MonoBehaviour
         {
             BacteriaData c = sardines[i];
             if (c.isDead) continue;
-            bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
 
-            if (atePlankton&&sardines.Count<= maxSardineCount)
+            if (c.team == BacteriaData.Team.Player)
             {
-                CreateSardine(c.currentPos);
+                bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
+
+                if (atePlankton && sardines.Count <= maxSardineCount)
+                {
+                    CreateSardine(c.currentPos, BacteriaData.Team.Player);
+                }
             }
 
             Vector2 forward = c.currentVelocity.sqrMagnitude > 0.0001f
@@ -308,13 +349,18 @@ public class SardineManager : MonoBehaviour
             float leftValue;
             float rightValue;
 
-           
-            forwardValue = OceanFieldManager.SamplePlayer(forwardPos);
-            leftValue = OceanFieldManager.SamplePlayer(leftPos);
-            rightValue = OceanFieldManager.SamplePlayer(rightPos);
-
-
-            
+            if (c.team == BacteriaData.Team.Player)
+            {
+                forwardValue = OceanFieldManager.SamplePlayer(forwardPos);
+                leftValue = OceanFieldManager.SamplePlayer(leftPos);
+                rightValue = OceanFieldManager.SamplePlayer(rightPos);
+            }
+            else
+            {
+                forwardValue = OceanFieldManager.SampleEnemy(forwardPos);
+                leftValue = OceanFieldManager.SampleEnemy(leftPos);
+                rightValue = OceanFieldManager.SampleEnemy(rightPos);
+            }
 
             Vector2 desiredDir = forward;
 
@@ -334,7 +380,6 @@ public class SardineManager : MonoBehaviour
                 {
                     c.wanderAngle = Random.Range(-16f, 16f);
                     c.headingTimer = Random.Range(0.15f, 0.35f);
-                    //c.headingTimer = 0.15f;
                 }
 
                 desiredDir = Rotate(forward, c.wanderAngle);
@@ -342,13 +387,10 @@ public class SardineManager : MonoBehaviour
 
             Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
 
-            float draw01 = 0f;
-
             float drawValue = OceanFieldManager.SampleDraw(c.currentPos);
-            draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
-            
-
+            float draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
             float speed = sardineSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
+
             c.currentVelocity = newDir * speed;
 
             sardines[i] = c;

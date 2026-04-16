@@ -64836,6 +64836,18 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyWeakColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyWeakColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyWeakColor.r
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: playerMidColor.b
       value: 0.36862743
       objectReference: {fileID: 0}
@@ -64849,6 +64861,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: planktonMaxAmount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyStrongColor.b
+      value: 0.2980392
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyStrongColor.g
+      value: 0.33136064
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyStrongColor.r
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
