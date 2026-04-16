@@ -50,7 +50,9 @@ public class OceanFieldManager : MonoBehaviour
     [Header("Player Trail Colours")]
     [SerializeField] Color playerWeakColor = new Color(0.4f, 0f, 0f, 0f);
     [SerializeField] Color playerStrongColor = new Color(1f, 1f, 0.6f, 1f);
-
+    [Header("Enemy Trail Colours")]
+    [SerializeField] Color enemyWeakColor = new Color(0f, 0.2f, 0.4f, 0f);
+    [SerializeField] Color enemyStrongColor = new Color(0.3f, 0.9f, 1f, 1f);
 
     [Header("Draw Colours")]
     Color drawColor;
@@ -64,9 +66,12 @@ public class OceanFieldManager : MonoBehaviour
 
     NativeArray<Color32> planktonPixels;
 
-    [Header("Chemo Grid")]
+    [Header("Chemo Grid_Player")]
     NativeArray<float> playerTrailField;
     NativeArray<float> playerTrailNext;
+    [Header("Chemo Grid_Enemy")]
+    NativeArray<float> enemyTrailField;
+    NativeArray<float> enemyTrailNext;
 
     [Header("Plankton Grid")]
     NativeArray<int> planktonField;
@@ -278,7 +283,7 @@ public class OceanFieldManager : MonoBehaviour
 
                 if (planktonField[idx] > 0)
                 {
-                    score++;
+                    score ++;
                     planktonField[idx] = 0;
                     ateAny = true;
                 }

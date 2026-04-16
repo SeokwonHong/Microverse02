@@ -42,6 +42,14 @@ public class SardineManager : MonoBehaviour
 
     struct BacteriaData
     {
+        public enum Team
+        {
+            Player,
+            Enemy
+
+        }
+        public Team team;
+
         public Vector2 currentPos;
         public Vector2 currentVelocity;
 
@@ -53,6 +61,8 @@ public class SardineManager : MonoBehaviour
         public float cellRadius;
 
         public bool isDead;
+
+        public float lifeTimer; //only for enemy
     }
 
     void Awake()
@@ -197,7 +207,7 @@ public class SardineManager : MonoBehaviour
         return !(float.IsNaN(v.x) || float.IsNaN(v.y) || float.IsInfinity(v.x) || float.IsInfinity(v.y));
     }
 
-    void CreateSardine(Vector2 pos)
+    void CreateSardine(Vector2 pos, BacteriaData.Team team)
     {
         if (deadSardinePool.Count > 0)
         {
@@ -206,6 +216,7 @@ public class SardineManager : MonoBehaviour
 
             BacteriaData c = sardines[idx];
             c.isDead = false;
+            c.team = team;
             c.currentPos = pos;
             c.nextPos = pos;
             c.currentVelocity = Vector2.zero;
@@ -213,7 +224,8 @@ public class SardineManager : MonoBehaviour
             c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-
+            c.reproduceCooldown = 0f;
+            c.lifeTimer = team == BacteriaData.Team.Enemy ? enemyLifetime : 999999f;
 
             sardines[idx] = c;
             return;
@@ -221,6 +233,7 @@ public class SardineManager : MonoBehaviour
 
         BacteriaData clone = new BacteriaData
         {
+            team = team,
             currentPos = pos,
             nextPos = pos,
             currentVelocity = Vector2.zero,
@@ -229,6 +242,8 @@ public class SardineManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.6f,
             isDead = false,
+            reproduceCooldown = 0f,
+            lifeTimer = team == BacteriaData.Team.Enemy ? enemyLifetime : 999999f
         };
 
         sardines.Add(clone);
