@@ -15,8 +15,8 @@ public class ChenimalDraw : MonoBehaviour
 
 
     [SerializeField] PlayerEnergy playerEnergy;
-    float drawCostPerSecond = 0f;
-    float recoverPerSecond = 1f;
+    float drawCostPerSecond = 3f;
+    float recoverPerSecond = 3f;
     float recoverDelay = 0.2f;
     float lastDrawTime;
 
