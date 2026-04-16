@@ -12,9 +12,11 @@ public class SardineManager : MonoBehaviour
     [SerializeField] float sardineSpeed = 1.5f;
 
     [Header("Enemy")]
-   // [SerializeField] int enemySpawnScoreStep = 40;
+   //[SerializeField] int enemySpawnScoreStep = 40;
     int lastEnemySpawnStep = 0;
-    float enemyLastSeconds = 8f;
+    float enemyLastSeconds = 10f;
+    float spawnTimer = 0f;
+
     [Header("Map generation")]
     [SerializeField] OceanFieldManager OceanFieldManager;
     [SerializeField] float wallBounciness = 0.5f;
@@ -91,60 +93,52 @@ public class SardineManager : MonoBehaviour
         float dt = Time.deltaTime;
 
         DepositBacteriaField();
-
         bool updated = OceanFieldManager.TickField(dt);
+
+        spawnTimer += dt;
+        float currentInterval = GetEnemySpawnInterval(OceanFieldManager.Score);
+
+        if (spawnTimer >= currentInterval)
+        {
+            spawnTimer = 0f;
+
+
+            int amountToSpawn = 1 + (OceanFieldManager.Score / 10000);
+
+            for (int j = 0; j < amountToSpawn; j++)
+            {
+                CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+            }
+        }
+
         if (updated)
         {
             OceanFieldManager.UpdateTrailTexture();
         }
 
+    
         ApplyBacteriaFieldSteering();
 
-        int step = GetEnemySpawnStep(OceanFieldManager.Score);
-        int currentSpawnStep = OceanFieldManager.Score / step;
-
-        if (currentSpawnStep > lastEnemySpawnStep)
-        {
-            int amountToSpawn = currentSpawnStep - lastEnemySpawnStep;
-
-            for (int i = 0; i < amountToSpawn; i++)
-            {
-                CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
-            }
-
-            lastEnemySpawnStep = currentSpawnStep;
-        }
-
+      
         for (int i = 0; i < sardines.Count; i++)
         {
             BacteriaData c = sardines[i];
             if (c.isDead) continue;
 
-            c.nextPos = c.currentPos;
-            c.nextVelocity = c.currentVelocity;
+            c.nextPos = c.currentPos + c.currentVelocity * dt;
 
-            c.nextPos += c.nextVelocity * dt;
-
+        
             if (mapManager != null && mapManager.IsWallWorld(c.nextPos))
             {
                 c.nextPos = c.currentPos;
-                c.nextVelocity *= -wallBounciness;
+                c.currentVelocity *= -wallBounciness;
             }
 
             sardines[i] = c;
-
             ApplyRectangleBoundary(i);
+
             c = sardines[i];
-
-            if (!IsFinite(c.nextPos) || !IsFinite(c.nextVelocity))
-            {
-                c.nextPos = c.currentPos;
-                c.nextVelocity = Vector2.zero;
-            }
-
-            c.currentVelocity = c.nextVelocity;
             c.currentPos = c.nextPos;
-
             sardines[i] = c;
         }
 
@@ -167,10 +161,13 @@ public class SardineManager : MonoBehaviour
         }
 
     }
-    int GetEnemySpawnStep(int score)
+    float GetEnemySpawnInterval(int score)
     {
-        return Mathf.Max(8, 120 - score / 80);
+
+        float difficultyFactor = Mathf.Max(5f, 120f - (score / 23f));
+        return difficultyFactor / 10f;
     }
+
     void ApplyRectangleBoundary(int i)
     {
         if (mapManager == null) return;
@@ -373,7 +370,7 @@ public class SardineManager : MonoBehaviour
                 if (atePlankton)
                 {
 
-                    c.lifeTimer = 5f;
+                    c.lifeTimer = enemyLastSeconds;
 
                     if (sardines.Count < maxSardineCount)
                     {
