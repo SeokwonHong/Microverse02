@@ -149,9 +149,7 @@ public class SardineManager : MonoBehaviour
         if (ReproductionEnergy < 0f)
             ReproductionEnergy = 0f;
 
-        
-
-        if(Input.GetKeyDown(KeyCode.Q))
+        if (Input.GetKeyDown(KeyCode.Q))
         {
             sardineSpeed = 40f;
         }
@@ -324,16 +322,61 @@ public class SardineManager : MonoBehaviour
             BacteriaData c = sardines[i];
             if (c.isDead) continue;
 
+            ///////////////////////////////
+            // PLAYER: die on max enemy trail, eat + reproduce
+            ///////////////////////////////
             if (c.team == BacteriaData.Team.Player)
             {
-                bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
+                float enemyTrail = OceanFieldManager.SampleEnemyTrailOnly(c.currentPos);
 
-                if (atePlankton && sardines.Count <= maxSardineCount)
+          
+                if (enemyTrail >= OceanFieldManager.trailMaxDeposit)
+                {
+                    c.isDead = true;
+                    c.currentVelocity = Vector2.zero;
+                    c.nextVelocity = Vector2.zero;
+                    sardines[i] = c;
+                    deadSardinePool.Add(i);
+
+         
+                    if (sardines.Count < maxSardineCount)
+                    {
+                     
+                        CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
+                    }
+
+                    continue; 
+                }
+
+                // Player reproduction by eating (keep this if you want players to grow)
+                bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
+                if (atePlankton && sardines.Count < maxSardineCount)
                 {
                     CreateSardine(c.currentPos, BacteriaData.Team.Player);
                 }
             }
+            ///////////////////////////////
+            // ENEMY: reproduce on strong player trail
+            ///////////////////////////////
+            else
+            {
+                c.lifeTimer -= dt;
 
+                //float playerTrail = OceanFieldManager.SamplePlayerTrailOnly(c.currentPos);
+
+                //if (playerTrail >= OceanFieldManager.trailMaxDeposit && c.lifeTimer <= 0f)
+                //{
+                //    if (sardines.Count < maxSardineCount)
+                //    {
+                //        CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
+                //        c.lifeTimer = 0.5f;
+                //    }
+                //}
+            }
+
+            ////////////////////////////////
+            // SENSOR DIRECTIONS
+            ////////////////////////////////
             Vector2 forward = c.currentVelocity.sqrMagnitude > 0.0001f
                 ? c.currentVelocity.normalized
                 : Random.insideUnitCircle.normalized;
@@ -349,6 +392,9 @@ public class SardineManager : MonoBehaviour
             float leftValue;
             float rightValue;
 
+            ////////////////////////////////
+            // SAMPLING
+            ////////////////////////////////
             if (c.team == BacteriaData.Team.Player)
             {
                 forwardValue = OceanFieldManager.SamplePlayer(forwardPos);
@@ -357,11 +403,14 @@ public class SardineManager : MonoBehaviour
             }
             else
             {
-                forwardValue = OceanFieldManager.SampleEnemy(forwardPos);
-                leftValue = OceanFieldManager.SampleEnemy(leftPos);
-                rightValue = OceanFieldManager.SampleEnemy(rightPos);
+                forwardValue = OceanFieldManager.SampleEnemyTrailOnly(forwardPos);
+                leftValue = OceanFieldManager.SampleEnemyTrailOnly(leftPos);
+                rightValue = OceanFieldManager.SampleEnemyTrailOnly(rightPos);
             }
 
+            ////////////////////////////////
+            // STEERING DECISION
+            ////////////////////////////////
             Vector2 desiredDir = forward;
 
             if (leftValue > forwardValue + turnThreshold && leftValue > rightValue + turnThreshold)
@@ -385,11 +434,19 @@ public class SardineManager : MonoBehaviour
                 desiredDir = Rotate(forward, c.wanderAngle);
             }
 
+            ////////////////////////////////
+            // FINAL VELOCITY
+            ////////////////////////////////
             Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
 
-            float drawValue = OceanFieldManager.SampleDraw(c.currentPos);
-            float draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
-            float speed = sardineSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
+            float speed = sardineSpeed;
+
+            if (c.team == BacteriaData.Team.Player)
+            {
+                float drawValue = OceanFieldManager.SampleDraw(c.currentPos);
+                float draw01 = Mathf.Clamp01(drawValue * drawChemicalSpeedSensitivity);
+                speed = sardineSpeed * Mathf.Lerp(1f, drawChemicalSpeedBoost, draw01);
+            }
 
             c.currentVelocity = newDir * speed;
 

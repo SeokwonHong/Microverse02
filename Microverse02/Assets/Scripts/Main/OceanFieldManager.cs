@@ -361,16 +361,24 @@ public class OceanFieldManager : MonoBehaviour
 
         return 0f;
     }
-    public float SampleEnemy(Vector2 worldPos)
+    public float SamplePlayerTrailOnly(Vector2 worldPos)
+    {
+        if (WorldToGrid(worldPos, out int gx, out int gy))
+        {
+            int idx = Index(gx, gy);
+            return playerTrailField[idx];
+        }
+
+        return 0f;
+    }
+    public float SampleEnemyTrailOnly(Vector2 worldPos)
     {
         if (WorldToGrid(worldPos, out int gx, out int gy))
         {
             int idx = Index(gx, gy);
 
             float trail = enemyTrailField[idx] * trailWeight;
-            float draw = drawField[idx];
-
-            return trail + draw;
+            return trail;
         }
 
         return 0f;
@@ -501,7 +509,10 @@ public class OceanFieldManager : MonoBehaviour
         a = b;
         b = temp;
     }
-
+    public bool TryWorldToGrid(Vector2 worldPos, out int gx, out int gy)
+    {
+        return WorldToGrid(worldPos, out gx, out gy);
+    }
     public void UpdateTrailTexture()
     {
         if (trailTexture == null || !trailPixels.IsCreated || !planktonPixels.IsCreated)
