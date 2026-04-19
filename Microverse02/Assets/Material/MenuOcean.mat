@@ -52,12 +52,12 @@ Material:
     - _EnableExternalAlpha: 0
     - _PlanktonGlowStrength: 2
     - _PlanktonSoftness: 0
-    - _Thickness: 10
+    - _Thickness: 1
     - _Threshold: 0.1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
     - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
-    - _PlanktonGlowColor: {r: 0.24670699, g: 0.6792453, b: 0.35213825, a: 1}
+    - _PlanktonGlowColor: {r: 0, g: 0, b: 0, a: 0}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

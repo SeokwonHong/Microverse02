@@ -13,7 +13,7 @@ public class SardineManager : MonoBehaviour
 
     [Header("Enemy")]
     int lastEnemySpawnStep = 0;
-    float enemyLastSeconds = 5f;
+    [SerializeField] float enemyLastSeconds = 5f;
     float spawnTimer = 0f;
 
     [Header("Map generation")]

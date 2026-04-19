@@ -93,7 +93,22 @@ public class OceanFieldManager : MonoBehaviour
 
     //getter
     int CellCount => chemoWidth * chemoHeight;
-    public float SensorDistance => chemoSensorDistance;
+    public float SensorDistance // visual
+    {
+        get => chemoSensorDistance;
+        set => chemoSensorDistance = value;
+    }
+    public Color EnemyWeakColor// visual
+    {
+        get => enemyWeakColor;
+        set => enemyWeakColor = value;
+    }
+
+    public Color EnemyStrongColor// visual
+    {
+        get => enemyStrongColor;
+        set => enemyStrongColor = value;
+    }
     public float SensorAngle => chemoSensorAngle;
     public MapManager MapManager => mapManager;
 
