@@ -1,31 +1,34 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ChenimalDraw : MonoBehaviour
 {
-    [SerializeField] Transform cursorCircle;
+    [Header("UI Cursor")]
+    [SerializeField] RectTransform cursorUI;
 
+    [Header("Refs")]
     [SerializeField] OceanFieldManager oceanFieldManager;
     [SerializeField] Camera cam;
+    [SerializeField] PlayerEnergy playerEnergy;
 
     [Header("Draw")]
     [SerializeField] float drawStrengthMultiplier = 1f;
     [SerializeField] float stepSpacing = 0.35f;
 
+    [Header("Energy")]
+    [SerializeField] float drawCostPerSecond = 3f;
+    [SerializeField] float recoverPerSecond = 3f;
+    [SerializeField] float recoverDelay = 0.1f;
 
-    [SerializeField] PlayerEnergy playerEnergy;
-    float drawCostPerSecond = 3f;
-    float recoverPerSecond = 3f;
-    float recoverDelay = 0.1f;
-    float lastDrawTime;
-
-    Vector2 previousWorldPos;
-    bool wasDrawingLastFrame;
+    [Header("Cursor")]
+    [SerializeField] float cursorSize = 40f; // UI size
 
     [Header("Audio")]
     [SerializeField] AudioSource audioSource;
     [SerializeField] AudioClip sprayingSound;
+
+    float lastDrawTime;
+    Vector2 previousWorldPos;
+    bool wasDrawingLastFrame;
 
     void Awake()
     {
@@ -52,7 +55,15 @@ public class ChenimalDraw : MonoBehaviour
         if (oceanFieldManager == null || cam == null || playerEnergy == null)
             return;
 
-        UpdateCursorVisual();
+        Vector2 mouseWorld = GetMouseWorldPosition();
+        UpdateCursorVisual(mouseWorld);
+
+        if (Time.timeScale == 0f)
+        {
+            StopSpraySound();
+            wasDrawingLastFrame = false;
+            return;
+        }
 
         bool isDrawing = Input.GetMouseButton(0);
 
@@ -70,11 +81,11 @@ public class ChenimalDraw : MonoBehaviour
                 return;
             }
 
-            Vector2 mouseWorld = GetMouseWorldPosition();
-
             if (!wasDrawingLastFrame)
             {
-                oceanFieldManager.DepositDraw(mouseWorld, drawStrengthMultiplier);
+                if (!IsWall(mouseWorld))
+                    oceanFieldManager.DepositDraw(mouseWorld, drawStrengthMultiplier);
+
                 previousWorldPos = mouseWorld;
                 wasDrawingLastFrame = true;
 
@@ -92,8 +103,7 @@ public class ChenimalDraw : MonoBehaviour
                 float t = i / (float)steps;
                 Vector2 p = Vector2.Lerp(previousWorldPos, mouseWorld, t);
 
-                if (oceanFieldManager.MapManager != null &&
-                    oceanFieldManager.MapManager.IsWallWorld(p))
+                if (IsWall(p))
                     continue;
 
                 oceanFieldManager.DepositDraw(p, drawStrengthMultiplier);
@@ -112,6 +122,11 @@ public class ChenimalDraw : MonoBehaviour
         }
     }
 
+    bool IsWall(Vector2 p)
+    {
+        return oceanFieldManager.MapManager != null &&
+               oceanFieldManager.MapManager.IsWallWorld(p);
+    }
 
     void StartSpraySound()
     {
@@ -138,11 +153,9 @@ public class ChenimalDraw : MonoBehaviour
         Vector3 mouseWorld = cam.ScreenToWorldPoint(mouseScreen);
         Vector2 pos = new Vector2(mouseWorld.x, mouseWorld.y);
 
- 
         if (oceanFieldManager != null && oceanFieldManager.MapManager != null)
         {
             var map = oceanFieldManager.MapManager;
-
 
             Vector2 halfSize = map.MapSize * 0.5f;
             float minX = map.MapCentre.x - halfSize.x + 2f;
@@ -157,14 +170,12 @@ public class ChenimalDraw : MonoBehaviour
         return pos;
     }
 
-    void UpdateCursorVisual()
+    void UpdateCursorVisual(Vector2 worldPos)
     {
-        if (cursorCircle == null) return;
+        if (cursorUI == null) return;
 
-        Vector2 pos = GetMouseWorldPosition();
-        cursorCircle.position = new Vector3(pos.x, pos.y, 0f);
-
-        float size = 2f;
-        cursorCircle.localScale = new Vector3(size, size, 1f);
+        Vector3 screenPos = cam.WorldToScreenPoint(new Vector3(worldPos.x, worldPos.y, 0f));
+        cursorUI.position = screenPos;
+        cursorUI.sizeDelta = new Vector2(cursorSize, cursorSize);
     }
 }

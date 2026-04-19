@@ -31,12 +31,7 @@ public class ButtonTextHover : MonoBehaviour, IPointerEnterHandler, IPointerExit
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (isQuit)
-        {
-            text.color = quitNormalrColor;
-        }
-
-        text.color = normalColor;
+        text.color = isQuit ? quitNormalrColor : normalColor;
     }
 }
 
