@@ -184,7 +184,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c2b38d257646bd5408ced76955e87d84, type: 2}
+  - {fileID: 2100000, guid: 08c2b6f86f19d804e99dec8950304598, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -390,7 +390,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.078431375, g: 0.078431375, b: 0.078431375, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -434,7 +434,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &440806413
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -63249,7 +63249,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!210 &628923897
 SortingGroup:
   m_ObjectHideFlags: 0
@@ -63844,7 +63844,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerEnergy: {fileID: 1569142233}
-  refToEnergyBar: {fileID: 1462328411}
+  refToEnergyBar: {fileID: 337563947}
   levelTimer: {fileID: 1959233176}
   timeText: {fileID: 1071545595}
   fieldManager: {fileID: 1569142227}
@@ -64647,6 +64647,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 519420031}
     - target: {fileID: 183857284267095410, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 183857284267095410, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: cursorCircle
       value: 
       objectReference: {fileID: 628923899}
@@ -64658,6 +64662,10 @@ PrefabInstance:
       propertyPath: sardineFieldManager
       value: 
       objectReference: {fileID: 1569142227}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: score
+      value: 50000
+      objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapManager
       value: 
@@ -64748,7 +64756,7 @@ PrefabInstance:
       objectReference: {fileID: 1921727452}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineCount
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineSpeed
@@ -64963,7 +64971,7 @@ PrefabInstance:
     - target: {fileID: 5794222065040911250, guid: 9745eb5ed43408d4d85c5f1743a50d46, type: 3}
       propertyPath: refToEnergyBar
       value: 
-      objectReference: {fileID: 1462328411}
+      objectReference: {fileID: 0}
     - target: {fileID: 5794222065040911250, guid: 9745eb5ed43408d4d85c5f1743a50d46, type: 3}
       propertyPath: systemStabilityText
       value: 

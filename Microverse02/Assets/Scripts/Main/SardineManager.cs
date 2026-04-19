@@ -457,13 +457,12 @@ public class SardineManager : MonoBehaviour
             float speed = sardineSpeed;
       
 
-            if (c.team == BacteriaData.Team.Enemy)
-            {
+            
                 float t = Mathf.Clamp01(OceanFieldManager.Score / 55000f);
                 float speedMultiplier = Mathf.Lerp(1f, 2f, t);
 
                 speed *= speedMultiplier;
-            }
+            
 
             if (c.team == BacteriaData.Team.Player)
             {

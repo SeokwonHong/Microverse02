@@ -15,7 +15,7 @@ public class OceanFieldManager : MonoBehaviour
     int chemoHeight;
 
     //score
-    int score;
+    [SerializeField] int score;
 
     [Header("Trail")]
     [SerializeField] float chemoDepositAmount = 0.45f;  // how strong bacteria chemo is 
@@ -247,6 +247,8 @@ public class OceanFieldManager : MonoBehaviour
             enemyTrailField[idx] + chemoDepositAmount * amountMultiplier,
             trailMaxDeposit
         );
+
+     
     }
 
     public void DepositDraw(Vector2 worldPos, float amountMultiplier = 1f)
@@ -266,7 +268,14 @@ public class OceanFieldManager : MonoBehaviour
             );
         }
     }
-
+    void ClearDrawWhereEnemyExists()
+    {
+        for (int i = 0; i < CellCount; i++)
+        {
+            if (enemyTrailField[i] > 0f)
+                drawField[i] = 0f;
+        }
+    }
     public bool AddPlankton(Vector2 worldPos, int amount = 1)
     {
         if (!WorldToGrid(worldPos, out int gx, out int gy)) return false;
@@ -400,10 +409,10 @@ public class OceanFieldManager : MonoBehaviour
         return new Vector2(wx, wy);
     }
 
-   
 
 
-    public bool TickField(float dt)//update pretty much
+
+    public bool TickField(float dt)
     {
         bool updated = false;
         fieldTickTimer += dt;
@@ -422,7 +431,7 @@ public class OceanFieldManager : MonoBehaviour
             RunFieldUpdate(drawField, drawNext, drawDiffuseRate, drawDecayPerSecond, fieldTickInterval);
             Swap(ref drawField, ref drawNext);
 
-            // RunPlanktonMove(fieldTickInterval);
+            ClearDrawWhereEnemyExists();
         }
 
         return updated;

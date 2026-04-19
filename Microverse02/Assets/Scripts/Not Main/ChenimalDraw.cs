@@ -17,7 +17,7 @@ public class ChenimalDraw : MonoBehaviour
     [SerializeField] PlayerEnergy playerEnergy;
     float drawCostPerSecond = 3f;
     float recoverPerSecond = 3f;
-    float recoverDelay = 0.2f;
+    float recoverDelay = 0.1f;
     float lastDrawTime;
 
     Vector2 previousWorldPos;
@@ -145,10 +145,10 @@ public class ChenimalDraw : MonoBehaviour
 
 
             Vector2 halfSize = map.MapSize * 0.5f;
-            float minX = map.MapCentre.x - halfSize.x + 1.8f;
-            float maxX = map.MapCentre.x + halfSize.x - 1.8f;
-            float minY = map.MapCentre.y - halfSize.y + 1.8f;
-            float maxY = map.MapCentre.y + halfSize.y - 1.8f;
+            float minX = map.MapCentre.x - halfSize.x + 2f;
+            float maxX = map.MapCentre.x + halfSize.x - 2f;
+            float minY = map.MapCentre.y - halfSize.y + 2f;
+            float maxY = map.MapCentre.y + halfSize.y - 2f;
 
             pos.x = Mathf.Clamp(pos.x, minX, maxX);
             pos.y = Mathf.Clamp(pos.y, minY, maxY);
