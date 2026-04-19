@@ -12,9 +12,8 @@ public class SardineManager : MonoBehaviour
     [SerializeField] float sardineSpeed = 1.5f;
 
     [Header("Enemy")]
-   //[SerializeField] int enemySpawnScoreStep = 40;
     int lastEnemySpawnStep = 0;
-    float enemyLastSeconds = 10f;
+    float enemyLastSeconds = 5f;
     float spawnTimer = 0f;
 
     [Header("Map generation")]
@@ -41,9 +40,7 @@ public class SardineManager : MonoBehaviour
     [Header("Sardines")]
     List<BacteriaData> sardines = new List<BacteriaData>();
 
-    [Header("Game Values")]
-    public float ReproductionEnergy = 0;
-    public float SystemStability = 0;
+
 
 
     struct BacteriaData
@@ -73,7 +70,8 @@ public class SardineManager : MonoBehaviour
 
     void Awake()
     {
-  
+        QualitySettings.vSyncCount = 1;
+        Application.targetFrameRate = -1;
 
         Vector2 spawnPos1 = playerSpawn.transform.position;
 
@@ -82,7 +80,7 @@ public class SardineManager : MonoBehaviour
             CreateSardine(spawnPos1, BacteriaData.Team.Player);
 
         }
-        CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+        //CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
 
 
         sardineCount = 0;
@@ -143,8 +141,6 @@ public class SardineManager : MonoBehaviour
         }
 
 
-        if (ReproductionEnergy < 0f)
-            ReproductionEnergy = 0f;
 
         if (Input.GetKeyDown(KeyCode.Q))
         {
@@ -333,7 +329,7 @@ public class SardineManager : MonoBehaviour
                 float enemyTrail = OceanFieldManager.SampleEnemyTrailOnly(c.currentPos);
 
           
-                if (enemyTrail >= OceanFieldManager.trailMaxDeposit*0.3f)
+                if (enemyTrail >= OceanFieldManager.trailMaxDeposit*0.5f)
                 {
                     c.isDead = true;
                     c.currentVelocity = Vector2.zero;
@@ -359,7 +355,7 @@ public class SardineManager : MonoBehaviour
                 }
             }
             ///////////////////////////////
-            // ENEMY: reproduce on strong player trail
+            // ENEMY: reproduce on strong player trail and Speed
             ///////////////////////////////
             else
             {
@@ -389,6 +385,9 @@ public class SardineManager : MonoBehaviour
                     continue;
                 }
             }
+            
+
+
 
             ////////////////////////////////
             // SENSOR DIRECTIONS
@@ -456,6 +455,15 @@ public class SardineManager : MonoBehaviour
             Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
 
             float speed = sardineSpeed;
+      
+
+            if (c.team == BacteriaData.Team.Enemy)
+            {
+                float t = Mathf.Clamp01(OceanFieldManager.Score / 55000f);
+                float speedMultiplier = Mathf.Lerp(1f, 2f, t);
+
+                speed *= speedMultiplier;
+            }
 
             if (c.team == BacteriaData.Team.Player)
             {

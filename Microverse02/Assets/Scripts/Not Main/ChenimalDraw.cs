@@ -135,9 +135,26 @@ public class ChenimalDraw : MonoBehaviour
     {
         Vector3 mouseScreen = Input.mousePosition;
         mouseScreen.z = -cam.transform.position.z;
-
         Vector3 mouseWorld = cam.ScreenToWorldPoint(mouseScreen);
-        return new Vector2(mouseWorld.x, mouseWorld.y);
+        Vector2 pos = new Vector2(mouseWorld.x, mouseWorld.y);
+
+ 
+        if (oceanFieldManager != null && oceanFieldManager.MapManager != null)
+        {
+            var map = oceanFieldManager.MapManager;
+
+
+            Vector2 halfSize = map.MapSize * 0.5f;
+            float minX = map.MapCentre.x - halfSize.x + 1.8f;
+            float maxX = map.MapCentre.x + halfSize.x - 1.8f;
+            float minY = map.MapCentre.y - halfSize.y + 1.8f;
+            float maxY = map.MapCentre.y + halfSize.y - 1.8f;
+
+            pos.x = Mathf.Clamp(pos.x, minX, maxX);
+            pos.y = Mathf.Clamp(pos.y, minY, maxY);
+        }
+
+        return pos;
     }
 
     void UpdateCursorVisual()
