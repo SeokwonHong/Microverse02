@@ -13,7 +13,7 @@ public class SardineManager : MonoBehaviour
 
     [Header("Enemy")]
     int lastEnemySpawnStep = 0;
-    [SerializeField] float enemyLastSeconds = 5f;
+    [SerializeField] float agentsLastSeconds = 5f;
     float spawnTimer = 0f;
 
     [Header("Map generation")]
@@ -101,7 +101,7 @@ public class SardineManager : MonoBehaviour
             spawnTimer = 0f;
 
 
-            int amountToSpawn = 1 + (OceanFieldManager.Score / 10000);
+            int amountToSpawn = 1 + (OceanFieldManager.Score / 5000);
 
             for (int j = 0; j < amountToSpawn; j++)
             {
@@ -117,19 +117,19 @@ public class SardineManager : MonoBehaviour
     
         ApplyBacteriaFieldSteering();
 
-      
+
         for (int i = 0; i < sardines.Count; i++)
         {
             BacteriaData c = sardines[i];
             if (c.isDead) continue;
 
             c.nextPos = c.currentPos + c.currentVelocity * dt;
+            c.nextVelocity = c.currentVelocity;
 
-        
             if (mapManager != null && mapManager.IsWallWorld(c.nextPos))
             {
                 c.nextPos = c.currentPos;
-                c.currentVelocity *= -wallBounciness;
+                c.nextVelocity = -c.currentVelocity * wallBounciness;
             }
 
             sardines[i] = c;
@@ -137,6 +137,7 @@ public class SardineManager : MonoBehaviour
 
             c = sardines[i];
             c.currentPos = c.nextPos;
+            c.currentVelocity = c.nextVelocity;
             sardines[i] = c;
         }
 
@@ -239,7 +240,7 @@ public class SardineManager : MonoBehaviour
             c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? enemyLastSeconds : 0f;
+            c.lifeTimer = agentsLastSeconds;
 
             sardines[idx] = c;
             return;
@@ -256,7 +257,7 @@ public class SardineManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.6f,
             isDead = false,
-            lifeTimer = (team == BacteriaData.Team.Enemy) ? enemyLastSeconds : 0f
+            lifeTimer = agentsLastSeconds
         };
 
         sardines.Add(clone);
@@ -326,6 +327,8 @@ public class SardineManager : MonoBehaviour
             ///////////////////////////////
             if (c.team == BacteriaData.Team.Player)
             {
+                c.lifeTimer -= dt;
+
                 float enemyTrail = OceanFieldManager.SampleEnemyTrailOnly(c.currentPos);
 
           
@@ -349,9 +352,19 @@ public class SardineManager : MonoBehaviour
 
                 // Player reproduction by eating (keep this if you want players to grow)
                 bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
-                if (atePlankton&& atePlankton && sardines.Count < maxSardineCount)//(atePlankton && sardines.Count < maxSardineCount)
+                if (atePlankton && sardines.Count < maxSardineCount)//(atePlankton && sardines.Count < maxSardineCount)
                 {
+                    c.lifeTimer = agentsLastSeconds;
                     CreateSardine(c.currentPos, BacteriaData.Team.Player);
+                }
+                if (c.lifeTimer <= 0f)
+                {
+                    c.isDead = true;
+                    c.currentVelocity = Vector2.zero;
+                    c.nextVelocity = Vector2.zero;
+                    sardines[i] = c;
+                    deadSardinePool.Add(i);
+                    continue;
                 }
             }
             ///////////////////////////////
@@ -366,12 +379,23 @@ public class SardineManager : MonoBehaviour
                 if (atePlankton)
                 {
 
-                    c.lifeTimer = enemyLastSeconds;
+                    c.lifeTimer = agentsLastSeconds;
 
                     if (sardines.Count < maxSardineCount)
                     {
                         CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
                     }
+                }
+                float playerTrail = OceanFieldManager.SamplePlayer(c.currentPos);
+
+                if (playerTrail >= OceanFieldManager.trailMaxDeposit * 0.5f)
+                {
+                    c.isDead = true;
+                    c.currentVelocity = Vector2.zero;
+                    c.nextVelocity = Vector2.zero;
+                    sardines[i] = c;
+                    deadSardinePool.Add(i);
+                    continue;
                 }
 
                 if (c.lifeTimer <= 0f)
@@ -458,8 +482,8 @@ public class SardineManager : MonoBehaviour
       
 
             
-                float t = Mathf.Clamp01(OceanFieldManager.Score / 55000f);
-                float speedMultiplier = Mathf.Lerp(1f, 2f, t);
+                float t = Mathf.Clamp01(OceanFieldManager.Score / 15000f);
+                float speedMultiplier = Mathf.Lerp(1f, 4f, t);
 
                 speed *= speedMultiplier;
             

@@ -63934,7 +63934,7 @@ MonoBehaviour:
   mapManager: {fileID: 1056029286}
   startClusterCount: 12
   pointsPerCluster: 85
-  clusterRadius: 6
+  clusterRadius: 8
 --- !u!4 &895805069
 Transform:
   m_ObjectHideFlags: 0
@@ -64777,7 +64777,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 3
+  m_fontStyle: 1
   m_HorizontalAlignment: 1
   m_VerticalAlignment: 256
   m_textAlignment: 65535
@@ -66021,6 +66021,14 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: drawDiffuseRate
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: trailMaxDeposit
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyWeakColor.b
       value: 0
       objectReference: {fileID: 0}
@@ -66118,7 +66126,7 @@ PrefabInstance:
       objectReference: {fileID: 1569142227}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: drawChemicalSpeedBoost
-      value: 6.5
+      value: 7.5
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: drawChemicalSpeedSensitivity
