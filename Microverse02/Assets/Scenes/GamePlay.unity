@@ -63934,7 +63934,7 @@ MonoBehaviour:
   mapManager: {fileID: 1056029286}
   startClusterCount: 12
   pointsPerCluster: 85
-  clusterRadius: 8
+  clusterRadius: 6
 --- !u!4 &895805069
 Transform:
   m_ObjectHideFlags: 0
@@ -66023,10 +66023,6 @@ PrefabInstance:
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: drawDiffuseRate
       value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
-      propertyPath: trailMaxDeposit
-      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyWeakColor.b

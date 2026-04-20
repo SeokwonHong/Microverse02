@@ -64622,7 +64622,7 @@ MonoBehaviour:
   minRadius: 0.3
   maxRadius: 9
   changeInterval: 7
-  smoothSpeed: 0.9
+  smoothSpeed: 10
 --- !u!4 &804199127
 Transform:
   m_ObjectHideFlags: 0
@@ -65657,7 +65657,6 @@ GameObject:
   - component: {fileID: 1458102726}
   - component: {fileID: 1458102728}
   - component: {fileID: 1458102727}
-  - component: {fileID: 1458102729}
   m_Layer: 5
   m_Name: Seokwon
   m_TagString: Untagged
@@ -65781,24 +65780,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1458102725}
   m_CullTransparentMesh: 1
---- !u!114 &1458102729
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1458102725}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fb75e2bfc846b44399ed6fa9c14026b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  text: {fileID: 1458102727}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  hoverColor: {r: 1, g: 0.5727851, b: 0, a: 1}
-  quitNormalrColor: {r: 1, g: 1, b: 1, a: 1}
-  quitHoverColor: {r: 1, g: 0, b: 0, a: 1}
-  isQuit: 0
 --- !u!1 &1462328410
 GameObject:
   m_ObjectHideFlags: 0
@@ -66607,7 +66588,6 @@ GameObject:
   - component: {fileID: 2007501424}
   - component: {fileID: 2007501426}
   - component: {fileID: 2007501425}
-  - component: {fileID: 2007501427}
   m_Layer: 5
   m_Name: team
   m_TagString: Untagged
@@ -66733,24 +66713,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2007501423}
   m_CullTransparentMesh: 1
---- !u!114 &2007501427
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2007501423}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fb75e2bfc846b44399ed6fa9c14026b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  text: {fileID: 2007501425}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
-  hoverColor: {r: 1, g: 0.57254905, b: 0, a: 1}
-  quitNormalrColor: {r: 1, g: 1, b: 1, a: 1}
-  quitHoverColor: {r: 1, g: 0, b: 0, a: 1}
-  isQuit: 0
 --- !u!1 &2016124971
 GameObject:
   m_ObjectHideFlags: 0
@@ -67214,6 +67176,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: trailMaxDeposit
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyWeakColor.b
       value: 0
       objectReference: {fileID: 0}
@@ -67262,6 +67228,10 @@ PrefabInstance:
       value: 0.07
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: chemoDecayPerSecond
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: playerStrongColor.b
       value: 0.7921569
       objectReference: {fileID: 0}
@@ -67291,7 +67261,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: sardineSpeed
-      value: 8
+      value: 4.01
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxSardineCount

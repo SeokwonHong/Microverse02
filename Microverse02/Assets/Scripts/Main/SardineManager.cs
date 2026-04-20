@@ -13,7 +13,7 @@ public class SardineManager : MonoBehaviour
 
     [Header("Enemy")]
     int lastEnemySpawnStep = 0;
-    [SerializeField] float agentsLastSeconds = 5f;
+    [SerializeField] float agentsLastSeconds = 7f;
     float spawnTimer = 0f;
 
     [Header("Map generation")]
@@ -482,8 +482,8 @@ public class SardineManager : MonoBehaviour
       
 
             
-                float t = Mathf.Clamp01(OceanFieldManager.Score / 15000f);
-                float speedMultiplier = Mathf.Lerp(1f, 4f, t);
+                float t = Mathf.Clamp01(OceanFieldManager.Score / 20000f);
+                float speedMultiplier = Mathf.Lerp(1f, 3.3f, t);
 
                 speed *= speedMultiplier;
             
