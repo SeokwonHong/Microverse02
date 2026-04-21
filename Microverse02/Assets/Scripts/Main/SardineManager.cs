@@ -388,15 +388,15 @@ public class SardineManager : MonoBehaviour
                 }
                 float playerTrail = OceanFieldManager.SamplePlayer(c.currentPos);
 
-                if (playerTrail >= OceanFieldManager.trailMaxDeposit * 0.5f)
-                {
-                    c.isDead = true;
-                    c.currentVelocity = Vector2.zero;
-                    c.nextVelocity = Vector2.zero;
-                    sardines[i] = c;
-                    deadSardinePool.Add(i);
-                    continue;
-                }
+                //if (playerTrail >= OceanFieldManager.trailMaxDeposit * 0.5f)
+                //{
+                //    c.isDead = true;
+                //    c.currentVelocity = Vector2.zero;
+                //    c.nextVelocity = Vector2.zero;
+                //    sardines[i] = c;
+                //    deadSardinePool.Add(i);
+                //    continue;
+                //}
 
                 if (c.lifeTimer <= 0f)
                 {

@@ -525,9 +525,7 @@ MonoBehaviour:
   text: {fileID: 67006675}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 1, g: 0.8901961, b: 0.2627451, a: 1}
-  quitNormalrColor: {r: 1, g: 1, b: 1, a: 1}
-  quitHoverColor: {r: 1, g: 0, b: 0, a: 1}
-  isQuit: 0
+  isCredit: 0
 --- !u!1 &258164166
 GameObject:
   m_ObjectHideFlags: 0
@@ -1188,9 +1186,7 @@ MonoBehaviour:
   text: {fileID: 397496888}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 1, g: 0.8901961, b: 0.25882354, a: 1}
-  quitNormalrColor: {r: 1, g: 1, b: 1, a: 1}
-  quitHoverColor: {r: 1, g: 0, b: 0, a: 1}
-  isQuit: 0
+  isCredit: 0
 --- !u!1 &405040828
 GameObject:
   m_ObjectHideFlags: 0
@@ -2211,10 +2207,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   text: {fileID: 600266578}
   normalColor: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
-  hoverColor: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
-  quitNormalrColor: {r: 0.5019608, g: 0.5019608, b: 0.5019608, a: 1}
-  quitHoverColor: {r: 0.4433962, g: 0, b: 0, a: 1}
-  isQuit: 1
+  hoverColor: {r: 0.49056602, g: 0, b: 0, a: 1}
+  isCredit: 1
 --- !u!1001 &673330696
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3353,7 +3347,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvasGroup: {fileID: 560074503}
-  fadeDuration: 0.3
+  refToDarkPanel: {fileID: 560074501}
 --- !u!1 &1397641441
 GameObject:
   m_ObjectHideFlags: 0
@@ -3783,9 +3777,7 @@ MonoBehaviour:
   text: {fileID: 1458102727}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 1, g: 0.6217081, b: 0.16509432, a: 1}
-  quitNormalrColor: {r: 1, g: 1, b: 1, a: 1}
-  quitHoverColor: {r: 1, g: 0, b: 0, a: 1}
-  isQuit: 0
+  isCredit: 1
 --- !u!1 &1462328410
 GameObject:
   m_ObjectHideFlags: 0
@@ -4343,9 +4335,7 @@ MonoBehaviour:
   text: {fileID: 1867673403}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 1, g: 0.88916016, b: 0.25943398, a: 1}
-  quitNormalrColor: {r: 1, g: 1, b: 1, a: 1}
-  quitHoverColor: {r: 1, g: 0, b: 0, a: 1}
-  isQuit: 0
+  isCredit: 0
 --- !u!1 &1903679642
 GameObject:
   m_ObjectHideFlags: 0
@@ -4735,9 +4725,7 @@ MonoBehaviour:
   text: {fileID: 2007501425}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   hoverColor: {r: 1, g: 0.62352943, b: 0.16862746, a: 1}
-  quitNormalrColor: {r: 1, g: 1, b: 1, a: 1}
-  quitHoverColor: {r: 1, g: 0, b: 0, a: 1}
-  isQuit: 0
+  isCredit: 1
 --- !u!1 &2016124971
 GameObject:
   m_ObjectHideFlags: 0
@@ -5176,6 +5164,10 @@ PrefabInstance:
       propertyPath: cam
       value: 
       objectReference: {fileID: 519420031}
+    - target: {fileID: 183857284267095410, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: cursorUI
+      value: 
+      objectReference: {fileID: 1545034811}
     - target: {fileID: 183857284267095410, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: m_Enabled
       value: 0

@@ -5,13 +5,18 @@ using UnityEngine.SceneManagement;
 public class ScreenFader : MonoBehaviour
 {
     [SerializeField] CanvasGroup canvasGroup;
-    [SerializeField] float fadeDuration = 0.5f;
+    private float fadeDuration = 0.1f;
 
+    [SerializeField] GameObject refToDarkPanel;
     void Awake()
     {
+        if (refToDarkPanel == null) return;
+        refToDarkPanel.gameObject.SetActive(true);
+
         if (canvasGroup == null)
             canvasGroup = GetComponent<CanvasGroup>();
         canvasGroup.alpha = 1f;
+
     }
 
     void Start()
