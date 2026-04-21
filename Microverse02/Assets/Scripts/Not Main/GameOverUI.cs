@@ -71,11 +71,13 @@ public class GameOverUI : MonoBehaviour
 
         var scores = highScoreManager.LoadScores();
 
-        bestScoresText.text = "BEST SCORES\n";
+        bestScoresText.text = ""; 
 
-        for (int i = 0; i < scores.Count; i++)
+        int count = Mathf.Min(5, scores.Count);
+
+        for (int i = 0; i < count; i++)
         {
-            bestScoresText.text += (i + 1) + ". " + scores[i] + "\n";
+            bestScoresText.text += $"{i + 1}. {scores[i]}\n";
         }
     }
 }

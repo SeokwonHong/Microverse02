@@ -378,10 +378,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.64590096, g: 1, b: 0.495283, a: 1}
-    m_HighlightedColor: {r: 0.4030898, g: 0.6037736, b: 0.31612673, a: 1}
-    m_PressedColor: {r: 0.4039216, g: 0.6039216, b: 0.31764707, a: 1}
-    m_SelectedColor: {r: 0.4039216, g: 0.6039216, b: 0.31764707, a: 1}
+    m_NormalColor: {r: 0.43137255, g: 1, b: 0.18431373, a: 1}
+    m_HighlightedColor: {r: 0.24705882, g: 0.5764706, b: 0.101960786, a: 1}
+    m_PressedColor: {r: 0.24705882, g: 0.5764706, b: 0.101960786, a: 1}
+    m_SelectedColor: {r: 0.24705882, g: 0.5764706, b: 0.101960786, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -847,7 +847,7 @@ GameObject:
   - component: {fileID: 266318397}
   - component: {fileID: 266318396}
   m_Layer: 5
-  m_Name: panel (1)
+  m_Name: panel 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -869,8 +869,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -5.3, y: -2.37}
-  m_SizeDelta: {x: 78.6, y: 48.83}
+  m_AnchoredPosition: {x: 0, y: 17.5}
+  m_SizeDelta: {x: 78.6, y: 63.6}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &266318396
 MonoBehaviour:
@@ -885,7 +885,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
+  m_Color: {r: 0.03773582, g: 0.03773582, b: 0.03773582, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -64164,7 +64164,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 2.8, y: 65.5}
+  m_AnchoredPosition: {x: 21.900017, y: 65.5}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &605947975
@@ -64196,8 +64196,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4289920921
-  m_fontColor: {r: 0.6, g: 1, b: 0.69803923, a: 1}
+    rgba: 4282384128
+  m_fontColor: {r: 0, g: 1, b: 0.24509811, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -64314,7 +64314,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.2901961, g: 0.40392157, b: 0.2901961, a: 1}
+  m_Color: {r: 0, g: 0.4627451, b: 0, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -64507,7 +64507,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 35, y: -100}
+  m_AnchoredPosition: {x: 40, y: -100}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &828318027
@@ -64531,10 +64531,10 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 0.64705884, g: 1, b: 0.49411765, a: 1}
-    m_HighlightedColor: {r: 0.40392157, g: 0.6039216, b: 0.31764707, a: 1}
-    m_PressedColor: {r: 0.4039216, g: 0.6039216, b: 0.31764707, a: 1}
-    m_SelectedColor: {r: 0.4039216, g: 0.6039216, b: 0.31764707, a: 1}
+    m_NormalColor: {r: 0.43067148, g: 1, b: 0.18396229, a: 1}
+    m_HighlightedColor: {r: 0.24705882, g: 0.5764706, b: 0.101960786, a: 1}
+    m_PressedColor: {r: 0.24705884, g: 0.5764706, b: 0.10196079, a: 1}
+    m_SelectedColor: {r: 0.24705884, g: 0.5764706, b: 0.10196079, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
@@ -64666,7 +64666,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.29025212, g: 0.4056604, b: 0.28893736, a: 1}
+  m_Color: {r: 0, g: 0.4627451, b: 0, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -65044,7 +65044,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 3.9, y: 35.4}
+  m_AnchoredPosition: {x: 23, y: 25}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1105655249
@@ -65067,7 +65067,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Best Scores: \n1.\n2.\n3.\n4.\n5.\n"
+  m_text: '1.
+
+    2.
+
+    3.
+
+    4.
+
+    5.
+
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 624c62ef34fa57b4096bb6f83879eda5, type: 2}
   m_sharedMaterial: {fileID: -1426299207939123892, guid: 624c62ef34fa57b4096bb6f83879eda5, type: 2}
@@ -65567,8 +65578,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.000030517578, y: -0.000030517578}
-  m_SizeDelta: {x: 103.8, y: 105.8}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 89.5, y: 103.6}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1342619762
 MonoBehaviour:
@@ -66306,7 +66317,7 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 2ffb81fa37d3a404fb4e121ff3d9a72a, type: 3}
+  m_audioClip: {fileID: 8300000, guid: e6ff928f0521969428f1a4d038350218, type: 3}
   m_PlayOnAwake: 1
   m_Volume: 0.693
   m_Pitch: 1
@@ -66514,7 +66525,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1908556257
 RectTransform:
   m_ObjectHideFlags: 0
@@ -66748,7 +66759,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -35, y: -100}
+  m_AnchoredPosition: {x: -40, y: -100}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1912574114
@@ -67581,6 +67592,10 @@ PrefabInstance:
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: drawDiffuseRate
       value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: trailMaxDeposit
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyWeakColor.b
