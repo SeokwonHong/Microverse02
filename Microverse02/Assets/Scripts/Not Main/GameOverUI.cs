@@ -1,15 +1,14 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using TMPro;
+
 public class GameOverUI : MonoBehaviour
 {
     [SerializeField] SardineManager sardineManager;
     [SerializeField] GameObject gameEndPanel;
-    [SerializeField] string mainMenuSceneName = "Main";
-
-    //score
-    [SerializeField] TextMeshProUGUI scoreText;
     [SerializeField] OceanFieldManager oceanFieldManager;
+    [SerializeField] TextMeshProUGUI scoreText;
+    [SerializeField] TextMeshProUGUI bestScoresText;
+    [SerializeField] HighScoreManager highScoreManager;
 
     bool isGameOver;
 
@@ -36,16 +35,38 @@ public class GameOverUI : MonoBehaviour
     {
         isGameOver = true;
 
+        int finalScore = 0;
+
+        if (oceanFieldManager != null)
+            finalScore = oceanFieldManager.Score;
+
+        if (scoreText != null)
+            scoreText.text = "SCORE: " + finalScore;
+
+        if (highScoreManager != null)
+        {
+            highScoreManager.SaveScore(finalScore);
+            ShowBestScores();
+        }
+
         if (gameEndPanel != null)
             gameEndPanel.SetActive(true);
-
-        // set score text
-        if (scoreText != null && oceanFieldManager != null)
-        {
-            scoreText.text = "SCORE: " + oceanFieldManager.Score.ToString();
-        }
 
         Time.timeScale = 0f;
     }
 
+    void ShowBestScores()
+    {
+        if (bestScoresText == null || highScoreManager == null)
+            return;
+
+        var scores = highScoreManager.LoadScores();
+
+        bestScoresText.text = "BEST SCORES\n";
+
+        for (int i = 0; i < scores.Count; i++)
+        {
+            bestScoresText.text += (i + 1) + ". " + scores[i] + "\n";
+        }
+    }
 }
