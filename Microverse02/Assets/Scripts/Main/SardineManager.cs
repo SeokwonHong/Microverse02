@@ -523,4 +523,16 @@ public class SardineManager : MonoBehaviour
             deadSardinePool.Add(i);
         }
     }
+
+    public bool HasAlivePlayer()
+    {
+        for (int i = 0; i < sardines.Count; i++)
+        {
+            if (sardines[i].isDead) continue;
+            if (sardines[i].team == BacteriaData.Team.Player)
+                return true;
+        }
+
+        return false;
+    }
 }
