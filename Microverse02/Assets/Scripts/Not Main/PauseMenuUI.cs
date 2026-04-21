@@ -6,6 +6,7 @@ public class PauseMenuUI : MonoBehaviour
 {
     [SerializeField] GameObject pausePanel;
     [SerializeField] string mainMenuSceneName = "Main";
+    [SerializeField] ScreenFader screenFader;
 
     bool isPaused;
 
@@ -58,12 +59,16 @@ public class PauseMenuUI : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+
+        if (screenFader != null)
+            StartCoroutine(screenFader.FadeOut(SceneManager.GetActiveScene().name));
     }
 
     public void BackToMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(mainMenuSceneName);
+
+        if (screenFader != null)
+            StartCoroutine(screenFader.FadeOut(mainMenuSceneName));
     }
 }

@@ -6,6 +6,7 @@ public class MainMenuUI : MonoBehaviour
 
     [SerializeField] GameObject mainMenuPanel;
     [SerializeField] GameObject creditPanel;
+    [SerializeField] ScreenFader screenFader;
     public void PressPlay()
     {
 
@@ -13,7 +14,8 @@ public class MainMenuUI : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene("GamePlay");
+        if (screenFader != null)
+            StartCoroutine(screenFader.FadeOut("GamePlay"));
     }
 
     public void OpenCredits()
