@@ -38,7 +38,7 @@ public class OceanFieldManager : MonoBehaviour
 
     [Header("Sensors")]
     [SerializeField] float chemoSensorDistance = 4.5f;
-    float chemoSensorAngle = 38f;
+    float chemoSensorAngle = 50f;
 
 
     [Header("Sampling Weights")]
