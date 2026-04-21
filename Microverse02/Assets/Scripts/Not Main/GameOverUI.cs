@@ -10,6 +10,8 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI bestScoresText;
     [SerializeField] HighScoreManager highScoreManager;
 
+    [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioClip gameOverClip;
     bool isGameOver;
 
     void Start()
@@ -35,6 +37,8 @@ public class GameOverUI : MonoBehaviour
     {
         isGameOver = true;
 
+        
+
         int finalScore = 0;
 
         if (oceanFieldManager != null)
@@ -47,6 +51,11 @@ public class GameOverUI : MonoBehaviour
         {
             highScoreManager.SaveScore(finalScore);
             ShowBestScores();
+        }
+
+        if (audioSource != null && gameOverClip != null)
+        {
+            audioSource.PlayOneShot(gameOverClip);
         }
 
         if (gameEndPanel != null)
