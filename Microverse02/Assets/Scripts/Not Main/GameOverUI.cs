@@ -1,6 +1,6 @@
 using UnityEngine;
 using TMPro;
-
+using System.Collections;
 public class GameOverUI : MonoBehaviour
 {
     [SerializeField] SardineManager sardineManager;
@@ -11,6 +11,7 @@ public class GameOverUI : MonoBehaviour
     [SerializeField] HighScoreManager highScoreManager;
 
     [SerializeField] AudioSource audioSource;
+    [SerializeField] AudioSource bgmSource;
     [SerializeField] AudioClip gameOverClip;
     bool isGameOver;
 
@@ -36,8 +37,8 @@ public class GameOverUI : MonoBehaviour
     void TriggerGameOver()
     {
         isGameOver = true;
+        StartCoroutine(FadeOutBGM());
 
-        
 
         int finalScore = 0;
 
@@ -55,7 +56,7 @@ public class GameOverUI : MonoBehaviour
 
         if (audioSource != null && gameOverClip != null)
         {
-            audioSource.PlayOneShot(gameOverClip);
+            audioSource.PlayOneShot(gameOverClip, 1.5f);
         }
 
         if (gameEndPanel != null)
@@ -63,7 +64,22 @@ public class GameOverUI : MonoBehaviour
 
         Time.timeScale = 0f;
     }
+    IEnumerator FadeOutBGM()
+    {
+        float duration = 0.3f;
+        float startVolume = bgmSource.volume;
 
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime; 
+            bgmSource.volume = Mathf.Lerp(startVolume, 0f, t / duration);
+            yield return null;
+        }
+
+        bgmSource.Stop();
+        bgmSource.volume = startVolume; // reset for next run
+    }
     void ShowBestScores()
     {
         if (bestScoresText == null || highScoreManager == null)

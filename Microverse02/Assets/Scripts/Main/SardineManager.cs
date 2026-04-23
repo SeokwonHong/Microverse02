@@ -160,21 +160,21 @@ public class SardineManager : MonoBehaviour
             sardines[i] = c;
         }
 
+        // for DEBUGGING hmm...
 
-
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            sardineSpeed = 40f;
-        }
-        else if (Input.GetKeyDown(KeyCode.E))
-        {
-            sardineSpeed = 3.6f;
-        }
-        else if(Input.GetKeyDown(KeyCode.N))
-        {
-           int planktonNum = OceanFieldManager.GetTotalPlankton();
-            Debug.Log("Sardines Count: " + sardines.Count + ", Plankton Count: " + planktonNum);
-        }
+        //if (Input.GetKeyDown(KeyCode.Q))
+        //{
+        //    sardineSpeed = 40f;
+        //}
+        //else if (Input.GetKeyDown(KeyCode.E))
+        //{
+        //    sardineSpeed = 3.6f;
+        //}
+        //else if(Input.GetKeyDown(KeyCode.N))
+        //{
+        //   int planktonNum = OceanFieldManager.GetTotalPlankton();
+        //    Debug.Log("Sardines Count: " + sardines.Count + ", Plankton Count: " + planktonNum);
+        //}
 
     }
     float GetEnemySpawnInterval(int score)
@@ -342,7 +342,7 @@ public class SardineManager : MonoBehaviour
             if (c.isDead) continue;
 
             ///////////////////////////////
-            // PLAYER: die on max enemy trail, eat + reproduce
+            // PLAYER
             ///////////////////////////////
             if (c.team == BacteriaData.Team.Player)
             {
@@ -392,7 +392,7 @@ public class SardineManager : MonoBehaviour
                 }
             }
             ///////////////////////////////
-            // ENEMY: reproduce on strong player trail and Speed
+            // ENEMY
             ///////////////////////////////
             else
             {
@@ -415,6 +415,9 @@ public class SardineManager : MonoBehaviour
                 }
 
                 float playerTrail = OceanFieldManager.SamplePlayer(c.currentPos);
+
+
+                //Player can kill Enemies?: I don't think so...
 
                 //if (playerTrail >= OceanFieldManager.trailMaxDeposit * 0.5f)
                 //{
@@ -512,7 +515,7 @@ public class SardineManager : MonoBehaviour
             }
 
             ////////////////////////////////
-            // FINAL VELOCITY
+            // FINAL VELO // double buffer-like hmm....
             ////////////////////////////////
             Vector2 newDir = Vector2.Lerp(forward, desiredDir, turnRate * dt).normalized;
 

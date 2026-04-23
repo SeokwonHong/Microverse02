@@ -7,6 +7,7 @@ using Vector2 = UnityEngine.Vector2;
 
 public class OceanFieldManager : MonoBehaviour
 {
+    // Hello there howdy 
     [SerializeField] MapManager mapManager;
     [SerializeField] Renderer fieldRenderer;
 
@@ -18,7 +19,7 @@ public class OceanFieldManager : MonoBehaviour
     [SerializeField] int score;
 
     [Header("Trail")]
-    [SerializeField] float chemoDepositAmount = 0.45f;  // how strong bacteria chemo is 
+    [SerializeField] float chemoDepositAmount = 0.45f;  
     [SerializeField] float chemoDecayPerSecond = 0.07f;
 
     [Header("Draw")]
@@ -123,7 +124,7 @@ public class OceanFieldManager : MonoBehaviour
 
         if (mapManager == null)
         {
-            Debug.LogError("BacteriaFieldManager: MapManager not found.");
+
             enabled = false;
             return;
         }

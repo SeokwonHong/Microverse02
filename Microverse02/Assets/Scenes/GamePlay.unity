@@ -65317,6 +65317,7 @@ MonoBehaviour:
   bestScoresText: {fileID: 1105655249}
   highScoreManager: {fileID: 1142896000}
   audioSource: {fileID: 1142895996}
+  bgmSource: {fileID: 1654988031}
   gameOverClip: {fileID: 8300000, guid: 0316d8c4c24152142840e8ea27b12935, type: 3}
 --- !u!114 &1142896000
 MonoBehaviour:
