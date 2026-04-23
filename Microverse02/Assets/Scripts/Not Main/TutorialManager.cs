@@ -90,7 +90,7 @@ public class TutorialManager : MonoBehaviour
         switch (currentStep)
         {
             case 0:
-                SetTutorialUI(true, "DRAW THE LINE!");
+                SetTutorialUI(true, "DRAW A LINE!");
                 SetMouseUI(true);
                 SetCharacterMood(false);
                 break;
@@ -115,7 +115,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case 3:
-                SetTutorialUI(true, "GREAT!");
+                SetTutorialUI(true, "EXCELLENT!");
                 SetMouseUI(false);
                 SetCharacterMood(true);
                 Invoke(nameof(GoToNextStep), stepDelay);
@@ -135,7 +135,21 @@ public class TutorialManager : MonoBehaviour
                 SetCharacterMood(true);
                 Invoke(nameof(GoToNextStep), stepDelay);
                 return;
-
+            case 6:
+                SetTutorialUI(true, "SURVIVE AS LONG AS YOU CAN!");
+                SetCharacterMood(false);
+                Invoke(nameof(GoToNextStep), 2f);
+                return;
+            case 7:
+                SetTutorialUI(true, "AND AVOID THE <color=#FF544C>RED</color>!");
+                SetCharacterMood(false);
+                Invoke(nameof(GoToNextStep), 2f);
+                return;
+            case 8:
+                SetTutorialUI(true, "GO!");
+                SetCharacterMood(true);
+                Invoke(nameof(FinishTutorial), 1f);
+                return;
         }
 
         Invoke(nameof(EnableInput), 0.6f);

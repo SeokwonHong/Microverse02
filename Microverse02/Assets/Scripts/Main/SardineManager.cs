@@ -478,7 +478,7 @@ public class SardineManager : MonoBehaviour
                 float playerLeft = OceanFieldManager.SamplePlayerTrailOnly(leftPos);
                 float playerRight = OceanFieldManager.SamplePlayerTrailOnly(rightPos);
 
-                float playerTrailFollowWeight = 1.0f; 
+                float playerTrailFollowWeight = 1.5f; 
 
                 forwardValue = enemyForward + playerForward * playerTrailFollowWeight;
                 leftValue = enemyLeft + playerLeft * playerTrailFollowWeight;
