@@ -5,8 +5,10 @@ public class MainMenuUI : MonoBehaviour
 {
 
     [SerializeField] GameObject mainMenuPanel;
+    [SerializeField] GameObject tutorialPanel;
     [SerializeField] GameObject creditPanel;
     [SerializeField] ScreenFader screenFader;
+
     public void PressPlay()
     {
 
@@ -20,10 +22,18 @@ public class MainMenuUI : MonoBehaviour
 
     public void OpenCredits()
     {
-
-
         mainMenuPanel.SetActive(false);
         creditPanel.SetActive(true);
+    }
+
+    public void StartTutorial()
+    {
+        if (screenFader != null)
+            StartCoroutine(screenFader.FadeOut("Tutorial"));
+    }
+    public void OpenTutorialPanel()
+    {
+        tutorialPanel.SetActive(true);
     }
 
     public void CloseCredits()

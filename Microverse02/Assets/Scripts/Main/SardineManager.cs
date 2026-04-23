@@ -32,16 +32,26 @@ public class SardineManager : MonoBehaviour
     [SerializeField] float drawChemicalSpeedBoost = 5f;
     [SerializeField] float drawChemicalSpeedSensitivity = 1f;
 
+    //for tutorial
+
+    [SerializeField]  bool playerSpawnStart;
+    bool playerAteFood;
+    public void SetPlayerSpawnStart(bool value)
+    {
+        playerSpawnStart = value;
+    }
+
     public int CellCount => sardines.Count;
     public bool IsDead(int i) => sardines[i].isDead;
     public Vector2 GetPos(int i) => sardines[i].currentPos;
     public float GetRadius(int i) => sardines[i].cellRadius;
 
+
+
     [Header("Sardines")]
     List<BacteriaData> sardines = new List<BacteriaData>();
 
-
-
+    
 
     struct BacteriaData
     {
@@ -73,19 +83,18 @@ public class SardineManager : MonoBehaviour
         QualitySettings.vSyncCount = 1;
         Application.targetFrameRate = -1;
 
-        Vector2 spawnPos1 = playerSpawn.transform.position;
-
-        for (int i = 0; i < sardineCount; i++)
+        if (playerSpawnStart)
         {
-            CreateSardine(spawnPos1, BacteriaData.Team.Player);
-
+            SpawnOnePlayer();
         }
-        //CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
-
-
-        sardineCount = 0;
     }
+    public void SpawnOnePlayer()
+    {
+        if (playerSpawn == null) return;
+        if (HasAlivePlayer()) return;
 
+        CreateSardine(playerSpawn.transform.position, BacteriaData.Team.Player);
+    }
     void Update()
     {
         float dt = Time.deltaTime;
@@ -350,9 +359,14 @@ public class SardineManager : MonoBehaviour
                     continue; 
                 }
 
-                // Player reproduction by eating (keep this if you want players to grow)
+                // Player reproduction by eating
+
                 bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
-                if (atePlankton && sardines.Count < maxSardineCount)//(atePlankton && sardines.Count < maxSardineCount)
+                if (atePlankton)
+                {
+                    playerAteFood = true;
+                }
+                if (atePlankton && playerSpawnStart && sardines.Count < maxSardineCount)
                 {
                     c.lifeTimer = agentsLastSeconds;
                     CreateSardine(c.currentPos, BacteriaData.Team.Player);
@@ -530,6 +544,32 @@ public class SardineManager : MonoBehaviour
         {
             if (sardines[i].isDead) continue;
             if (sardines[i].team == BacteriaData.Team.Player)
+                return true;
+        }
+
+        return false;
+    }
+
+    public bool HasPlayerEatFood()
+    {
+        if (!playerAteFood) return false;
+
+        playerAteFood = false;
+        return true;
+    }
+    public bool IsAnyPlayerFollowingDraw(float threshold = 0.1f) //for tutorial
+    {
+        if (OceanFieldManager == null) return false;
+
+        for (int i = 0; i < sardines.Count; i++)
+        {
+            BacteriaData c = sardines[i];
+            if (c.isDead) continue;
+            if (c.team != BacteriaData.Team.Player) continue;
+
+            float drawValue = OceanFieldManager.SampleDraw(c.currentPos);
+
+            if (drawValue >= threshold)
                 return true;
         }
 
