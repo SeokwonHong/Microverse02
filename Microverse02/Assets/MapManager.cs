@@ -86,4 +86,14 @@ public class MapManager : MonoBehaviour
         return y * gridWidth + x;
     }
 
+    //void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.green;
+
+    //    Vector3 size = new Vector3(mapSize.x, mapSize.y, 0f);
+    //    Vector3 centre = new Vector3(mapCentre.x, mapCentre.y, 0f);
+
+    //    Gizmos.DrawWireCube(centre, size);
+    //}
+
 }

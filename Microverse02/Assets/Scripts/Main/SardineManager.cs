@@ -35,12 +35,16 @@ public class SardineManager : MonoBehaviour
     //for tutorial
 
     [SerializeField]  bool playerSpawnStart;
+    [SerializeField] bool enemySpawnStart = true;
     bool playerAteFood;
     public void SetPlayerSpawnStart(bool value)
     {
         playerSpawnStart = value;
     }
-
+    public void SetEnemySpawnStart(bool value)
+    {
+        enemySpawnStart = value;
+    }
     public int CellCount => sardines.Count;
     public bool IsDead(int i) => sardines[i].isDead;
     public Vector2 GetPos(int i) => sardines[i].currentPos;
@@ -102,19 +106,21 @@ public class SardineManager : MonoBehaviour
         DepositBacteriaField();
         bool updated = OceanFieldManager.TickField(dt);
 
-        spawnTimer += dt;
-        float currentInterval = GetEnemySpawnInterval(OceanFieldManager.Score);
-
-        if (spawnTimer >= currentInterval)
+        if (enemySpawnStart)
         {
-            spawnTimer = 0f;
+            spawnTimer += dt;
+            float currentInterval = GetEnemySpawnInterval(OceanFieldManager.Score);
 
-
-            int amountToSpawn = 1 + (OceanFieldManager.Score / 15000);
-
-            for (int j = 0; j < amountToSpawn; j++)
+            if (spawnTimer >= currentInterval)
             {
-                CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+                spawnTimer = 0f;
+
+                int amountToSpawn = 1 + (OceanFieldManager.Score / 15000);
+
+                for (int j = 0; j < amountToSpawn; j++)
+                {
+                    CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+                }
             }
         }
 
@@ -364,6 +370,7 @@ public class SardineManager : MonoBehaviour
                 bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
                 if (atePlankton)
                 {
+                    
                     playerAteFood = true;
                 }
                 if (atePlankton && playerSpawnStart && sardines.Count < maxSardineCount)
@@ -553,7 +560,7 @@ public class SardineManager : MonoBehaviour
     public bool HasPlayerEatFood()
     {
         if (!playerAteFood) return false;
-
+        Debug.Log("Player ate food detected");
         playerAteFood = false;
         return true;
     }

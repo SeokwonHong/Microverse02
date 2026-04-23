@@ -6,6 +6,7 @@ public class PlanktonManager : MonoBehaviour
 {
     [SerializeField] OceanFieldManager oceanFieldManager;
     [SerializeField] MapManager mapManager;
+    [SerializeField] bool spawnOnStart = false;
 
     [Header("Spawn Settings")]
     [SerializeField] int startClusterCount = 20;
@@ -22,25 +23,25 @@ public class PlanktonManager : MonoBehaviour
         if (oceanFieldManager == null || mapManager == null)
             return;
 
-        SpawnInitialClusters();
+        if (spawnOnStart)
+            SpawnInitialClusters();
+
         previousPlanktonTotal = oceanFieldManager.GetTotalPlankton();
     }
 
     void Update()
     {
         if (oceanFieldManager == null) return;
+        if (!spawnOnStart) return;
 
         int currentTotal = oceanFieldManager.GetTotalPlankton();
         int targetTotal = startClusterCount * pointsPerCluster;
         int deficit = targetTotal - currentTotal;
 
-  
         if (deficit >= pointsPerCluster)
         {
             SpawnOneCluster();
-    
         }
-
     }
 
     void SpawnInitialClusters()
@@ -77,11 +78,23 @@ public class PlanktonManager : MonoBehaviour
         Vector2 centre = mapManager.MapCentre;
         Vector2 size = mapManager.MapSize;
 
-        float minX = centre.x - size.x * 0.5f;
-        float maxX = centre.x + size.x * 0.5f;
-        float minY = centre.y - size.y * 0.5f;
-        float maxY = centre.y + size.y * 0.5f;
+        float halfW = size.x * 0.5f;
+        float halfH = size.y * 0.5f;
+
+        float minX = centre.x - halfW + clusterRadius;
+        float maxX = centre.x + halfW - clusterRadius;
+        float minY = centre.y - halfH + clusterRadius;
+        float maxY = centre.y + halfH - clusterRadius;
+
+        if (minX > maxX) minX = maxX = centre.x;
+        if (minY > maxY) minY = maxY = centre.y;
 
         return new Vector2(Random.Range(minX, maxX), Random.Range(minY, maxY));
+    }
+
+    // for tutorial
+    public void SpawnTutorialCluster()
+    {
+        SpawnOneCluster();
     }
 }

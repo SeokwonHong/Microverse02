@@ -1,15 +1,22 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class TutorialManager : MonoBehaviour
 {
     [SerializeField] SardineManager sardineManager;
+    [SerializeField] PlanktonManager planktonManager;
+
 
     [Header("UI")]
     [SerializeField] GameObject tutorialBar;
     [SerializeField] TextMeshProUGUI tutorialText;
     [SerializeField] GameObject animatedMouseUI;
+
+    [SerializeField] UnityEngine.UI.Image characterImage;
+    [SerializeField] Sprite defaultVirusSprite;
+    [SerializeField] Sprite happyVirusSprite;
 
     [Header("Scene / Flow")]
     [SerializeField] string gameplaySceneName = "GamePlay";
@@ -66,7 +73,7 @@ public class TutorialManager : MonoBehaviour
                 }
                 break;
 
-            case 3:
+            case 4:
                 if(sardineManager.HasPlayerEatFood())
                 {
                     CompleteStep();
@@ -85,11 +92,13 @@ public class TutorialManager : MonoBehaviour
             case 0:
                 SetTutorialUI(true, "DRAW THE LINE!");
                 SetMouseUI(true);
+                SetCharacterMood(false);
                 break;
 
             case 1:
-                SetTutorialUI(true, "GREAT!");
+                SetTutorialUI(true, "WELL DONE!");
                 SetMouseUI(false);
+                SetCharacterMood(true);
                 Invoke(nameof(GoToNextStep), stepDelay);
                 break;
 
@@ -101,21 +110,29 @@ public class TutorialManager : MonoBehaviour
                 {
                     sardineManager.SpawnOnePlayer();
                     sardineManager.SetPlayerSpawnStart(true);
+                    SetCharacterMood(false);
                 }
                 break;
 
             case 3:
-                SetTutorialUI(true, "WELL DONE!");
+                SetTutorialUI(true, "GREAT!");
                 SetMouseUI(false);
+                SetCharacterMood(true);
                 Invoke(nameof(GoToNextStep), stepDelay);
                 return;
             case 4:
-                SetTutorialUI(true, "NOW MAKE AGENT REACH TO THE FOOD!");
+                SetTutorialUI(true, "NOW MAKE AGENT REACH TO THE <color=#99FFB2>FOOD</color>!");
                 SetMouseUI(false);
+                SetCharacterMood(false);
+                if (planktonManager != null)
+                {
+                    planktonManager.SpawnTutorialCluster();
+                }
                 break;
             case 5:
                 SetTutorialUI(true, "WONDERFUL!");
                 SetMouseUI(false);
+                SetCharacterMood(true);
                 Invoke(nameof(GoToNextStep), stepDelay);
                 return;
 
@@ -160,9 +177,38 @@ public class TutorialManager : MonoBehaviour
             tutorialBar.SetActive(state);
 
         if (tutorialText != null)
-            tutorialText.text = textToShow;
+        {
+            StopAllCoroutines();
+            StartCoroutine(TypeText(textToShow));
+        }
     }
+    IEnumerator TypeText(string fullText)
+    {
+        tutorialText.text = "";
 
+        bool insideTag = false;
+
+        for (int i = 0; i < fullText.Length; i++)
+        {
+            char c = fullText[i];
+
+            if (c == '<')
+                insideTag = true;
+
+            tutorialText.text += c;
+
+            if (!insideTag)
+            {
+                if (c == ' ')
+                    yield return new WaitForSeconds(0.05f);
+                else
+                    yield return new WaitForSeconds(0.03f);
+            }
+
+            if (c == '>')
+                insideTag = false;
+        }
+    }
     void SetMouseUI(bool state)
     {
         if (animatedMouseUI != null)
@@ -172,5 +218,12 @@ public class TutorialManager : MonoBehaviour
     public void SkipTutorial()
     {
         FinishTutorial();
+    }
+
+    void SetCharacterMood(bool happy)
+    {
+        if (characterImage == null) return;
+
+        characterImage.sprite = happy ? happyVirusSprite : defaultVirusSprite;
     }
 }

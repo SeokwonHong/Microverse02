@@ -64722,6 +64722,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   oceanFieldManager: {fileID: 1569142227}
   mapManager: {fileID: 1056029286}
+  spawnOnStart: 1
   startClusterCount: 12
   pointsPerCluster: 85
   clusterRadius: 6
@@ -67691,7 +67692,7 @@ PrefabInstance:
       objectReference: {fileID: 1569142227}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: agentsLastSeconds
-      value: 8
+      value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: ReproductionEnergy
