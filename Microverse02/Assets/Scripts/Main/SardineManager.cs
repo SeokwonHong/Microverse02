@@ -14,6 +14,9 @@ public class SardineManager : MonoBehaviour
     [Header("Enemy")]
     int lastEnemySpawnStep = 0;
     [SerializeField] float agentsLastSeconds = 10f;
+    [SerializeField] float enemyMinLifetime = 10f;
+    [SerializeField] float enemyMaxLifetime = 25f;
+    [SerializeField] float enemyLifetimeScoreMax = 30000f;
     float spawnTimer = 0f;
 
     [Header("Map generation")]
@@ -36,6 +39,7 @@ public class SardineManager : MonoBehaviour
 
     [SerializeField]  bool playerSpawnStart;
     [SerializeField] bool enemySpawnStart = true;
+    [SerializeField] bool isMainMenu = false;
     bool playerAteFood;
     public void SetPlayerSpawnStart(bool value)
     {
@@ -255,7 +259,7 @@ public class SardineManager : MonoBehaviour
             c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-            c.lifeTimer = agentsLastSeconds;
+            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? GetCurrentEnemyLifetime() : agentsLastSeconds;
 
             sardines[idx] = c;
             return;
@@ -272,7 +276,7 @@ public class SardineManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.6f,
             isDead = false,
-            lifeTimer = agentsLastSeconds
+            lifeTimer = (team == BacteriaData.Team.Enemy) ? GetCurrentEnemyLifetime() : agentsLastSeconds
         };
 
         sardines.Add(clone);
@@ -356,12 +360,12 @@ public class SardineManager : MonoBehaviour
                     deadSardinePool.Add(i);
 
 
-                    //if (sardines.Count < maxSardineCount)
-                    //{
+                    if (sardines.Count < maxSardineCount)
+                    {
 
-                    //    CreateSardine(c.currentPos, BacteriaData.Team.Enemy); // I think its better to keep it annotation
-                    //}
-                    //CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
+                        CreateSardine(c.currentPos, BacteriaData.Team.Enemy); // I think its better to keep it annotation
+                    }
+                    CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
                     continue; 
                 }
 
@@ -370,7 +374,6 @@ public class SardineManager : MonoBehaviour
                 bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1);
                 if (atePlankton)
                 {
-                    
                     playerAteFood = true;
                 }
                 if (atePlankton && playerSpawnStart && sardines.Count < maxSardineCount)
@@ -395,18 +398,22 @@ public class SardineManager : MonoBehaviour
             {
                 c.lifeTimer -= dt;
 
-                bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1, false);
-
-                if (atePlankton)
+                if(isMainMenu)
                 {
+                    bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1, false);
 
-                    c.lifeTimer = agentsLastSeconds;
-
-                    if (sardines.Count < maxSardineCount)
+                    if (atePlankton)
                     {
-                        CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
+
+                        c.lifeTimer = agentsLastSeconds;
+
+                        if (sardines.Count < maxSardineCount)
+                        {
+                            CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
+                        }
                     }
                 }
+
                 float playerTrail = OceanFieldManager.SamplePlayer(c.currentPos);
 
                 //if (playerTrail >= OceanFieldManager.trailMaxDeposit * 0.5f)
@@ -463,9 +470,19 @@ public class SardineManager : MonoBehaviour
             }
             else
             {
-                forwardValue = OceanFieldManager.SampleEnemyTrailOnly(forwardPos);
-                leftValue = OceanFieldManager.SampleEnemyTrailOnly(leftPos);
-                rightValue = OceanFieldManager.SampleEnemyTrailOnly(rightPos);
+                float enemyForward = OceanFieldManager.SampleEnemyTrailOnly(forwardPos);
+                float enemyLeft = OceanFieldManager.SampleEnemyTrailOnly(leftPos);
+                float enemyRight = OceanFieldManager.SampleEnemyTrailOnly(rightPos);
+
+                float playerForward = OceanFieldManager.SamplePlayerTrailOnly(forwardPos);
+                float playerLeft = OceanFieldManager.SamplePlayerTrailOnly(leftPos);
+                float playerRight = OceanFieldManager.SamplePlayerTrailOnly(rightPos);
+
+                float playerTrailFollowWeight = 1.0f; 
+
+                forwardValue = enemyForward + playerForward * playerTrailFollowWeight;
+                leftValue = enemyLeft + playerLeft * playerTrailFollowWeight;
+                rightValue = enemyRight + playerRight * playerTrailFollowWeight;
             }
 
             ////////////////////////////////
@@ -487,7 +504,7 @@ public class SardineManager : MonoBehaviour
 
                 if (c.headingTimer <= 0f)
                 {
-                    c.wanderAngle = Random.Range(-20f, 20f);
+                    c.wanderAngle = Random.Range(-16f, 16f);
                     c.headingTimer = Random.Range(0.15f, 0.35f);
                 }
 
@@ -520,6 +537,11 @@ public class SardineManager : MonoBehaviour
 
             sardines[i] = c;
         }
+    }
+    float GetCurrentEnemyLifetime()
+    {
+        float t = Mathf.Clamp01(OceanFieldManager.Score / enemyLifetimeScoreMax);
+        return Mathf.Lerp(enemyMinLifetime, enemyMaxLifetime, t);
     }
 
     public void RemoveCellsInRadius(Vector2 worldPos, float radius)
@@ -557,10 +579,9 @@ public class SardineManager : MonoBehaviour
         return false;
     }
 
-    public bool HasPlayerEatFood()
+    public bool HasPlayerEatFood() //for tutorial
     {
         if (!playerAteFood) return false;
-        Debug.Log("Player ate food detected");
         playerAteFood = false;
         return true;
     }

@@ -64723,7 +64723,7 @@ MonoBehaviour:
   oceanFieldManager: {fileID: 1569142227}
   mapManager: {fileID: 1056029286}
   spawnOnStart: 1
-  startClusterCount: 12
+  startClusterCount: 15
   pointsPerCluster: 85
   clusterRadius: 6
 --- !u!4 &895805069
@@ -67667,6 +67667,10 @@ PrefabInstance:
       value: SardineManager
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: isMainMenu
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapManager
       value: 
       objectReference: {fileID: 1056029286}
@@ -67685,6 +67689,10 @@ PrefabInstance:
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: maxSardineCount
       value: 25000
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyMinLifetime
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: playerSpawnStart
@@ -67706,6 +67714,10 @@ PrefabInstance:
       propertyPath: SardineFieldManager
       value: 
       objectReference: {fileID: 1569142227}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyLifetimeScoreMax
+      value: 20000
+      objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: drawChemicalSpeedBoost
       value: 7.5
