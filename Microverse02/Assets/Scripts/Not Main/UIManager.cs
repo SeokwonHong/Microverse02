@@ -4,15 +4,12 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    //ENERGY
     [SerializeField] PlayerEnergy playerEnergy;
     [SerializeField] RectTransform refToEnergyBar;
 
-    //TIMER
-    [SerializeField] LevelTimer levelTimer;
-    [SerializeField] TextMeshPro timeText;
+    //[SerializeField] LevelTimer levelTimer;
+    //[SerializeField] TextMeshPro timeText;
 
-    //SCORE
     [SerializeField] OceanFieldManager fieldManager;
     [SerializeField] TextMeshProUGUI scoreText;
     private int score = 0;
@@ -39,17 +36,17 @@ public class UIManager : MonoBehaviour
             originalScale.z
         );
 
-        if (timeText != null)
-        {
-            float time = levelTimer.CurrentTime;
+        //if (timeText != null)
+        //{
+        //    float time = levelTimer.CurrentTime;
 
-            int seconds = Mathf.FloorToInt(time);
-            int centiseconds = Mathf.FloorToInt((time - seconds) * 100f);
+        //    int seconds = Mathf.FloorToInt(time);
+        //    int centiseconds = Mathf.FloorToInt((time - seconds) * 100f);
 
-            timeText.text = $"{seconds:00}:{centiseconds:00}";
+        //    timeText.text = $"{seconds:00}:{centiseconds:00}";
 
 
-        }
+        //}
 
         if(scoreText != null)
         {

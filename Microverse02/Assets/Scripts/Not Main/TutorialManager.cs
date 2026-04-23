@@ -22,7 +22,7 @@ public class TutorialManager : MonoBehaviour
     [SerializeField] string gameplaySceneName = "GamePlay";
     float stepDelay = 2.5f;
 
-    [Header("Optional References")]
+
     [SerializeField] ScreenFader screenFader;
 
 
@@ -49,7 +49,6 @@ public class TutorialManager : MonoBehaviour
         switch (currentStep)
         {
 
-            // Step 1: wait until player drags a bit
             case 0:
                 if (Input.GetMouseButton(0) &&
                     (Mathf.Abs(Input.GetAxis("Mouse X")) > 0.7f ||

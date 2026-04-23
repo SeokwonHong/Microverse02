@@ -20,7 +20,7 @@ public class ChenimalDraw : MonoBehaviour
     [SerializeField] float recoverDelay = 0.1f;
 
     [Header("Cursor")]
-    [SerializeField] float cursorSize = 40f; // UI size
+    [SerializeField] float cursorSize = 40f; 
 
     [Header("Audio")]
     [SerializeField] AudioSource audioSource;

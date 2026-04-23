@@ -39,9 +39,7 @@ public class LevelTimer : MonoBehaviour
     {
 
         OnTimerEnded?.Invoke();
-        // later:
-        // restart level
-        // show UI
+ 
     }
 
     public void StopTimer()
