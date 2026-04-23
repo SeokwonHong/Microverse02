@@ -487,7 +487,7 @@ public class SardineManager : MonoBehaviour
 
                 if (c.headingTimer <= 0f)
                 {
-                    c.wanderAngle = Random.Range(-16f, 16f);
+                    c.wanderAngle = Random.Range(-20f, 20f);
                     c.headingTimer = Random.Range(0.15f, 0.35f);
                 }
 

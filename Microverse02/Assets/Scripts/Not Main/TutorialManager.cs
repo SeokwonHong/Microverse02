@@ -103,7 +103,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case 2:
-                SetTutorialUI(true, "NOW DRAW ON THE BLUE AGENT!");
+                SetTutorialUI(true, "DRAW ON THE BLUE AGENT!");
                 SetMouseUI(false);
 
                 if (sardineManager != null)
@@ -121,7 +121,7 @@ public class TutorialManager : MonoBehaviour
                 Invoke(nameof(GoToNextStep), stepDelay);
                 return;
             case 4:
-                SetTutorialUI(true, "NOW MAKE AGENT REACH TO THE <color=#99FFB2>FOOD</color>!");
+                SetTutorialUI(true, "GUIDE IT TO THE <color=#99FFB2>FOOD</color>!");
                 SetMouseUI(false);
                 SetCharacterMood(false);
                 if (planktonManager != null)

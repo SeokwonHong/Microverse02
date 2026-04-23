@@ -8,12 +8,21 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] GameObject tutorialPanel;
     [SerializeField] GameObject creditPanel;
     [SerializeField] ScreenFader screenFader;
+    [SerializeField] UIButtonSound buttonSound;
 
-    public void PressPlay()
+    bool creditIsOpen = false;
+
+    private void Update()
     {
-
+        if (creditIsOpen)
+        {
+            if(Input.GetKeyDown(KeyCode.Escape))
+            {
+                buttonSound.PlayClick();
+                CloseCredits();
+            }
+        }
     }
-
     public void StartGame()
     {
         if (screenFader != null)
@@ -22,6 +31,7 @@ public class MainMenuUI : MonoBehaviour
 
     public void OpenCredits()
     {
+        creditIsOpen = true;
         mainMenuPanel.SetActive(false);
         creditPanel.SetActive(true);
     }
@@ -38,6 +48,7 @@ public class MainMenuUI : MonoBehaviour
 
     public void CloseCredits()
     {
+        creditIsOpen = false;
         creditPanel.SetActive(false);
         mainMenuPanel.SetActive(true);
     }
