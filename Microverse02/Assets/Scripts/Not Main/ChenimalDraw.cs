@@ -15,9 +15,9 @@ public class ChenimalDraw : MonoBehaviour
     [SerializeField] float stepSpacing = 0.35f;
 
     [Header("Energy")]
-    [SerializeField] float drawCostPerSecond = 3f;
-    [SerializeField] float recoverPerSecond = 3f;
-    [SerializeField] float recoverDelay = 0.1f;
+    float drawCostPerSecond = 3f;//5
+    float recoverPerSecond = 3f;//5
+    float recoverDelay = 0.04f;
 
     [Header("Cursor")]
     [SerializeField] float cursorSize = 40f; 

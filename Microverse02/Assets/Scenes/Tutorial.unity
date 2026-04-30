@@ -65709,6 +65709,7 @@ MonoBehaviour:
   bestScoresText: {fileID: 219143897}
   highScoreManager: {fileID: 1378503093}
   audioSource: {fileID: 1378503091}
+  bgmSource: {fileID: 0}
   gameOverClip: {fileID: 8300000, guid: 0316d8c4c24152142840e8ea27b12935, type: 3}
 --- !u!114 &1378503095
 MonoBehaviour:
@@ -66462,7 +66463,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 183857284267095410, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: drawCostPerSecond
-      value: 5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 183857284267095410, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: oceanFieldManager
@@ -67642,6 +67643,7 @@ MonoBehaviour:
   tutorialPanel: {fileID: 0}
   creditPanel: {fileID: 0}
   screenFader: {fileID: 2064266241}
+  buttonSound: {fileID: 0}
 --- !u!1 &1712996173
 GameObject:
   m_ObjectHideFlags: 0
@@ -68503,8 +68505,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerEnergy: {fileID: 1473367289}
   refToEnergyBar: {fileID: 642017575}
-  levelTimer: {fileID: 2041860196}
-  timeText: {fileID: 1661429162}
   fieldManager: {fileID: 1473367287}
   scoreText: {fileID: 1047773467}
 --- !u!4 &2064266243
