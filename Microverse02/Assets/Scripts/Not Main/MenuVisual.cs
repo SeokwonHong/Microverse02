@@ -3,6 +3,7 @@ using UnityEngine;
 public class MenuVisual : MonoBehaviour
 {
     [SerializeField] OceanFieldManager oceanFieldManager;
+    [SerializeField] UnityEngine.UI.Image titleImage;
 
     [Header("Menu Visual Settings")]
     [SerializeField] float currentRadius = 7f;
@@ -60,7 +61,14 @@ public class MenuVisual : MonoBehaviour
             timer = 0f;
             targetRadius = Random.Range(minRadius, maxRadius);
         }
+        if (titleImage != null)
+        {
+            Color uiColor = Color.HSVToRGB(hueStrong, saturation, 1f);
+            uiColor = Color.Lerp(uiColor, Color.white, 0.01f); 
+            uiColor.a = 1f;
 
+            titleImage.color = uiColor;
+        }
         currentRadius = Mathf.Lerp(currentRadius, targetRadius, Time.deltaTime * smoothSpeed);
         oceanFieldManager.SensorDistance = currentRadius;
 
