@@ -51,8 +51,8 @@ public class TutorialManager : MonoBehaviour
 
             case 0:
                 if (Input.GetMouseButton(0) &&
-                    (Mathf.Abs(Input.GetAxis("Mouse X")) > 0.7f ||
-                     Mathf.Abs(Input.GetAxis("Mouse Y")) > 0.7f))
+                    (Mathf.Abs(Input.GetAxis("Mouse X")) > 1f ||
+                     Mathf.Abs(Input.GetAxis("Mouse Y")) > 1f))
                 {
                     CompleteStep();
                 }
@@ -98,7 +98,7 @@ public class TutorialManager : MonoBehaviour
                 SetTutorialUI(true, "WELL DONE!");
                 SetMouseUI(false);
                 SetCharacterMood(true);
-                Invoke(nameof(GoToNextStep), stepDelay);
+                Invoke(nameof(GoToNextStep), 3.3f);
                 break;
 
             case 2:

@@ -5,6 +5,26 @@ public class HighScoreManager : MonoBehaviour
 {
     const int MaxScores = 5;
     const string ScoreKeyPrefix = "HighScore_";
+    const string SaveVersionKey = "SaveVersion";
+
+    [SerializeField] string currentSaveVersion = "1.1"; // change this every new build
+
+    void Awake()
+    {
+        if (PlayerPrefs.GetString(SaveVersionKey, "") != currentSaveVersion)
+        {
+            ClearScores();
+            PlayerPrefs.SetString(SaveVersionKey, currentSaveVersion);
+            PlayerPrefs.Save();
+        }
+    }
+    public void ClearScores()
+    {
+        for (int i = 0; i < MaxScores; i++)
+            PlayerPrefs.DeleteKey(ScoreKeyPrefix + i);
+
+        PlayerPrefs.DeleteKey("HighScore_Count");
+    }
 
     public void SaveScore(int newScore)
     {
@@ -40,3 +60,6 @@ public class HighScoreManager : MonoBehaviour
         return scores;
     }
 }
+
+
+// 1.1 = 01 May 2026

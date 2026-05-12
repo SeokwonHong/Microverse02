@@ -588,7 +588,7 @@ public class SardineManager : MonoBehaviour
         playerAteFood = false;
         return true;
     }
-    public bool IsAnyPlayerFollowingDraw(float threshold = 0.1f) //for tutorial
+    public bool IsAnyPlayerFollowingDraw(float threshold = 5f) //for tutorial
     {
         if (OceanFieldManager == null) return false;
 
