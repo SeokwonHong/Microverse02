@@ -4,8 +4,8 @@ using TMPro;
 
 public class UIManager : MonoBehaviour
 {
-    [SerializeField] PlayerEnergy playerEnergy;
-    [SerializeField] RectTransform refToEnergyBar;
+
+
 
     //[SerializeField] LevelTimer levelTimer;
     //[SerializeField] TextMeshPro timeText;
@@ -21,20 +21,12 @@ public class UIManager : MonoBehaviour
 
     void Awake()
     {
-        originalScale = refToEnergyBar.localScale;
+    
         score = 0;
     }
     void Update()
     {
-        if (playerEnergy == null || refToEnergyBar == null)
-            return;
 
-        float t = Mathf.Clamp01(playerEnergy.NormalizedEnergy);
-        refToEnergyBar.localScale = new Vector3(
-            EnergyBarFullSize * t,
-            originalScale.y,
-            originalScale.z
-        );
 
         //if (timeText != null)
         //{

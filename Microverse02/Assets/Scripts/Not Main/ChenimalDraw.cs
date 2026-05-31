@@ -8,16 +8,16 @@ public class ChenimalDraw : MonoBehaviour
     [Header("Refs")]
     [SerializeField] OceanFieldManager oceanFieldManager;
     [SerializeField] Camera cam;
-    [SerializeField] PlayerEnergy playerEnergy;
+    //[SerializeField] PlayerEnergy playerEnergy;
 
     [Header("Draw")]
     [SerializeField] float drawStrengthMultiplier = 1f;
     [SerializeField] float stepSpacing = 0.35f;
 
-    [Header("Energy")]
-    float drawCostPerSecond = 3f;//5
-    float recoverPerSecond = 3f;//5
-    float recoverDelay = 0.04f;
+    //[Header("Energy")]
+    //float drawCostPerSecond = 3f;//5
+    //float recoverPerSecond = 3f;//5
+    //float recoverDelay = 0.04f;
 
     [Header("Cursor")]
     [SerializeField] float cursorSize = 40f; 
@@ -52,7 +52,7 @@ public class ChenimalDraw : MonoBehaviour
 
     void Update()
     {
-        if (oceanFieldManager == null || cam == null || playerEnergy == null)
+        if (oceanFieldManager == null || cam == null)
             return;
 
         Vector2 mouseWorld = GetMouseWorldPosition();
@@ -67,19 +67,12 @@ public class ChenimalDraw : MonoBehaviour
 
         bool isDrawing = Input.GetMouseButton(0);
 
-        float cost = drawCostPerSecond * Time.deltaTime;
-        float recover = recoverPerSecond * Time.deltaTime;
+        //float cost = drawCostPerSecond * Time.deltaTime;
+        //float recover = recoverPerSecond * Time.deltaTime;
 
         if (isDrawing)
         {
             lastDrawTime = Time.time;
-
-            if (!playerEnergy.TryConsume(cost))
-            {
-                StopSpraySound();
-                wasDrawingLastFrame = false;
-                return;
-            }
 
             if (!wasDrawingLastFrame)
             {
@@ -103,10 +96,8 @@ public class ChenimalDraw : MonoBehaviour
                 float t = i / (float)steps;
                 Vector2 p = Vector2.Lerp(previousWorldPos, mouseWorld, t);
 
-                if (IsWall(p))
-                    continue;
-
-                oceanFieldManager.DepositDraw(p, drawStrengthMultiplier);
+                if (!IsWall(p))
+                    oceanFieldManager.DepositDraw(p, drawStrengthMultiplier);
             }
 
             previousWorldPos = mouseWorld;
@@ -114,10 +105,6 @@ public class ChenimalDraw : MonoBehaviour
         else
         {
             StopSpraySound();
-
-            if (Time.time - lastDrawTime > recoverDelay)
-                playerEnergy.AddEnergy(recover);
-
             wasDrawingLastFrame = false;
         }
     }
