@@ -20,7 +20,7 @@ public class TutorialManager : MonoBehaviour
 
     [Header("Scene / Flow")]
     [SerializeField] string gameplaySceneName = "GamePlay";
-    float stepDelay = 2.5f;
+    float stepDelay = 1.5f;
 
 
     [SerializeField] ScreenFader screenFader;

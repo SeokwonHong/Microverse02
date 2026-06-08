@@ -3478,8 +3478,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 721f54f3a24f4bd478475d5264b316d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerEnergy: {fileID: 1569142233}
-  refToEnergyBar: {fileID: 337563947}
   fieldManager: {fileID: 1569142227}
   scoreText: {fileID: 1554665108}
 --- !u!4 &1238159734
@@ -3788,7 +3786,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ver 1.0
+  m_text: ver 1.1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 624c62ef34fa57b4096bb6f83879eda5, type: 2}
   m_sharedMaterial: {fileID: -1426299207939123892, guid: 624c62ef34fa57b4096bb6f83879eda5, type: 2}
