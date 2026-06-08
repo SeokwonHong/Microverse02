@@ -20,7 +20,7 @@ public class TutorialManager : MonoBehaviour
 
     [Header("Scene / Flow")]
     [SerializeField] string gameplaySceneName = "GamePlay";
-    float stepDelay = 1.5f;
+    float stepDelay = 0.5f;
 
 
     [SerializeField] ScreenFader screenFader;
@@ -58,13 +58,7 @@ public class TutorialManager : MonoBehaviour
                 }
                 break;
 
-            case 1:
-                if (Input.GetMouseButtonUp(0) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
-                {
-                    CompleteStep();
-                    //FinishTutorial();
-                }
-                break;
+     
             case 2:
                 if (sardineManager != null && sardineManager.IsAnyPlayerFollowingDraw())
                 {
@@ -98,7 +92,7 @@ public class TutorialManager : MonoBehaviour
                 SetTutorialUI(true, "WELL DONE!");
                 SetMouseUI(false);
                 SetCharacterMood(true);
-                Invoke(nameof(GoToNextStep), 3.3f);
+                Invoke(nameof(GoToNextStep), 2f);
                 break;
 
             case 2:
@@ -117,7 +111,7 @@ public class TutorialManager : MonoBehaviour
                 SetTutorialUI(true, "EXCELLENT!");
                 SetMouseUI(false);
                 SetCharacterMood(true);
-                Invoke(nameof(GoToNextStep), stepDelay);
+                Invoke(nameof(GoToNextStep), 2);
                 return;
             case 4:
                 SetTutorialUI(true, "GUIDE IT TO THE <color=#99FFB2>FOOD</color>!");
@@ -132,7 +126,7 @@ public class TutorialManager : MonoBehaviour
                 SetTutorialUI(true, "WONDERFUL!");
                 SetMouseUI(false);
                 SetCharacterMood(true);
-                Invoke(nameof(GoToNextStep), stepDelay);
+                Invoke(nameof(GoToNextStep), 2);
                 return;
             case 6:
                 SetTutorialUI(true, "SURVIVE AS LONG AS YOU CAN!");

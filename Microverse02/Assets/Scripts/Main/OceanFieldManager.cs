@@ -742,8 +742,8 @@ public class OceanFieldManager : MonoBehaviour
                 float4 playerColor = math.lerp(playerWeakColor, playerStrongColor, pk);
                 float4 enemyColor = math.lerp(enemyWeakColor, enemyStrongColor, ek);
 
-                float playerBrightness = math.lerp(0.5f, 1.5f, pk);
-                float enemyBrightness = math.lerp(0.5f, 1.5f, ek);
+                float playerBrightness = math.lerp(1f, 1.2f, pk);
+                float enemyBrightness = math.lerp(1f, 1.2f, ek);
 
                 playerColor.xyz *= playerBrightness;
                 enemyColor.xyz *= enemyBrightness;
