@@ -162,19 +162,19 @@ public class SardineManager : MonoBehaviour
 
         //for DEBUGGING hmm...
 
-        if (Input.GetKeyDown(KeyCode.Q))
-            {
-                sardineSpeed = 40f;
-            }
-            else if (Input.GetKeyDown(KeyCode.E))
-            {
-                sardineSpeed = 3.6f;
-            }
-            else if (Input.GetKeyDown(KeyCode.N))
-            {
-                int planktonNum = OceanFieldManager.GetTotalPlankton();
-                Debug.Log("Sardines Count: " + sardines.Count + ", Plankton Count: " + planktonNum);
-            }
+        //if (Input.GetKeyDown(KeyCode.Q))
+        //    {
+        //        sardineSpeed = 40f;
+        //    }
+        //    else if (Input.GetKeyDown(KeyCode.E))
+        //    {
+        //        sardineSpeed = 3.6f;
+        //    }
+        //    else if (Input.GetKeyDown(KeyCode.N))
+        //    {
+        //        int planktonNum = OceanFieldManager.GetTotalPlankton();
+        //        Debug.Log("Sardines Count: " + sardines.Count + ", Plankton Count: " + planktonNum);
+        //    }
 
     }
     float GetEnemySpawnInterval(int score)
