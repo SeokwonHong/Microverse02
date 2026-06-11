@@ -7,7 +7,7 @@ public class HighScoreManager : MonoBehaviour
     const string ScoreKeyPrefix = "HighScore_";
     const string SaveVersionKey = "SaveVersion";
 
-    [SerializeField] string currentSaveVersion = "1.1"; // change this every new build
+    string currentSaveVersion = "1.3"; // change this every new build
 
     void Awake()
     {
