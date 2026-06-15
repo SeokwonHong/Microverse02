@@ -181,7 +181,7 @@ public class SardineManager : MonoBehaviour
     {
 
         float difficultyFactor = Mathf.Max(5f, 120f - (score / 23f));
-        return difficultyFactor / 10f;
+        return difficultyFactor / 2f;
     }
 
     void ApplyRectangleBoundary(int i)
@@ -523,8 +523,8 @@ public class SardineManager : MonoBehaviour
       
 
             
-                float t = Mathf.Clamp01(OceanFieldManager.Score / 33000f);
-                float speedMultiplier = Mathf.Lerp(1f, 3.3f, t);
+                float t = Mathf.Clamp01(OceanFieldManager.Score / 50000f);
+                float speedMultiplier = Mathf.Lerp(1f, 4.1f, t);
 
                 speed *= speedMultiplier;
             

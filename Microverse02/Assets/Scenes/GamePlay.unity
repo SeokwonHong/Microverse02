@@ -65036,7 +65036,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSource: {fileID: 1142895996}
-  clickClip: {fileID: 8300000, guid: f898117eca070fe429f13288c66d4bf2, type: 3}
+  clickClip: {fileID: 8300000, guid: d3975f31cb8bef34391cdf481d440362, type: 3}
 --- !u!82 &1142895996
 AudioSource:
   m_ObjectHideFlags: 0
@@ -65153,7 +65153,7 @@ MonoBehaviour:
   highScoreManager: {fileID: 1142896000}
   audioSource: {fileID: 1142895996}
   bgmSource: {fileID: 1654988031}
-  gameOverClip: {fileID: 8300000, guid: 0316d8c4c24152142840e8ea27b12935, type: 3}
+  gameOverClip: {fileID: 8300000, guid: 7e36def8e0d32084ca331229b1048bbd, type: 3}
 --- !u!114 &1142896000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -67359,6 +67359,10 @@ PrefabInstance:
       value: 25000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemyMaxLifetime
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyMinLifetime
       value: 4
       objectReference: {fileID: 0}
@@ -67384,7 +67388,7 @@ PrefabInstance:
       objectReference: {fileID: 1569142227}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyLifetimeScoreMax
-      value: 20000
+      value: 50000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: drawChemicalSpeedBoost

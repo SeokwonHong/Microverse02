@@ -25,7 +25,7 @@ public class ChenimalDraw : MonoBehaviour
     [Header("Audio")]
     [SerializeField] AudioSource audioSource;
     [SerializeField] AudioClip sprayingSound;
-
+    float sprayVolume = 0.7f;
     float lastDrawTime;
     Vector2 previousWorldPos;
     bool wasDrawingLastFrame;
@@ -47,6 +47,7 @@ public class ChenimalDraw : MonoBehaviour
             audioSource.loop = true;
             audioSource.spatialBlend = 0f;
             audioSource.clip = sprayingSound;
+            audioSource.volume = sprayVolume;
         }
     }
 

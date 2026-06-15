@@ -1138,7 +1138,7 @@ RectTransform:
   m_GameObject: {fileID: 384432510}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.87, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2007501424}
@@ -1146,7 +1146,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -69.7}
+  m_AnchoredPosition: {x: 0, y: -72.9}
   m_SizeDelta: {x: 226.1144, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &384432512
@@ -1178,8 +1178,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4292138196
-  m_fontColor: {r: 0.8301887, g: 0.8301887, b: 0.8301887, a: 1}
+    rgba: 4291151301
+  m_fontColor: {r: 0.7735849, g: 0.7735849, b: 0.7735849, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2664,7 +2664,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   audioSource: {fileID: 804199131}
-  clickClip: {fileID: 8300000, guid: f898117eca070fe429f13288c66d4bf2, type: 3}
+  clickClip: {fileID: 8300000, guid: d3975f31cb8bef34391cdf481d440362, type: 3}
 --- !u!82 &804199131
 AudioSource:
   m_ObjectHideFlags: 0
@@ -3824,7 +3824,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: ver 1.3
+  m_text: ver 1.4
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 624c62ef34fa57b4096bb6f83879eda5, type: 2}
   m_sharedMaterial: {fileID: -1426299207939123892, guid: 624c62ef34fa57b4096bb6f83879eda5, type: 2}
@@ -4247,8 +4247,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 0.08235294, b: 0, a: 1}
+    rgba: 4278195711
+  m_fontColor: {r: 1, g: 0.19215687, b: 0.11764706, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4328,7 +4328,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   text: {fileID: 1458102727}
-  normalColor: {r: 1, g: 0.08235294, b: 0, a: 1}
+  normalColor: {r: 1, g: 0.19056602, b: 0.11792451, a: 1}
   hoverColor: {r: 0.6698113, g: 0.055160932, b: 0, a: 1}
   isCredit: 1
 --- !u!1 &1462328410
@@ -4795,7 +4795,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '----- Font-----
+  m_text: '----- Font -----
 
 '
   m_isRightToLeft: 0
@@ -5489,8 +5489,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4287072135
-  m_fontColor: {r: 0.745283, g: 0.745283, b: 0.745283, a: 1}
+    rgba: 4291611852
+  m_fontColor: {r: 0.8018868, g: 0.8018868, b: 0.8018868, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -5641,7 +5641,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -27.499996}
+  m_AnchoredPosition: {x: 0, y: -22.02}
   m_SizeDelta: {x: 274.9369, y: 12.7362}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2007501425
@@ -5675,8 +5675,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4292138196
-  m_fontColor: {r: 0.83137256, g: 0.83137256, b: 0.83137256, a: 1}
+    rgba: 4291151301
+  m_fontColor: {r: 0.77254903, g: 0.77254903, b: 0.77254903, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

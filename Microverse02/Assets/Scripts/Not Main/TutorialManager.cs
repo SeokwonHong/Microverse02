@@ -96,7 +96,7 @@ public class TutorialManager : MonoBehaviour
                 break;
 
             case 2:
-                SetTutorialUI(true, "DRAW ON THE BLUE AGENT!");
+                SetTutorialUI(true, "DRAW ON THE <color=#5EA8CA>BLUE AGENT</color>!"); 
                 SetMouseUI(false);
 
                 if (sardineManager != null)

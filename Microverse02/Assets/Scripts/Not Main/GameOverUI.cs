@@ -56,7 +56,7 @@ public class GameOverUI : MonoBehaviour
 
         if (audioSource != null && gameOverClip != null)
         {
-            audioSource.PlayOneShot(gameOverClip, 1.5f);
+            audioSource.PlayOneShot(gameOverClip, 0.8f);
         }
 
         if (gameEndPanel != null)
