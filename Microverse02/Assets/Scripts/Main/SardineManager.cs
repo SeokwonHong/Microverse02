@@ -40,6 +40,9 @@ public class SardineManager : MonoBehaviour
     [SerializeField]  bool playerSpawnStart;
     [SerializeField] bool enemySpawnStart = true;
     [SerializeField] bool isMainMenu = false;
+
+    //for main menu
+    [SerializeField] float enemySpawnInverval = 2;
     bool playerAteFood;
     public void SetPlayerSpawnStart(bool value)
     {
@@ -119,7 +122,7 @@ public class SardineManager : MonoBehaviour
             {
                 spawnTimer = 0f;
 
-                int amountToSpawn = 1 + (OceanFieldManager.Score / 15000);
+                int amountToSpawn = 1 + ((OceanFieldManager.Score+5000) / 15000);
 
                 for (int j = 0; j < amountToSpawn; j++)
                 {
@@ -180,9 +183,15 @@ public class SardineManager : MonoBehaviour
     float GetEnemySpawnInterval(int score)
     {
 
-        float difficultyFactor = Mathf.Max(5f, 120f - (score / 23f));
-        return difficultyFactor / 2f;
+        float difficultyFactor = Mathf.Max(7f, 80f - (score / 23f));
+        return difficultyFactor / enemySpawnInverval;
     }
+
+    //float GetEnemySpawnInterval(int score)
+    //{
+    //    float difficultyFactor = Mathf.Max(10f, 100f - (score / 444.44f));
+    //    return difficultyFactor / 2f;
+    //}
 
     void ApplyRectangleBoundary(int i)
     {
@@ -524,7 +533,7 @@ public class SardineManager : MonoBehaviour
 
             
                 float t = Mathf.Clamp01(OceanFieldManager.Score / 50000f);
-                float speedMultiplier = Mathf.Lerp(1f, 4.1f, t);
+                float speedMultiplier = Mathf.Lerp(1.2f, 4.1f, t);
 
                 speed *= speedMultiplier;
             

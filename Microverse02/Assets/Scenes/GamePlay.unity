@@ -67231,6 +67231,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1569142227}
     - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: score
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4365823185928857308, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: mapManager
       value: 
       objectReference: {fileID: 1056029286}
@@ -67360,7 +67364,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyMaxLifetime
-      value: 15
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyMinLifetime
@@ -67381,6 +67385,10 @@ PrefabInstance:
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: ReproductionEnergy
       value: 1300
+      objectReference: {fileID: 0}
+    - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
+      propertyPath: enemySpawnInverval
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: SardineFieldManager
