@@ -8,6 +8,6 @@ public class UIButtonSound : MonoBehaviour
     public void PlayClick()
     {
         if (audioSource != null && clickClip != null)
-            audioSource.PlayOneShot(clickClip);
+            audioSource.PlayOneShot(clickClip,1.4f);
     }
 }

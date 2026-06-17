@@ -20,6 +20,6 @@ public class FPSCounter : MonoBehaviour
     void OnGUI()
     {
         float fps = 1.0f / deltaTime;
-        GUI.Label(new Rect(10, 10, 150, 30), $"FPS: {Mathf.Ceil(fps)}", style);
+        GUI.Label(new Rect(10, 10, 150, 30), $"{Mathf.Ceil(fps)}", style);
     }
 }
