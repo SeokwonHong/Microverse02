@@ -65644,7 +65644,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1399898539
 RectTransform:
   m_ObjectHideFlags: 0
@@ -66890,7 +66890,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1556203676
 RectTransform:
   m_ObjectHideFlags: 0
@@ -67181,7 +67181,7 @@ MonoBehaviour:
   planktonManager: {fileID: 259043033}
   tutorialBar: {fileID: 80078085}
   tutorialText: {fileID: 110011289}
-  animatedMouseUI: {fileID: 1556203675}
+  animatedMouseUI: {fileID: 1399898538}
   characterImage: {fileID: 840546305}
   defaultVirusSprite: {fileID: 21300000, guid: dae868f521e606741bdcf958155862df, type: 3}
   happyVirusSprite: {fileID: 21300000, guid: 8723dab3f59d11445813c95e8eb08016, type: 3}
