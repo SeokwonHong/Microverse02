@@ -32,11 +32,18 @@ public class PlanktonManager : MonoBehaviour
     void Update()
     {
         if (oceanFieldManager == null) return;
+
+        if (Input.GetKeyDown(KeyCode.N))
+        {
+            int currentTotal = oceanFieldManager.GetTotalPlankton();
+            Debug.Log("Current plankton total: " + currentTotal);
+        }
+
         if (!spawnOnStart) return;
 
-        int currentTotal = oceanFieldManager.GetTotalPlankton();
+        int currentTotalForSpawn = oceanFieldManager.GetTotalPlankton();
         int targetTotal = startClusterCount * pointsPerCluster;
-        int deficit = targetTotal - currentTotal;
+        int deficit = targetTotal - currentTotalForSpawn;
 
         if (deficit >= pointsPerCluster)
         {

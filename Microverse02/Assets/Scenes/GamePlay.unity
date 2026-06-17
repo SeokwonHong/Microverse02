@@ -64571,7 +64571,7 @@ MonoBehaviour:
   mapManager: {fileID: 1056029286}
   spawnOnStart: 1
   startClusterCount: 15
-  pointsPerCluster: 85
+  pointsPerCluster: 90
   clusterRadius: 6
 --- !u!4 &895805069
 Transform:
@@ -67364,11 +67364,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyMaxLifetime
-      value: 7.2
+      value: 7.6
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyMinLifetime
-      value: 4.5
+      value: 4.8
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: playerSpawnStart
@@ -67396,7 +67396,7 @@ PrefabInstance:
       objectReference: {fileID: 1569142227}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: enemyLifetimeScoreMax
-      value: 40000
+      value: 30000
       objectReference: {fileID: 0}
     - target: {fileID: 8262563032313686678, guid: 6b63f5470f08c944289414c81be6a0fe, type: 3}
       propertyPath: drawChemicalSpeedBoost
