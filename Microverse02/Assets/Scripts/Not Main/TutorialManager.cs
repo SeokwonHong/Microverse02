@@ -25,6 +25,10 @@ public class TutorialManager : MonoBehaviour
 
     [SerializeField] ScreenFader screenFader;
 
+    Vector3 lastMousePos;
+    float drawDistance;
+    float requiredDrawDistance = 285f;
+
 
     int currentStep = 0;
     bool tutorialFinished = false;
@@ -50,15 +54,26 @@ public class TutorialManager : MonoBehaviour
         {
 
             case 0:
-                if (Input.GetMouseButton(0) &&
-                    (Mathf.Abs(Input.GetAxis("Mouse X")) > 1f ||
-                     Mathf.Abs(Input.GetAxis("Mouse Y")) > 1f))
+                if (Input.GetMouseButtonDown(0))
                 {
-                    CompleteStep();
+                    lastMousePos = Input.mousePosition;
+                    drawDistance = 0f;
+                }
+
+                if (Input.GetMouseButton(0))
+                {
+                    Vector3 currentMousePos = Input.mousePosition;
+                    drawDistance += Vector3.Distance(currentMousePos, lastMousePos);
+                    lastMousePos = currentMousePos;
+
+                    if (drawDistance >= requiredDrawDistance)
+                    {
+                        CompleteStep();
+                    }
                 }
                 break;
 
-     
+
             case 2:
                 if (sardineManager != null && sardineManager.IsAnyPlayerFollowingDraw())
                 {
@@ -83,6 +98,7 @@ public class TutorialManager : MonoBehaviour
         switch (currentStep)
         {
             case 0:
+                drawDistance = 0f;
                 SetTutorialUI(true, "DRAW A LINE!");
                 SetMouseUI(true);
                 SetCharacterMood(false);
