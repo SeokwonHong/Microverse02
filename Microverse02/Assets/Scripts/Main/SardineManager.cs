@@ -532,8 +532,8 @@ public class SardineManager : MonoBehaviour
       
 
             
-                float t = Mathf.Clamp01(OceanFieldManager.Score / 50000f);
-                float speedMultiplier = Mathf.Lerp(1.2f, 4.1f, t);
+                float t = Mathf.Clamp01(OceanFieldManager.Score / 40000f);
+                float speedMultiplier = Mathf.Lerp(1.8f, 4.1f, t);
 
                 speed *= speedMultiplier;
             
