@@ -131,12 +131,12 @@ public class TutorialManager : MonoBehaviour
             case 6:
                 SetTutorialUI(true, "GET AS HIGH <color=#99FFB2>SCORE</color> AS YOU CAN!");
                 SetCharacterMood(false);
-                Invoke(nameof(GoToNextStep), 2.3f);
+                Invoke(nameof(GoToNextStep), 2.4f);
                 return;
             case 7:
                 SetTutorialUI(true, "AND AVOID THE <color=#FF544C>RED</color>!");
                 SetCharacterMood(false);
-                Invoke(nameof(GoToNextStep), 2.2f);
+                Invoke(nameof(GoToNextStep), 2.35f);
                 return;
             case 8:
                 SetTutorialUI(true, "GO!");
