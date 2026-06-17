@@ -33,11 +33,11 @@ public class PlanktonManager : MonoBehaviour
     {
         if (oceanFieldManager == null) return;
 
-        if (Input.GetKeyDown(KeyCode.N))
-        {
-            int currentTotal = oceanFieldManager.GetTotalPlankton();
-            Debug.Log("Current plankton total: " + currentTotal);
-        }
+        //if (Input.GetKeyDown(KeyCode.N))
+        //{
+        //    int currentTotal = oceanFieldManager.GetTotalPlankton();
+        //    Debug.Log("Current plankton total: " + currentTotal);
+        //}
 
         if (!spawnOnStart) return;
 

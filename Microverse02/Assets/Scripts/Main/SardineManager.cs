@@ -126,6 +126,9 @@ public class SardineManager : MonoBehaviour
 
                 for (int j = 0; j < amountToSpawn; j++)
                 {
+                    if (GetAliveSardineCount() >= maxSardineCount)
+                        break;
+
                     CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
                 }
             }
@@ -359,8 +362,8 @@ public class SardineManager : MonoBehaviour
 
                 float enemyTrail = OceanFieldManager.SampleEnemyTrailOnly(c.currentPos);
 
-          
-                if (enemyTrail >= OceanFieldManager.trailMaxDeposit*0.5f)
+
+                if (enemyTrail >= OceanFieldManager.trailMaxDeposit * 0.5f)
                 {
                     c.isDead = true;
                     c.currentVelocity = Vector2.zero;
@@ -368,14 +371,15 @@ public class SardineManager : MonoBehaviour
                     sardines[i] = c;
                     deadSardinePool.Add(i);
 
-
-                    if (sardines.Count < maxSardineCount)
+                    for (int j = 0; j < 3; j++)
                     {
+                        if (GetAliveSardineCount() >= maxSardineCount)
+                            break;
 
-                        CreateSardine(c.currentPos, BacteriaData.Team.Enemy); // I think its better to keep it annotation
+                        CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
                     }
-                    CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
-                    continue; 
+
+                    continue;
                 }
 
                 // Player reproduction by eating
@@ -385,7 +389,7 @@ public class SardineManager : MonoBehaviour
                 {
                     playerAteFood = true;
                 }
-                if (atePlankton && playerSpawnStart && sardines.Count < maxSardineCount)
+                if (atePlankton && playerSpawnStart && GetAliveSardineCount() < maxSardineCount)
                 {
                     c.lifeTimer = agentsLastSeconds;
                     CreateSardine(c.currentPos, BacteriaData.Team.Player);
@@ -407,16 +411,15 @@ public class SardineManager : MonoBehaviour
             {
                 c.lifeTimer -= dt;
 
-                if(isMainMenu)
+                if (isMainMenu)
                 {
                     bool atePlankton = OceanFieldManager.EatPlanktonAt(c.currentPos, 1, false);
 
                     if (atePlankton)
                     {
-
                         c.lifeTimer = agentsLastSeconds;
 
-                        if (sardines.Count < maxSardineCount)
+                        if (GetAliveSardineCount() < maxSardineCount)
                         {
                             CreateSardine(c.currentPos, BacteriaData.Team.Enemy);
                         }
@@ -614,5 +617,18 @@ public class SardineManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    int GetAliveSardineCount() //for tutorial
+    {
+        int count = 0;
+
+        for (int i = 0; i < sardines.Count; i++)
+        {
+            if (!sardines[i].isDead)
+                count++;
+        }
+
+        return count;
     }
 }
