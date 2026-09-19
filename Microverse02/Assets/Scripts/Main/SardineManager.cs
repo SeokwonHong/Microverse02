@@ -13,10 +13,9 @@ public class SardineManager : MonoBehaviour
 
     [Header("Enemy")]
     int lastEnemySpawnStep = 0;
-    [SerializeField] float agentsLastSeconds = 10f;
-    [SerializeField] float enemyMinLifetime = 10f;
-    [SerializeField] float enemyMaxLifetime = 25f;
-    [SerializeField] float enemyLifetimeScoreMax = 30000f;
+    [SerializeField] float playerLastSeconds = 10f;
+    [SerializeField] float enemyLastSecond = 4f;
+  
     float spawnTimer = 0f;
 
     [Header("Map generation")]
@@ -116,20 +115,21 @@ public class SardineManager : MonoBehaviour
         if (enemySpawnStart)
         {
             spawnTimer += dt;
-            float currentInterval = GetEnemySpawnInterval(OceanFieldManager.Score);
+
+            int amountToSpawn = 1 + ((OceanFieldManager.Score + 5000) / 15000);
+            float currentInterval =
+                GetEnemySpawnInterval(OceanFieldManager.Score) / amountToSpawn;
 
             if (spawnTimer >= currentInterval)
             {
                 spawnTimer = 0f;
 
-                int amountToSpawn = 1 + ((OceanFieldManager.Score+5000) / 15000);
-
-                for (int j = 0; j < amountToSpawn; j++)
+                if (GetAliveSardineCount() < maxSardineCount)
                 {
-                    if (GetAliveSardineCount() >= maxSardineCount)
-                        break;
-
-                    CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+                    CreateSardine(
+                        GetRandomPositionInMap(),
+                        BacteriaData.Team.Enemy
+                    );
                 }
             }
         }
@@ -271,7 +271,7 @@ public class SardineManager : MonoBehaviour
             c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? GetCurrentEnemyLifetime() : agentsLastSeconds;
+            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? enemyLastSecond : playerLastSeconds;
 
             sardines[idx] = c;
             return;
@@ -288,7 +288,7 @@ public class SardineManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.6f,
             isDead = false,
-            lifeTimer = (team == BacteriaData.Team.Enemy) ? GetCurrentEnemyLifetime() : agentsLastSeconds
+            lifeTimer = (team == BacteriaData.Team.Enemy) ? enemyLastSecond : playerLastSeconds
         };
 
         sardines.Add(clone);
@@ -391,7 +391,7 @@ public class SardineManager : MonoBehaviour
                 }
                 if (atePlankton && playerSpawnStart && GetAliveSardineCount() < maxSardineCount)
                 {
-                    c.lifeTimer = agentsLastSeconds;
+                    c.lifeTimer = playerLastSeconds;
                     CreateSardine(c.currentPos, BacteriaData.Team.Player);
                 }
                 if (c.lifeTimer <= 0f)
@@ -417,7 +417,7 @@ public class SardineManager : MonoBehaviour
 
                     if (atePlankton)
                     {
-                        c.lifeTimer = agentsLastSeconds;
+                        c.lifeTimer = playerLastSeconds;
 
                         if (GetAliveSardineCount() < maxSardineCount)
                         {
@@ -519,8 +519,9 @@ public class SardineManager : MonoBehaviour
 
                 if (c.headingTimer <= 0f)
                 {
-                    c.wanderAngle = Random.Range(-16f, 16f);
-                    c.headingTimer = Random.Range(0.15f, 0.35f);
+                    c.wanderAngle = Random.Range(-20f, 20f);
+                    c.headingTimer = Random.Range(2.15f, 3.35f);
+                    //c.headingTimer = Random.Range(4.15f, 6.35f);
                 }
 
                 desiredDir = Rotate(forward, c.wanderAngle);
@@ -552,11 +553,6 @@ public class SardineManager : MonoBehaviour
 
             sardines[i] = c;
         }
-    }
-    float GetCurrentEnemyLifetime()
-    {
-        float t = Mathf.Clamp01(OceanFieldManager.Score / enemyLifetimeScoreMax);
-        return Mathf.Lerp(enemyMinLifetime, enemyMaxLifetime, t);
     }
 
     public void RemoveCellsInRadius(Vector2 worldPos, float radius)
