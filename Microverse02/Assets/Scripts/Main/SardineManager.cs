@@ -15,7 +15,7 @@ public class SardineManager : MonoBehaviour
     int lastEnemySpawnStep = 0;
     [SerializeField] float agentsLastSeconds = 10f;
     [SerializeField] float enemyMinLifetime = 10f;
-    [SerializeField] float enemyMaxLifetime = 25f;
+    [SerializeField] float enemyMaxLifetime = 10f;
     [SerializeField] float enemyLifetimeScoreMax = 30000f;
     float spawnTimer = 0f;
 
@@ -520,7 +520,7 @@ public class SardineManager : MonoBehaviour
                 if (c.headingTimer <= 0f)
                 {
                     c.wanderAngle = Random.Range(-16f, 16f);
-                    c.headingTimer = Random.Range(0.15f, 0.35f);
+                    c.headingTimer = Random.Range(5f, 6f);
                 }
 
                 desiredDir = Rotate(forward, c.wanderAngle);
