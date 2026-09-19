@@ -378,7 +378,7 @@ public class SardineManager : MonoBehaviour
                     sardines[i] = c;
                     deadSardinePool.Add(i);
 
-                    for (int j = 0; j < 3; j++)
+                    for (int j = 0; j < 1; j++)
                     {
                         if (GetAliveSardineCount() >= maxSardineCount)
                             break;
