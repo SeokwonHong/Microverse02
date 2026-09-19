@@ -13,10 +13,9 @@ public class SardineManager : MonoBehaviour
 
     [Header("Enemy")]
     int lastEnemySpawnStep = 0;
-    [SerializeField] float agentsLastSeconds = 10f;
-    [SerializeField] float enemyMinLifetime = 10f;
-    [SerializeField] float enemyMaxLifetime = 10f;
-    [SerializeField] float enemyLifetimeScoreMax = 30000f;
+    [SerializeField] float playerLastSeconds = 10f;
+    [SerializeField] float enemyLastSeconds = 10f;
+
     float spawnTimer = 0f;
 
     [Header("Map generation")]
@@ -116,20 +115,22 @@ public class SardineManager : MonoBehaviour
         if (enemySpawnStart)
         {
             spawnTimer += dt;
-            float currentInterval = GetEnemySpawnInterval(OceanFieldManager.Score);
+
+            //int amountToSpawn = 1 + ((OceanFieldManager.Score + 5000) / 15000);
+            int amountToSpawn = 1;
+            float currentInterval =
+                GetEnemySpawnInterval(OceanFieldManager.Score) / amountToSpawn;
 
             if (spawnTimer >= currentInterval)
             {
                 spawnTimer = 0f;
 
-                int amountToSpawn = 1 + ((OceanFieldManager.Score+5000) / 15000);
-
-                for (int j = 0; j < amountToSpawn; j++)
+                if (GetAliveSardineCount() < maxSardineCount)
                 {
-                    if (GetAliveSardineCount() >= maxSardineCount)
-                        break;
-
-                    CreateSardine(GetRandomPositionInMap(), BacteriaData.Team.Enemy);
+                    CreateSardine(
+                        GetRandomPositionInMap(),
+                        BacteriaData.Team.Enemy
+                    );
                 }
             }
         }
@@ -183,12 +184,18 @@ public class SardineManager : MonoBehaviour
         //    }
 
     }
+
     float GetEnemySpawnInterval(int score)
     {
-
-        float difficultyFactor = Mathf.Max(7f, 80f - (score / 23f));
-        return difficultyFactor / enemySpawnInverval;
+        float t = Mathf.Clamp01(score / 30000f);
+        float interval = Mathf.Lerp(80f, 7f, t);
+        return interval / enemySpawnInverval;
     }
+    //float GetEnemySpawnInterval(int score)
+    //{
+    //    float difficultyFactor = Mathf.Max(7f, 80f - (score / 37f));
+    //    return difficultyFactor / enemySpawnInverval;
+    //}
 
     //float GetEnemySpawnInterval(int score)
     //{
@@ -271,7 +278,7 @@ public class SardineManager : MonoBehaviour
             c.cellRadius = 0.6f;
             c.headingTimer = 0f;
             c.wanderAngle = 0f;
-            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? GetCurrentEnemyLifetime() : agentsLastSeconds;
+            c.lifeTimer = (team == BacteriaData.Team.Enemy) ? enemyLastSeconds : playerLastSeconds;
 
             sardines[idx] = c;
             return;
@@ -288,7 +295,7 @@ public class SardineManager : MonoBehaviour
             wanderAngle = 0f,
             cellRadius = 0.6f,
             isDead = false,
-            lifeTimer = (team == BacteriaData.Team.Enemy) ? GetCurrentEnemyLifetime() : agentsLastSeconds
+            lifeTimer = (team == BacteriaData.Team.Enemy) ? enemyLastSeconds : playerLastSeconds
         };
 
         sardines.Add(clone);
@@ -391,7 +398,7 @@ public class SardineManager : MonoBehaviour
                 }
                 if (atePlankton && playerSpawnStart && GetAliveSardineCount() < maxSardineCount)
                 {
-                    c.lifeTimer = agentsLastSeconds;
+                    c.lifeTimer = playerLastSeconds;
                     CreateSardine(c.currentPos, BacteriaData.Team.Player);
                 }
                 if (c.lifeTimer <= 0f)
@@ -417,7 +424,7 @@ public class SardineManager : MonoBehaviour
 
                     if (atePlankton)
                     {
-                        c.lifeTimer = agentsLastSeconds;
+                        c.lifeTimer = playerLastSeconds;
 
                         if (GetAliveSardineCount() < maxSardineCount)
                         {
@@ -520,7 +527,7 @@ public class SardineManager : MonoBehaviour
                 if (c.headingTimer <= 0f)
                 {
                     c.wanderAngle = Random.Range(-16f, 16f);
-                    c.headingTimer = Random.Range(5f, 6f);
+                    c.headingTimer = Random.Range(0.1f, 0.12f);
                 }
 
                 desiredDir = Rotate(forward, c.wanderAngle);
@@ -552,11 +559,6 @@ public class SardineManager : MonoBehaviour
 
             sardines[i] = c;
         }
-    }
-    float GetCurrentEnemyLifetime()
-    {
-        float t = Mathf.Clamp01(OceanFieldManager.Score / enemyLifetimeScoreMax);
-        return Mathf.Lerp(enemyMinLifetime, enemyMaxLifetime, t);
     }
 
     public void RemoveCellsInRadius(Vector2 worldPos, float radius)
