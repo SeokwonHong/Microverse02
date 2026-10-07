@@ -1818,7 +1818,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cellManager: {fileID: 1569142224}
-  maxZoom: 200
+  camZ: -10
 --- !u!114 &519420034
 MonoBehaviour:
   m_ObjectHideFlags: 0
