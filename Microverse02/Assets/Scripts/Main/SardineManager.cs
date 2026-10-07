@@ -118,9 +118,7 @@ public class SardineManager : MonoBehaviour
         {
             spawnTimer += dt;
 
-            int amountToSpawn = 1 + ((OceanFieldManager.Score + 5000) / 15000);
-            float currentInterval =
-                GetEnemySpawnInterval(OceanFieldManager.Score) / amountToSpawn;
+            float currentInterval = GetEnemySpawnInterval(OceanFieldManager.Score);
 
             if (spawnTimer >= currentInterval)
             {
@@ -187,9 +185,7 @@ public class SardineManager : MonoBehaviour
     }
     float GetEnemySpawnInterval(int score)
     {
-
-        float difficultyFactor = Mathf.Max(7f, 80f - (score / 23f));
-        return difficultyFactor / enemySpawnInverval;
+        return (80f / enemySpawnInverval) / (1f + score / 1000f);
     }
 
     //float GetEnemySpawnInterval(int score)
