@@ -114,6 +114,13 @@ public class SardineManager : MonoBehaviour
         DepositBacteriaField();
         bool updated = OceanFieldManager.TickField(dt);
 
+
+        if(Input.GetKeyDown(KeyCode.Space))
+        {
+            int currentNum = GetAliveSardineCount();
+
+            Debug.Log(currentNum);
+        }
         if (enemySpawnStart)
         {
             spawnTimer += dt;

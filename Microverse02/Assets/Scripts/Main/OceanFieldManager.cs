@@ -46,7 +46,7 @@ public class OceanFieldManager : MonoBehaviour
     [SerializeField] float trailWeight = 1f;
 
     [Header("Tick")]
-    [SerializeField] float fieldTickInterval = 1f / 50f; // 30 Hz
+    float fieldTickInterval = 1f / 120f; // 30 Hz
 
     [Header("Player Trail Colours")]
     [SerializeField] Color playerWeakColor = new Color(0.4f, 0f, 0f, 0f);
